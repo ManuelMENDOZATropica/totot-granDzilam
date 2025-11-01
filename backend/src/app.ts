@@ -4,6 +4,8 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 import { loadEnv } from './config/env';
 import { healthRouter } from './routes/health.routes';
+import { lotsRouter } from './routes/lots.route';
+import { financeRouter } from './routes/finance.route';
 import { errorHandler } from './middleware/error-handler';
 
 export const createApp = () => {
@@ -17,6 +19,8 @@ export const createApp = () => {
 
   app.use('/api/health', healthRouter);
   app.use('/api/healthz', healthRouter);
+  app.use('/api/lots', lotsRouter);
+  app.use('/api/finance', financeRouter);
 
   app.use(errorHandler);
 

@@ -17,6 +17,8 @@ node_modules/
 
 # Builds
 dist/
+dist-tests/
+**/dist-tests/
 .next/
 coverage/
 
