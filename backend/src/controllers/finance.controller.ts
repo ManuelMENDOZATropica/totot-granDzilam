@@ -22,7 +22,7 @@ export const simulateFinance = (req: Request<unknown, unknown, FinanceRequestBod
     return res.status(400).json({ message: `Los lotes ${notFoundIds.join(', ')} no existen.` });
   }
 
-  const unavailableLots = selectedLots.filter((lot) => lot.estatus !== 'disponible');
+  const unavailableLots = selectedLots.filter((lot) => lot.estado !== 'disponible');
   if (unavailableLots.length > 0) {
     return res
       .status(400)
