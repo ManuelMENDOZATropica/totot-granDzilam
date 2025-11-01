@@ -5,6 +5,7 @@ import { useCotizacion } from '@/hooks/useCotizacion';
 import { MapaLotes } from '@/components/mapa/MapaLotes';
 import { PanelCotizacion } from '@/components/panel/PanelCotizacion';
 import { ImagineSection } from '@/components/home/ImagineSection';
+import { ChatbotWidget } from '@/components/chat/ChatbotWidget';
 import { type ImagineSize, useImagine } from '@/hooks/useImagine';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
@@ -131,6 +132,7 @@ export default function Home() {
           onRetry={handleImagineRetry}
         />
       </main>
+      <ChatbotWidget />
     </>
   );
 }

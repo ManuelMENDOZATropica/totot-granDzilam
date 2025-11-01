@@ -7,13 +7,15 @@ const shortcutPrompts = ['Casa moderna', 'Glamping ecológico', 'Huerto + terraz
 
 const labelForSize = (size: ImagineSize) => {
   switch (size) {
+    case '1024x1536':
+      return 'Vertical 1024×1536';
+    case '1536x1024':
+      return 'Horizontal 1536×1024';
+    case 'auto':
+      return 'Auto (recomendado)';
     case '1024x1024':
-      return '1024 px';
-    case '768x768':
-      return '768 px';
-    case '512x512':
     default:
-      return '512 px';
+      return 'Cuadrado 1024×1024';
   }
 };
 
