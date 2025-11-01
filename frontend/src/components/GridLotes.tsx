@@ -11,7 +11,7 @@ export interface GridLotesProps {
   emptyMessage?: string;
 }
 
-const statusLabel: Record<Lot['estatus'], string> = {
+const statusLabel: Record<Lot['estado'], string> = {
   disponible: 'Disponible',
   vendido: 'Vendido',
   apartado: 'Apartado',
@@ -46,7 +46,7 @@ export const GridLotes = memo(({ lots, selectedIds, onToggle, loading, emptyMess
     >
       {lots.map((lot) => {
         const isSelected = selectedIds.includes(lot.id);
-        const isAvailable = lot.estatus === 'disponible';
+        const isAvailable = lot.estado === 'disponible';
 
         return (
           <button
@@ -72,7 +72,6 @@ export const GridLotes = memo(({ lots, selectedIds, onToggle, loading, emptyMess
           >
             <div className="flex items-center justify-between text-sm font-semibold uppercase tracking-wide text-slate-300">
               <span>{lot.id}</span>
-              <span className="text-xs text-slate-400">{lot.manzana}</span>
             </div>
             <div className="flex flex-col gap-1 text-sm">
               <p className="text-lg font-semibold text-slate-100">{lot.superficieM2} m²</p>
@@ -83,12 +82,12 @@ export const GridLotes = memo(({ lots, selectedIds, onToggle, loading, emptyMess
                 'mt-auto inline-flex items-center justify-center rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wide',
                 isAvailable
                   ? 'bg-emerald-600/20 text-emerald-200'
-                  : lot.estatus === 'apartado'
+                  : lot.estado === 'apartado'
                     ? 'bg-amber-600/20 text-amber-200'
                     : 'bg-rose-600/20 text-rose-200',
               )}
             >
-              {statusLabel[lot.estatus]}
+              {statusLabel[lot.estado]}
             </div>
           </button>
         );
