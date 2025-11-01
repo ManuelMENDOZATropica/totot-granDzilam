@@ -6,6 +6,7 @@ import { loadEnv } from './config/env';
 import { healthRouter } from './routes/health.routes';
 import { lotsRouter } from './routes/lots.route';
 import { financeRouter } from './routes/finance.route';
+import { imagineRouter } from './routes/imagine.route';
 import { errorHandler } from './middleware/error-handler';
 
 export const createApp = () => {
@@ -21,6 +22,7 @@ export const createApp = () => {
   app.use('/api/healthz', healthRouter);
   app.use('/api/lots', lotsRouter);
   app.use('/api/finance', financeRouter);
+  app.use('/api', imagineRouter);
 
   app.use(errorHandler);
 

@@ -6,6 +6,10 @@ const envSchema = z.object({
   MONGO_URI: z.string().url().or(z.string().startsWith('mongodb://')),
   JWT_SECRET: z.string().min(1),
   CORS_ORIGIN: z.string().min(1),
+  OPENAI_API_KEY: z.string().min(1).optional(),
+  USE_MOCK_OPENAI: z
+    .union([z.literal('true'), z.literal('false'), z.literal('1'), z.literal('0')])
+    .optional(),
 });
 
 type Env = z.infer<typeof envSchema>;
