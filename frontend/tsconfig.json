@@ -1,0 +1,21 @@
+{
+  "extends": "../tsconfig.base.json",
+  "compilerOptions": {
+    "jsx": "preserve",
+    "module": "ESNext",
+    "moduleResolution": "Node",
+    "allowJs": true,
+    "noEmit": true,
+    "incremental": true,
+    "baseUrl": "src",
+    "paths": {
+      "@/*": ["*"]
+    }
+  },
+  "include": [
+    "next-env.d.ts",
+    "src/**/*",
+    "next.config.mjs"
+  ],
+  "exclude": ["node_modules"]
+}
