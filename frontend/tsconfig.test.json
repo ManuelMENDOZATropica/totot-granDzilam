@@ -12,6 +12,10 @@
   "include": [
     "src/hooks/useLotsSelection.ts",
     "src/hooks/useLotsSelection.test.ts",
+    "src/hooks/useImagine.ts",
+    "src/hooks/useImagine.test.ts",
+    "src/components/imagine/ImaginePreview.tsx",
+    "src/components/imagine/ImaginePreview.test.tsx",
     "src/lib/format.ts",
     "src/lib/format.test.ts",
     "src/lib/api.ts"
