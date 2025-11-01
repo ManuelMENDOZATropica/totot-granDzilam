@@ -70,6 +70,28 @@ const resolveImageUrl = (data: any): string | null => {
   return null;
 };
 
+export type ImagineServiceErrorCode =
+  | 'INVALID_PROMPT_OR_FORMAT'
+  | 'OPENAI_QUOTA'
+  | 'OPENAI_AUTH'
+  | 'OPENAI_UPSTREAM';
+
+export class OpenAIRequestError extends Error {
+  status?: number;
+  type?: string;
+  code?: string;
+  errorCode: ImagineServiceErrorCode;
+
+  constructor(message: string, options: { status?: number; type?: string; code?: string; errorCode: ImagineServiceErrorCode }) {
+    super(message);
+    this.name = 'OpenAIRequestError';
+    this.status = options.status;
+    this.type = options.type;
+    this.code = options.code;
+    this.errorCode = options.errorCode;
+  }
+}
+
 const requestWithTimeout = async <T>(
   fetchImpl: typeof fetch,
   url: string,
@@ -93,11 +115,67 @@ const requestWithTimeout = async <T>(
 
     if (!response.ok) {
       const errorBody = await response.text();
-      logger.error('OpenAI request failed', { status: response.status, body: errorBody.slice(0, 200) });
-      throw new Error('OPENAI_REQUEST_FAILED');
+      let parsedBody: any;
+      try {
+        parsedBody = JSON.parse(errorBody);
+      } catch (parseError) {
+        parsedBody = null;
+      }
+
+      const messageFromApi = parsedBody?.error?.message ?? parsedBody?.message ?? `OpenAI request failed with status ${response.status}`;
+      const errorType = parsedBody?.error?.type ?? parsedBody?.type;
+      const errorCode = parsedBody?.error?.code ?? parsedBody?.code;
+
+      let imagineErrorCode: ImagineServiceErrorCode = 'OPENAI_UPSTREAM';
+      if (response.status === 400 && errorType === 'invalid_request_error') {
+        imagineErrorCode = 'INVALID_PROMPT_OR_FORMAT';
+      } else if (response.status === 401) {
+        imagineErrorCode = 'OPENAI_AUTH';
+      } else if (response.status === 402 || response.status === 429) {
+        imagineErrorCode = 'OPENAI_QUOTA';
+      }
+
+      logger.error('OpenAI request failed', {
+        status: response.status,
+        message: messageFromApi,
+        type: errorType,
+        code: errorCode,
+      });
+
+      throw new OpenAIRequestError(messageFromApi, {
+        status: response.status,
+        type: errorType,
+        code: errorCode,
+        errorCode: imagineErrorCode,
+      });
     }
 
     return (await response.json()) as T;
+  } catch (error) {
+    if (error instanceof OpenAIRequestError) {
+      throw error;
+    }
+
+    if ((error as Error)?.name === 'AbortError') {
+      const timeoutError = new OpenAIRequestError('Request to OpenAI timed out', {
+        status: 504,
+        type: 'timeout',
+        code: 'timeout',
+        errorCode: 'OPENAI_UPSTREAM',
+      });
+      logger.error('OpenAI request timed out', { status: 504, message: timeoutError.message });
+      throw timeoutError;
+    }
+
+    const networkMessage = (error as Error)?.message ?? 'Failed to reach OpenAI';
+    const networkError = new OpenAIRequestError(networkMessage, {
+      status: 502,
+      type: 'network_error',
+      code: 'network_error',
+      errorCode: 'OPENAI_UPSTREAM',
+    });
+    logger.error('OpenAI request encountered a network error', { status: 502, message: networkMessage });
+    throw networkError;
   } finally {
     clearTimeout(timer);
   }
@@ -160,9 +238,9 @@ export const createImagineService = (deps: ImagineServiceDependencies = {}) => {
             {
               role: 'system',
               content:
-                'Eres un asesor creativo inmobiliario del proyecto Gran Dzilam. Respondes con textos breves inspiradores y un prompt visual en inglés minimalista-realista.',
+                'You are a creative real-estate assistant. Return ONLY valid json (json) with keys: textoInspirador (≤40 words, Spanish) and promptVisual (English, minimal realistic style). No extra text.',
             },
-            { role: 'user', content: payload.prompt },
+            { role: 'user', content: `${payload.prompt}\n\nOutput: json` },
           ],
           temperature: 0.8,
           max_tokens: 220,
@@ -198,7 +276,11 @@ export const createImagineService = (deps: ImagineServiceDependencies = {}) => {
       logger.info('Imagine generation completed', { size, cached: false });
       return result;
     } catch (error) {
-      logger.error('Imagine generation failed', error);
+      const status = typeof (error as { status?: number })?.status === 'number' ? (error as { status?: number }).status : undefined;
+      logger.error('Imagine generation failed', {
+        status,
+        message: (error as Error)?.message ?? 'Unknown error',
+      });
       throw error;
     }
   };
