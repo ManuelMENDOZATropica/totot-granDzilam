@@ -7,13 +7,16 @@
     "emitDeclarationOnly": false,
     "module": "CommonJS",
     "moduleResolution": "Node",
-    "types": ["node"]
+    "types": ["node"],
+    "jsx": "react-jsx"
   },
   "include": [
     "src/hooks/useLotsSelection.ts",
     "src/hooks/useLotsSelection.test.ts",
     "src/hooks/useImagine.ts",
     "src/hooks/useImagine.test.ts",
+    "src/components/home/ImagineSection.tsx",
+    "src/components/home/ImagineSection.test.tsx",
     "src/components/imagine/ImaginePreview.tsx",
     "src/components/imagine/ImaginePreview.test.tsx",
     "src/lib/format.ts",

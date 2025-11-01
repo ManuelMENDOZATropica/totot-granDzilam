@@ -1,8 +1,11 @@
 import Head from 'next/head';
 import { Inter } from 'next/font/google';
+import { FormEvent, useEffect, useRef, useState } from 'react';
 import { useCotizacion } from '@/hooks/useCotizacion';
 import { MapaLotes } from '@/components/mapa/MapaLotes';
 import { PanelCotizacion } from '@/components/panel/PanelCotizacion';
+import { ImagineSection } from '@/components/home/ImagineSection';
+import { type ImagineSize, useImagine } from '@/hooks/useImagine';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
 
@@ -22,6 +25,30 @@ export default function Home() {
     actualizarPorcentaje,
     actualizarMeses,
   } = useCotizacion();
+  const { status, result, error, generate, reset, lastPrompt } = useImagine();
+  const [prompt, setPrompt] = useState('');
+  const [size, setSize] = useState<ImagineSize>('1024x1024');
+  const promptLoaded = useRef(false);
+
+  useEffect(() => {
+    if (!promptLoaded.current && lastPrompt) {
+      setPrompt(lastPrompt);
+      promptLoaded.current = true;
+    }
+  }, [lastPrompt]);
+
+  const handleImagineSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    await generate(prompt, size);
+  };
+
+  const handleImagineShortcut = (value: string) => {
+    setPrompt(value);
+  };
+
+  const handleImagineRetry = () => {
+    reset();
+  };
 
   return (
     <>
@@ -91,6 +118,18 @@ export default function Home() {
             onLimpiar={limpiarSeleccion}
           />
         </div>
+        <ImagineSection
+          prompt={prompt}
+          size={size}
+          status={status}
+          result={result}
+          error={error}
+          onPromptChange={setPrompt}
+          onSizeChange={setSize}
+          onSubmit={handleImagineSubmit}
+          onShortcut={handleImagineShortcut}
+          onRetry={handleImagineRetry}
+        />
       </main>
     </>
   );
