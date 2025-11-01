@@ -1,8 +1,9 @@
 import { loadEnv } from '../config/env';
 import { logger } from '../utils/logger';
 import { buildCacheKey } from '../utils/prompt';
+import { requestOpenAI } from './openai.request';
 
-export type ImagineImageSize = '1024x1024' | '768x768' | '512x512';
+export type ImagineImageSize = '1024x1024' | '1024x1536' | '1536x1024';
 
 export interface ImagineRequestPayload {
   prompt: string;
@@ -29,7 +30,7 @@ interface ImagineServiceDependencies {
 }
 
 const DEFAULT_SIZE: ImagineImageSize = '1024x1024';
-const CACHE_TTL_MS = 5 * 60 * 1000;
+const CACHE_TTL_MS = 10 * 60 * 1000;
 const TEXT_MODEL = 'gpt-4o-mini';
 const IMAGE_MODEL = 'gpt-image-1';
 const CHAT_URL = 'https://api.openai.com/v1/chat/completions';
@@ -70,116 +71,7 @@ const resolveImageUrl = (data: any): string | null => {
   return null;
 };
 
-export type ImagineServiceErrorCode =
-  | 'INVALID_PROMPT_OR_FORMAT'
-  | 'OPENAI_QUOTA'
-  | 'OPENAI_AUTH'
-  | 'OPENAI_UPSTREAM';
-
-export class OpenAIRequestError extends Error {
-  status?: number;
-  type?: string;
-  code?: string;
-  errorCode: ImagineServiceErrorCode;
-
-  constructor(message: string, options: { status?: number; type?: string; code?: string; errorCode: ImagineServiceErrorCode }) {
-    super(message);
-    this.name = 'OpenAIRequestError';
-    this.status = options.status;
-    this.type = options.type;
-    this.code = options.code;
-    this.errorCode = options.errorCode;
-  }
-}
-
-const requestWithTimeout = async <T>(
-  fetchImpl: typeof fetch,
-  url: string,
-  apiKey: string,
-  body: unknown,
-  timeoutMs: number,
-): Promise<T> => {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), timeoutMs);
-
-  try {
-    const response = await fetchImpl(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify(body),
-      signal: controller.signal,
-    });
-
-    if (!response.ok) {
-      const errorBody = await response.text();
-      let parsedBody: any;
-      try {
-        parsedBody = JSON.parse(errorBody);
-      } catch (parseError) {
-        parsedBody = null;
-      }
-
-      const messageFromApi = parsedBody?.error?.message ?? parsedBody?.message ?? `OpenAI request failed with status ${response.status}`;
-      const errorType = parsedBody?.error?.type ?? parsedBody?.type;
-      const errorCode = parsedBody?.error?.code ?? parsedBody?.code;
-
-      let imagineErrorCode: ImagineServiceErrorCode = 'OPENAI_UPSTREAM';
-      if (response.status === 400 && errorType === 'invalid_request_error') {
-        imagineErrorCode = 'INVALID_PROMPT_OR_FORMAT';
-      } else if (response.status === 401) {
-        imagineErrorCode = 'OPENAI_AUTH';
-      } else if (response.status === 402 || response.status === 429) {
-        imagineErrorCode = 'OPENAI_QUOTA';
-      }
-
-      logger.error('OpenAI request failed', {
-        status: response.status,
-        message: messageFromApi,
-        type: errorType,
-        code: errorCode,
-      });
-
-      throw new OpenAIRequestError(messageFromApi, {
-        status: response.status,
-        type: errorType,
-        code: errorCode,
-        errorCode: imagineErrorCode,
-      });
-    }
-
-    return (await response.json()) as T;
-  } catch (error) {
-    if (error instanceof OpenAIRequestError) {
-      throw error;
-    }
-
-    if ((error as Error)?.name === 'AbortError') {
-      const timeoutError = new OpenAIRequestError('Request to OpenAI timed out', {
-        status: 504,
-        type: 'timeout',
-        code: 'timeout',
-        errorCode: 'OPENAI_UPSTREAM',
-      });
-      logger.error('OpenAI request timed out', { status: 504, message: timeoutError.message });
-      throw timeoutError;
-    }
-
-    const networkMessage = (error as Error)?.message ?? 'Failed to reach OpenAI';
-    const networkError = new OpenAIRequestError(networkMessage, {
-      status: 502,
-      type: 'network_error',
-      code: 'network_error',
-      errorCode: 'OPENAI_UPSTREAM',
-    });
-    logger.error('OpenAI request encountered a network error', { status: 502, message: networkMessage });
-    throw networkError;
-  } finally {
-    clearTimeout(timer);
-  }
-};
+export type ImagineServiceErrorCode = 'INVALID_PROMPT_OR_FORMAT' | 'OPENAI_QUOTA' | 'OPENAI_AUTH' | 'OPENAI_UPSTREAM';
 
 export const createImagineService = (deps: ImagineServiceDependencies = {}) => {
   const cache = deps.cache ?? new Map<string, CacheEntry>();
@@ -207,7 +99,7 @@ export const createImagineService = (deps: ImagineServiceDependencies = {}) => {
     const cached = cache.get(cacheKey);
 
     if (cached && cached.expiresAt > currentTime) {
-      logger.info('Imagine cache hit', { size });
+      logger.info('Imagine generation completed', { size, cached: true });
       return cached.value;
     }
 
@@ -220,6 +112,7 @@ export const createImagineService = (deps: ImagineServiceDependencies = {}) => {
         imageUrl: 'https://placehold.co/1024x1024?text=Gran+Dzilam',
       };
       cache.set(cacheKey, { value: mockResult, expiresAt: currentTime + CACHE_TTL_MS });
+      logger.info('Imagine generation completed', { size, cached: false });
       return mockResult;
     }
 
@@ -228,11 +121,12 @@ export const createImagineService = (deps: ImagineServiceDependencies = {}) => {
     }
 
     try {
-      const chatResponse = await requestWithTimeout<any>(
+      const chatResponse = await requestOpenAI<any>({
         fetchImpl,
-        CHAT_URL,
+        url: CHAT_URL,
         apiKey,
-        {
+        timeoutMs: 30000,
+        body: {
           model: TEXT_MODEL,
           messages: [
             {
@@ -244,25 +138,38 @@ export const createImagineService = (deps: ImagineServiceDependencies = {}) => {
           ],
           temperature: 0.8,
           max_tokens: 220,
-          response_format: { type: 'json_object' },
+          response_format: {
+            type: 'json_schema',
+            json_schema: {
+              name: 'gran_dzilam_imagine',
+              schema: {
+                type: 'object',
+                additionalProperties: false,
+                required: ['textoInspirador', 'promptVisual'],
+                properties: {
+                  textoInspirador: { type: 'string', maxLength: 320 },
+                  promptVisual: { type: 'string', maxLength: 600 },
+                },
+              },
+            },
+          },
         },
-        20000,
-      );
+      });
 
       const content = chatResponse?.choices?.[0]?.message?.content ?? '';
       const parsed = parseImagineResponse(content);
 
-      const imageResponse = await requestWithTimeout<any>(
+      const imageResponse = await requestOpenAI<any>({
         fetchImpl,
-        IMAGE_URL,
+        url: IMAGE_URL,
         apiKey,
-        {
+        timeoutMs: 30000,
+        body: {
           model: IMAGE_MODEL,
           prompt: parsed.promptVisual,
           size,
         },
-        25000,
-      );
+      });
 
       const imageUrl = resolveImageUrl(imageResponse);
 

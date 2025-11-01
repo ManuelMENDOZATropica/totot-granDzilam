@@ -33,7 +33,11 @@ test('imagineDesign rejects invalid prompt input', async () => {
   await imagineDesign(req, res);
 
   assert.equal(res.statusCode, 400);
-  assert.deepEqual(res.data, { ok: false, error: 'INVALID_INPUT' });
+  assert.deepEqual(res.data, {
+    ok: false,
+    error: 'INVALID_INPUT',
+    message: 'El prompt debe tener entre 5 y 400 caracteres.',
+  });
 });
 
 test('imagineDesign returns generated content when service succeeds', async (t) => {
@@ -46,7 +50,7 @@ test('imagineDesign returns generated content when service succeeds', async (t) 
   const stub = t.mock.method(imagineService, 'generateImaginedDesign', async () => fakeResult);
 
   const req = {
-    body: { prompt: '   Casa moderna   frente al mar  ', size: '768X768 ' },
+    body: { prompt: '   Casa moderna   frente al mar  ', size: '1024X1536 ' },
   } as unknown as Request;
   const res = createResponse();
 
@@ -58,7 +62,7 @@ test('imagineDesign returns generated content when service succeeds', async (t) 
   const firstCall = stub.mock.calls[0];
   assert.ok(firstCall?.arguments?.[0]);
   assert.equal(firstCall.arguments[0].prompt, 'Casa moderna frente al mar');
-  assert.equal(firstCall.arguments[0].size, '768x768');
+  assert.equal(firstCall.arguments[0].size, '1024x1536');
 });
 
 const createServiceError = (message: string, status: number, errorCode: ImagineServiceErrorCode) =>
@@ -75,7 +79,11 @@ test('imagineDesign maps OpenAI 400 errors to INVALID_PROMPT_OR_FORMAT', async (
   await imagineDesign(req, res);
 
   assert.equal(res.statusCode, 400);
-  assert.deepEqual(res.data, { ok: false, error: 'INVALID_PROMPT_OR_FORMAT' });
+  assert.deepEqual(res.data, {
+    ok: false,
+    error: 'INVALID_PROMPT_OR_FORMAT',
+    message: 'invalid_request_error: missing json',
+  });
 });
 
 test('imagineDesign maps quota errors to OPENAI_QUOTA', async (t) => {
@@ -89,7 +97,7 @@ test('imagineDesign maps quota errors to OPENAI_QUOTA', async (t) => {
   await imagineDesign(req, res);
 
   assert.equal(res.statusCode, 429);
-  assert.deepEqual(res.data, { ok: false, error: 'OPENAI_QUOTA' });
+  assert.deepEqual(res.data, { ok: false, error: 'OPENAI_QUOTA', message: 'quota exceeded' });
 });
 
 test('imagineDesign maps timeout errors to OPENAI_UPSTREAM', async (t) => {
@@ -103,5 +111,5 @@ test('imagineDesign maps timeout errors to OPENAI_UPSTREAM', async (t) => {
   await imagineDesign(req, res);
 
   assert.equal(res.statusCode, 504);
-  assert.deepEqual(res.data, { ok: false, error: 'OPENAI_UPSTREAM' });
+  assert.deepEqual(res.data, { ok: false, error: 'OPENAI_UPSTREAM', message: 'Request timed out' });
 });

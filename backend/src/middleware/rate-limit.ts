@@ -36,7 +36,11 @@ export const createRateLimitMiddleware = (options: RateLimitOptions) => {
     if (entry && entry.expiresAt > now) {
       if (entry.count >= max) {
         logger.warn('Rate limit exceeded', { key });
-        res.status(429).json({ ok: false, error: 'RATE_LIMITED' });
+        res.status(429).json({
+          ok: false,
+          error: 'RATE_LIMITED',
+          message: 'Has superado el límite de 20 solicitudes en 10 minutos.',
+        });
         return;
       }
 

@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { buildApiUrl } from '@/utils/api';
 
 export type ImagineStatus = 'idle' | 'loading' | 'success' | 'error';
 
-export type ImagineSize = '1024x1024' | '768x768' | '512x512';
+export type ImagineSize = '1024x1024' | '1024x1536' | '1536x1024' | 'auto';
 
 export interface ImagineData {
   textoInspirador: string;
@@ -14,16 +15,17 @@ interface ImagineResponse {
   ok: boolean;
   data?: ImagineData;
   error?: string;
+  message?: string;
 }
 
-const buildImagineEndpoint = () => {
-  const base = (process.env.NEXT_PUBLIC_API_URL ?? '').replace(/\/+$/, '');
-  return base ? `${base}/api/imagine` : '/api/imagine';
-};
+const buildImagineEndpoint = () => buildApiUrl('/api/imagine');
 
 const LAST_PROMPT_KEY = 'gran-dzilam-imagine:last-prompt';
 
 const sanitizePrompt = (value: string) => value.replace(/\s+/g, ' ').trim();
+
+const allowedSizes: ImagineSize[] = ['1024x1024', '1024x1536', '1536x1024', 'auto'];
+const allowedSizeSet = new Set<ImagineSize>(allowedSizes);
 
 export const useImagine = () => {
   const [status, setStatus] = useState<ImagineStatus>('idle');
@@ -51,6 +53,8 @@ export const useImagine = () => {
         return { ok: false } as const;
       }
 
+      const safeSize = allowedSizeSet.has(size) ? size : '1024x1024';
+
       if (abortController.current) {
         abortController.current.abort();
       }
@@ -65,7 +69,7 @@ export const useImagine = () => {
         const response = await fetch(endpoint, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ prompt: normalizedPrompt, size }),
+          body: JSON.stringify({ prompt: normalizedPrompt, size: safeSize }),
           signal: controller.signal,
         });
 
@@ -77,7 +81,26 @@ export const useImagine = () => {
         }
 
         if (!response.ok || !payload.ok || !payload.data) {
-          throw new Error(payload.error ?? 'IMAGE_GENERATION_FAILED');
+          const errorCode = payload.error ?? 'IMAGE_GENERATION_FAILED';
+          const apiMessage = payload.message;
+
+          let friendlyMessage = 'No se pudo generar la imagen. Inténtalo de nuevo.';
+
+          if (response.status === 429 && errorCode === 'OPENAI_QUOTA') {
+            friendlyMessage = 'Se alcanzó el límite de uso. Intenta más tarde.';
+          } else if (response.status === 429 && errorCode === 'RATE_LIMITED') {
+            friendlyMessage = 'Has superado el límite de solicitudes. Intenta de nuevo en unos minutos.';
+          } else if ((response.status === 504 || response.status === 502) && errorCode === 'OPENAI_UPSTREAM') {
+            friendlyMessage = 'El servicio tardó demasiado. Intenta nuevamente.';
+          } else if (response.status === 400 && errorCode === 'INVALID_PROMPT_OR_FORMAT') {
+            friendlyMessage = 'No pudimos procesar tu descripción. Ajusta el texto e inténtalo de nuevo.';
+          } else if (!response.ok && apiMessage) {
+            friendlyMessage = apiMessage;
+          }
+
+          setError(friendlyMessage);
+          setStatus('error');
+          return { ok: false } as const;
         }
 
         setResult(payload.data);
@@ -93,7 +116,7 @@ export const useImagine = () => {
         if ((err as Error).name === 'AbortError') {
           return { ok: false } as const;
         }
-        setError('No se pudo generar la imagen. Inténtalo de nuevo.');
+        setError((prev) => prev ?? 'No se pudo generar la imagen. Inténtalo de nuevo.');
         setStatus('error');
         return { ok: false } as const;
       } finally {
@@ -119,6 +142,6 @@ export const useImagine = () => {
   };
 };
 
-export const imagineSizes: ImagineSize[] = ['1024x1024', '768x768', '512x512'];
+export const imagineSizes: ImagineSize[] = allowedSizes;
 
 export const normalizeImaginePrompt = sanitizePrompt;
