@@ -16,7 +16,7 @@ Consulta los README específicos dentro de cada paquete para más detalles.
 La nueva experiencia **Imagine** permite generar un texto inspirador y una imagen conceptual a partir de la descripción de un lote.
 
 - Endpoint backend: `POST /api/imagine`.
-- Página frontend: `/imagine`.
+- Sección frontend: disponible en la página principal (`/`).
 - Tamaño de imagen predeterminado: `1024x1024` (seleccionable también `768x768` y `512x512`).
 
 ### Variables de entorno

@@ -8,7 +8,7 @@
     "start": "next start",
     "lint": "next lint",
     "format": "prettier --write \"src/**/*.{ts,tsx,js,jsx,css}\"",
-    "test": "tsc -p tsconfig.test.json && node --test dist-tests/**/*.test.js"
+    "test": "tsc -p tsconfig.test.json && node --test $(find dist-tests -name '*.test.js' -print)"
   },
   "dependencies": {
     "clsx": "^2.1.0",
