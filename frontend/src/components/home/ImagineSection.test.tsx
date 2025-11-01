@@ -17,7 +17,7 @@ const renderSection = (overrideProps: Partial<ImagineSectionProps>) => {
     size: '1024x1024',
     status: 'idle',
     result: null,
-    error: null,
+    imagineError: null,
     onPromptChange: () => {},
     onSizeChange: () => {},
     onSubmit: (event) => event.preventDefault(),
@@ -30,20 +30,20 @@ const renderSection = (overrideProps: Partial<ImagineSectionProps>) => {
 };
 
 test('ImagineSection renders idle state placeholder', () => {
-  const html = renderSection({ status: 'idle', result: null, error: null });
+  const html = renderSection({ status: 'idle', result: null, imagineError: null });
 
   assert.ok(html.includes('Describe tu idea'));
 });
 
 test('ImagineSection renders loading state', () => {
-  const html = renderSection({ status: 'loading', result: null, error: null });
+  const html = renderSection({ status: 'loading', result: null, imagineError: null });
 
   assert.ok(html.includes('Generando inspiración…'));
   assert.ok(html.includes('Imaginando…'));
 });
 
 test('ImagineSection renders success state', () => {
-  const html = renderSection({ status: 'success', result: baseResult, error: null });
+  const html = renderSection({ status: 'success', result: baseResult, imagineError: null });
 
   assert.ok(html.includes(baseResult.textoInspirador));
   assert.ok(html.includes('Ver prompt usado'));
@@ -51,7 +51,7 @@ test('ImagineSection renders success state', () => {
 });
 
 test('ImagineSection renders error state', () => {
-  const html = renderSection({ status: 'error', result: null, error: 'Algo salió mal' });
+  const html = renderSection({ status: 'error', result: null, imagineError: 'Algo salió mal' });
 
   assert.ok(html.includes('Algo salió mal'));
   assert.ok(html.includes('Generar otra'));

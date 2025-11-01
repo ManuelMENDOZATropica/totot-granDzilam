@@ -22,7 +22,7 @@ export interface ImagineSectionProps {
   size: ImagineSize;
   status: ImagineStatus;
   result: ImagineData | null;
-  error: string | null;
+  imagineError: string | null;
   onPromptChange: (value: string) => void;
   onSizeChange: (value: ImagineSize) => void;
   onSubmit: (event: FormEvent<HTMLFormElement>) => void;
@@ -35,7 +35,7 @@ export const ImagineSection = ({
   size,
   status,
   result,
-  error,
+  imagineError,
   onPromptChange,
   onSizeChange,
   onSubmit,
@@ -113,7 +113,7 @@ export const ImagineSection = ({
             </button>
           </form>
 
-          <ImaginePreview status={status} result={result} error={error} onRetry={onRetry} />
+          <ImaginePreview status={status} result={result} error={imagineError} onRetry={onRetry} />
         </div>
       </div>
     </section>
