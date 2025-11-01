@@ -25,7 +25,7 @@ export default function Home() {
     actualizarPorcentaje,
     actualizarMeses,
   } = useCotizacion();
-  const { status, result, error, generate, reset, lastPrompt } = useImagine();
+  const { status, result, error: imagineError, generate, reset, lastPrompt } = useImagine();
   const [prompt, setPrompt] = useState('');
   const [size, setSize] = useState<ImagineSize>('1024x1024');
   const promptLoaded = useRef(false);
@@ -123,7 +123,7 @@ export default function Home() {
           size={size}
           status={status}
           result={result}
-          error={error}
+          imagineError={imagineError}
           onPromptChange={setPrompt}
           onSizeChange={setSize}
           onSubmit={handleImagineSubmit}
