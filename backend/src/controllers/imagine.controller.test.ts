@@ -1,6 +1,7 @@
 import type { Request, Response } from 'express';
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import type { ImagineServiceErrorCode } from '../services/imagine.service';
 
 process.env.PORT = process.env.PORT ?? '4000';
 process.env.MONGO_URI = process.env.MONGO_URI ?? 'mongodb://localhost:27017/test';
@@ -45,7 +46,7 @@ test('imagineDesign returns generated content when service succeeds', async (t) 
   const stub = t.mock.method(imagineService, 'generateImaginedDesign', async () => fakeResult);
 
   const req = {
-    body: { prompt: '   Casa moderna   frente al mar  ', size: '768x768' },
+    body: { prompt: '   Casa moderna   frente al mar  ', size: '768X768 ' },
   } as unknown as Request;
   const res = createResponse();
 
@@ -60,18 +61,47 @@ test('imagineDesign returns generated content when service succeeds', async (t) 
   assert.equal(firstCall.arguments[0].size, '768x768');
 });
 
-test('imagineDesign returns 502 when the service throws', async (t) => {
+const createServiceError = (message: string, status: number, errorCode: ImagineServiceErrorCode) =>
+  Object.assign(new Error(message), { status, errorCode });
+
+test('imagineDesign maps OpenAI 400 errors to INVALID_PROMPT_OR_FORMAT', async (t) => {
   t.mock.method(imagineService, 'generateImaginedDesign', async () => {
-    throw new Error('openai error');
+    throw createServiceError('invalid_request_error: missing json', 400, 'INVALID_PROMPT_OR_FORMAT');
   });
 
-  const req = {
-    body: { prompt: 'Cabaña minimalista rodeada de selva' },
-  } as unknown as Request;
+  const req = { body: { prompt: 'Residencia con vistas al mar' } } as unknown as Request;
   const res = createResponse();
 
   await imagineDesign(req, res);
 
-  assert.equal(res.statusCode, 502);
-  assert.deepEqual(res.data, { ok: false, error: 'IMAGE_GENERATION_FAILED' });
+  assert.equal(res.statusCode, 400);
+  assert.deepEqual(res.data, { ok: false, error: 'INVALID_PROMPT_OR_FORMAT' });
+});
+
+test('imagineDesign maps quota errors to OPENAI_QUOTA', async (t) => {
+  t.mock.method(imagineService, 'generateImaginedDesign', async () => {
+    throw createServiceError('quota exceeded', 429, 'OPENAI_QUOTA');
+  });
+
+  const req = { body: { prompt: 'Villa ecológica con jardines' } } as unknown as Request;
+  const res = createResponse();
+
+  await imagineDesign(req, res);
+
+  assert.equal(res.statusCode, 429);
+  assert.deepEqual(res.data, { ok: false, error: 'OPENAI_QUOTA' });
+});
+
+test('imagineDesign maps timeout errors to OPENAI_UPSTREAM', async (t) => {
+  t.mock.method(imagineService, 'generateImaginedDesign', async () => {
+    throw createServiceError('Request timed out', 504, 'OPENAI_UPSTREAM');
+  });
+
+  const req = { body: { prompt: 'Loft bohemio en el centro histórico' } } as unknown as Request;
+  const res = createResponse();
+
+  await imagineDesign(req, res);
+
+  assert.equal(res.statusCode, 504);
+  assert.deepEqual(res.data, { ok: false, error: 'OPENAI_UPSTREAM' });
 });
