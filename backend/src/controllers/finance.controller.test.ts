@@ -18,7 +18,7 @@ const createResponse = () => {
 };
 
 test('simulateFinance validates unavailable lots', () => {
-  const unavailableLot = lotsMock.find((lot) => lot.estatus !== 'disponible');
+  const unavailableLot = lotsMock.find((lot) => lot.estado !== 'disponible');
   const req = {
     body: { lotIds: [unavailableLot?.id ?? ''], porcentajeEnganche: 30, meses: 36 },
   } as unknown as Request;
@@ -31,7 +31,7 @@ test('simulateFinance validates unavailable lots', () => {
 });
 
 test('simulateFinance calculates finance for available lots', () => {
-  const availableLots = lotsMock.filter((lot) => lot.estatus === 'disponible').slice(0, 2);
+  const availableLots = lotsMock.filter((lot) => lot.estado === 'disponible').slice(0, 2);
   const req = {
     body: { lotIds: availableLots.map((lot) => lot.id), porcentajeEnganche: 40, meses: 24 },
   } as unknown as Request;
@@ -45,7 +45,7 @@ test('simulateFinance calculates finance for available lots', () => {
 });
 
 test('simulateFinance rejects invalid months value', () => {
-  const availableLot = lotsMock.find((lot) => lot.estatus === 'disponible');
+  const availableLot = lotsMock.find((lot) => lot.estado === 'disponible');
   const req = {
     body: { lotIds: [availableLot?.id ?? ''], porcentajeEnganche: 30, meses: 0 },
   } as unknown as Request;
