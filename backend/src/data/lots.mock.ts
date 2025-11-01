@@ -1,34 +1,24 @@
-export type LotStatus = 'disponible' | 'vendido' | 'apartado';
+export type LotEstado = 'disponible' | 'vendido' | 'apartado';
 
 export interface Lot {
   id: string;
-  manzana: string;
   superficieM2: number;
   precio: number;
-  estatus: LotStatus;
+  estado: LotEstado;
 }
 
-const statusCycle: LotStatus[] = ['disponible', 'disponible', 'apartado', 'vendido'];
-
-const baseManzanas = ['A', 'B', 'C', 'D', 'E', 'F'];
-
-export const lotsMock: Lot[] = baseManzanas.flatMap((manzana, manzanaIndex) => {
-  const basePrice = 210000 + manzanaIndex * 25000;
-  const baseSurface = 160 + manzanaIndex * 8;
-
-  return Array.from({ length: 12 }, (_, lotIndex) => {
-    const status = statusCycle[(manzanaIndex + lotIndex) % statusCycle.length];
-    const surface = baseSurface + (lotIndex % 5) * 12;
-    const price = basePrice + lotIndex * 18000 + surface * 850;
-
-    return {
-      id: `L${(manzanaIndex + 1).toString().padStart(2, '0')}-${(lotIndex + 1)
-        .toString()
-        .padStart(2, '0')}`,
-      manzana: `M${manzana}`,
-      superficieM2: Math.round(surface),
-      precio: Math.round(price / 100) * 100,
-      estatus: status,
-    } satisfies Lot;
-  });
-});
+export const lotsMock: Lot[] = [
+  { id: 'Lote 1', superficieM2: 200, precio: 350000, estado: 'disponible' },
+  { id: 'Lote 2', superficieM2: 210, precio: 367500, estado: 'disponible' },
+  { id: 'Lote 3', superficieM2: 190, precio: 332500, estado: 'disponible' },
+  { id: 'Lote 4', superficieM2: 220, precio: 385000, estado: 'apartado' },
+  { id: 'Lote 5', superficieM2: 240, precio: 420000, estado: 'disponible' },
+  { id: 'Lote 6', superficieM2: 180, precio: 315000, estado: 'vendido' },
+  { id: 'Lote 7', superficieM2: 205, precio: 358750, estado: 'disponible' },
+  { id: 'Lote 8', superficieM2: 215, precio: 376250, estado: 'disponible' },
+  { id: 'Lote 9', superficieM2: 195, precio: 341250, estado: 'disponible' },
+  { id: 'Lote 10', superficieM2: 225, precio: 393750, estado: 'disponible' },
+  { id: 'Lote 11', superficieM2: 250, precio: 437500, estado: 'disponible' },
+  { id: 'Lote 12', superficieM2: 230, precio: 402500, estado: 'apartado' },
+  { id: 'Lote 13', superficieM2: 210, precio: 367500, estado: 'disponible' },
+];

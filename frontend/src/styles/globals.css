@@ -3,5 +3,9 @@
 @tailwind utilities;
 
 body {
-  @apply bg-slate-900 text-slate-100;
+  @apply bg-white font-sans text-slate-900 antialiased;
+}
+
+* {
+  @apply selection:bg-gran-sky selection:text-slate-900;
 }

@@ -16,7 +16,7 @@ export interface FinanceCalculationResult {
 
 const MIN_ENGANCHE = 10;
 const MAX_ENGANCHE = 80;
-const MIN_MONTHS = 1;
+const MIN_MONTHS = 6;
 const MAX_MONTHS = 60;
 
 export const sanitizePercentage = (value: number) => {
@@ -24,7 +24,7 @@ export const sanitizePercentage = (value: number) => {
     return MIN_ENGANCHE;
   }
 
-  return Math.min(Math.max(value, MIN_ENGANCHE), MAX_ENGANCHE);
+  return Math.min(Math.max(Math.round(value), MIN_ENGANCHE), MAX_ENGANCHE);
 };
 
 export const sanitizeMonths = (value: number) => {
@@ -32,7 +32,7 @@ export const sanitizeMonths = (value: number) => {
     return MIN_MONTHS;
   }
 
-  return Math.min(Math.max(Math.trunc(value), MIN_MONTHS), MAX_MONTHS);
+  return Math.min(Math.max(Math.round(value), MIN_MONTHS), MAX_MONTHS);
 };
 
 export const calculateFinance = ({
