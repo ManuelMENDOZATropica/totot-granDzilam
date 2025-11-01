@@ -9,6 +9,7 @@ const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
 export default function Home() {
   const {
     lotes,
+    lotsMeta,
     loading,
     error,
     selectedIds,
@@ -45,8 +46,12 @@ export default function Home() {
 
             <div className="flex flex-1 flex-col justify-between gap-12 pb-12">
               {loading ? (
-                <div className="flex flex-1 items-center justify-center">
-                  <p className="text-sm text-slate-400">Cargando disponibilidad…</p>
+                <div className="flex flex-1 flex-col items-center justify-center gap-4 text-slate-400">
+                  <div
+                    className="h-12 w-12 animate-spin rounded-full border-4 border-slate-200 border-t-gran-sky"
+                    aria-hidden="true"
+                  />
+                  <p className="text-sm">Cargando disponibilidad…</p>
                 </div>
               ) : error ? (
                 <div className="flex flex-1 flex-col items-center justify-center gap-4 rounded-lg border border-slate-200 p-8 text-center">
@@ -59,8 +64,19 @@ export default function Home() {
                     Reintentar
                   </button>
                 </div>
+              ) : lotes.length === 0 ? (
+                <div className="flex flex-1 flex-col items-center justify-center gap-3 rounded-lg border border-dashed border-slate-200 p-10 text-center">
+                  <p className="text-base font-medium text-slate-600">No hay lotes disponibles</p>
+                  <p className="text-sm text-slate-400">Vuelve más tarde para conocer las nuevas disponibilidades.</p>
+                </div>
               ) : (
-                <MapaLotes lotes={lotes} seleccionados={selectedIds} onToggle={toggleLote} />
+                <div className="flex flex-1 flex-col gap-6">
+                  <div className="flex items-center justify-between text-xs uppercase tracking-[0.35em] text-slate-400">
+                    <span>Disponibles</span>
+                    <span className="text-base font-semibold text-slate-900">{lotsMeta.total}</span>
+                  </div>
+                  <MapaLotes lotes={lotes} seleccionados={selectedIds} onToggle={toggleLote} />
+                </div>
               )}
             </div>
           </section>
