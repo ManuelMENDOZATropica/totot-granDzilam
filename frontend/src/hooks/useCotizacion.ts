@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { obtenerLotes, type LoteDTO } from '@/lib/api';
+import { obtenerLotes, type LoteDTO, type LotsResponse } from '@/lib/api';
 
 export type Lote = LoteDTO;
 
@@ -93,6 +93,11 @@ const calcularTotales = (lotes: Lote[], porcentaje: number, meses: number): Tota
 
 export const useCotizacion = () => {
   const [lotes, setLotes] = useState<Lote[]>([]);
+  const [lotsMeta, setLotsMeta] = useState<Pick<LotsResponse, 'total' | 'page' | 'pageSize'>>({
+    total: 0,
+    page: 1,
+    pageSize: 0,
+  });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedIds, setSelectedIds] = useState<string[]>(() => leerLocalStorage(SELECCION_STORAGE_KEY, []));
@@ -111,14 +116,15 @@ export const useCotizacion = () => {
       try {
         const data = await obtenerLotes(controller.signal);
         if (!cancelled) {
-          setLotes(data);
+          setLotes(data.items);
+          setLotsMeta({ total: data.total, page: data.page, pageSize: data.pageSize });
         }
       } catch (err) {
         if (cancelled || (err instanceof DOMException && err.name === 'AbortError')) {
           return;
         }
         console.error(err);
-        setError('Hubo un problema al obtener los lotes. Intenta nuevamente más tarde.');
+        setError('No se pudo obtener la lista de lotes');
       } finally {
         if (!cancelled) {
           setLoading(false);
@@ -189,6 +195,7 @@ export const useCotizacion = () => {
 
   return {
     lotes,
+    lotsMeta,
     loading,
     error,
     selectedIds,

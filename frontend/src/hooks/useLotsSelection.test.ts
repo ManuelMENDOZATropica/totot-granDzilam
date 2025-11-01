@@ -5,18 +5,16 @@ import type { Lot } from '@/lib/api';
 
 const lotA: Lot = {
   id: 'L01-01',
-  manzana: 'M1',
   superficieM2: 200,
   precio: 250000,
-  estatus: 'disponible',
+  estado: 'disponible',
 };
 
 const lotB: Lot = {
   id: 'L01-02',
-  manzana: 'M1',
   superficieM2: 210,
   precio: 300000,
-  estatus: 'disponible',
+  estado: 'disponible',
 };
 
 const lots: Lot[] = [lotA, lotB];

@@ -10,15 +10,69 @@ export interface LoteDTO {
 
 export type Lot = LoteDTO;
 
-export const obtenerLotes = async (signal?: AbortSignal): Promise<LoteDTO[]> => {
-  const respuesta = await fetch('/api/lots', { signal });
+export interface LotsResponse {
+  items: LoteDTO[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
+
+const sanitizeBaseUrl = (url: string | undefined) => {
+  if (!url) return '';
+  return url.replace(/\/+$/, '');
+};
+
+const buildLotsEndpoint = () => {
+  const base = sanitizeBaseUrl(process.env.NEXT_PUBLIC_API_URL);
+  return base ? `${base}/api/lots` : '/api/lots';
+};
+
+const isValidLot = (value: unknown): value is LoteDTO => {
+  if (!value || typeof value !== 'object') return false;
+  const candidate = value as Record<string, unknown>;
+  return (
+    typeof candidate.id === 'string' &&
+    typeof candidate.superficieM2 === 'number' &&
+    typeof candidate.precio === 'number' &&
+    (candidate.estado === 'disponible' || candidate.estado === 'vendido' || candidate.estado === 'apartado')
+  );
+};
+
+const normalizeLots = (items: unknown[]): LoteDTO[] => {
+  return items.filter(isValidLot);
+};
+
+export const obtenerLotes = async (signal?: AbortSignal): Promise<LotsResponse> => {
+  const respuesta = await fetch(buildLotsEndpoint(), { signal });
 
   if (!respuesta.ok) {
     throw new Error('No se pudo obtener la lista de lotes');
   }
 
-  const data = (await respuesta.json()) as LoteDTO[];
-  return data;
+  const payload = await respuesta.json();
+
+  if (Array.isArray(payload)) {
+    const items = normalizeLots(payload);
+    return {
+      items,
+      total: items.length,
+      page: 1,
+      pageSize: items.length,
+    };
+  }
+
+  if (payload && typeof payload === 'object' && Array.isArray((payload as Record<string, unknown>).items)) {
+    const source = payload as Record<string, unknown>;
+    const items = normalizeLots(source.items as unknown[]);
+    return {
+      items,
+      total: typeof source.total === 'number' ? source.total : items.length,
+      page: typeof source.page === 'number' ? source.page : 1,
+      pageSize: typeof source.pageSize === 'number' ? source.pageSize : items.length,
+    };
+  }
+
+  throw new Error('La respuesta de lotes no tiene el formato esperado');
 };
 
 export interface HealthResponse {
