@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { obtenerLotes, type LoteDTO, type LotsResponse } from '@/lib/api';
+import { fetchFinanceSettings, type FinanceSettingsDTO } from '@/lib/financeSettings';
 
 export type Lote = LoteDTO;
 
@@ -17,27 +18,29 @@ interface ParametrosCotizacionStorage {
 
 const SELECCION_STORAGE_KEY = 'gran-dzilam:seleccion';
 const PARAMETROS_STORAGE_KEY = 'gran-dzilam:parametros';
-const MIN_ENGANCHE = 10;
-const MAX_ENGANCHE = 80;
-const MIN_MESES = 6;
-const MAX_MESES = 60;
-const DEFAULT_ENGANCHE = 30;
-const DEFAULT_MESES = 36;
 
-const sanitizePercentage = (valor: number) => {
-  if (!Number.isFinite(valor)) {
-    return DEFAULT_ENGANCHE;
-  }
-
-  return Math.min(Math.max(Math.round(valor), MIN_ENGANCHE), MAX_ENGANCHE);
+const DEFAULT_SETTINGS: FinanceSettingsDTO = {
+  minEnganche: 10,
+  maxEnganche: 80,
+  defaultEnganche: 30,
+  minMeses: 6,
+  maxMeses: 60,
+  defaultMeses: 36,
+  interes: 0,
 };
 
-const sanitizeMonths = (valor: number) => {
-  if (!Number.isFinite(valor)) {
-    return DEFAULT_MESES;
-  }
+const clamp = (valor: number, minimo: number, maximo: number) => {
+  return Math.min(Math.max(valor, minimo), maximo);
+};
 
-  return Math.min(Math.max(Math.round(valor), MIN_MESES), MAX_MESES);
+const sanitizePercentage = (valor: number, settings: FinanceSettingsDTO) => {
+  const parsed = Number.isFinite(valor) ? Math.round(valor) : settings.defaultEnganche;
+  return clamp(parsed, settings.minEnganche, settings.maxEnganche);
+};
+
+const sanitizeMonths = (valor: number, settings: FinanceSettingsDTO) => {
+  const parsed = Number.isFinite(valor) ? Math.round(valor) : settings.defaultMeses;
+  return clamp(parsed, settings.minMeses, settings.maxMeses);
 };
 
 const leerLocalStorage = <T,>(key: string, fallback: T): T => {
@@ -69,11 +72,16 @@ const escribirLocalStorage = <T,>(key: string, value: T) => {
 
 const leerParametrosIniciales = () =>
   leerLocalStorage<ParametrosCotizacionStorage>(PARAMETROS_STORAGE_KEY, {
-    porcentaje: DEFAULT_ENGANCHE,
-    meses: DEFAULT_MESES,
+    porcentaje: DEFAULT_SETTINGS.defaultEnganche,
+    meses: DEFAULT_SETTINGS.defaultMeses,
   });
 
-const calcularTotales = (lotes: Lote[], porcentaje: number, meses: number): TotalesCotizacion => {
+const calcularTotales = (
+  lotes: Lote[],
+  porcentaje: number,
+  meses: number,
+  settings: FinanceSettingsDTO,
+): TotalesCotizacion => {
   if (!lotes.length) {
     return {
       totalSeleccionado: 0,
@@ -84,9 +92,12 @@ const calcularTotales = (lotes: Lote[], porcentaje: number, meses: number): Tota
   }
 
   const totalSeleccionado = lotes.reduce((acum, lote) => acum + lote.precio, 0);
-  const enganche = Math.round(totalSeleccionado * (porcentaje / 100));
+  const porcentajeSanitizado = sanitizePercentage(porcentaje, settings) / 100;
+  const mesesSanitizados = sanitizeMonths(meses, settings);
+  const enganche = Math.round(totalSeleccionado * porcentajeSanitizado);
   const saldoFinanciar = Math.max(totalSeleccionado - enganche, 0);
-  const mensualidad = meses > 0 ? Math.round(saldoFinanciar / meses) : 0;
+  const interesAdicional = settings.interes > 0 ? Math.round(saldoFinanciar * (settings.interes / 100)) : 0;
+  const mensualidad = mesesSanitizados > 0 ? Math.round((saldoFinanciar + interesAdicional) / mesesSanitizados) : 0;
 
   return { totalSeleccionado, enganche, saldoFinanciar, mensualidad };
 };
@@ -102,9 +113,11 @@ export const useCotizacion = () => {
   const [error, setError] = useState<string | null>(null);
   const [selectedIds, setSelectedIds] = useState<string[]>(() => leerLocalStorage(SELECCION_STORAGE_KEY, []));
   const [porcentajeEnganche, setPorcentajeEnganche] = useState(() =>
-    sanitizePercentage(leerParametrosIniciales().porcentaje),
+    sanitizePercentage(leerParametrosIniciales().porcentaje, DEFAULT_SETTINGS),
   );
-  const [meses, setMeses] = useState(() => sanitizeMonths(leerParametrosIniciales().meses));
+  const [meses, setMeses] = useState(() => sanitizeMonths(leerParametrosIniciales().meses, DEFAULT_SETTINGS));
+  const [financeSettings, setFinanceSettings] = useState<FinanceSettingsDTO>(DEFAULT_SETTINGS);
+  const [loadingSettings, setLoadingSettings] = useState(true);
 
   useEffect(() => {
     let cancelled = false;
@@ -141,6 +154,34 @@ export const useCotizacion = () => {
   }, []);
 
   useEffect(() => {
+    let cancelled = false;
+
+    const loadSettings = async () => {
+      setLoadingSettings(true);
+      try {
+        const settings = await fetchFinanceSettings();
+        if (!cancelled) {
+          setFinanceSettings(settings);
+          setPorcentajeEnganche((prev) => sanitizePercentage(prev, settings));
+          setMeses((prev) => sanitizeMonths(prev, settings));
+        }
+      } catch (error) {
+        console.warn('No se pudo obtener la configuración de financiamiento', error);
+      } finally {
+        if (!cancelled) {
+          setLoadingSettings(false);
+        }
+      }
+    };
+
+    void loadSettings();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
     escribirLocalStorage(SELECCION_STORAGE_KEY, selectedIds);
   }, [selectedIds]);
 
@@ -158,11 +199,10 @@ export const useCotizacion = () => {
       .filter((lote): lote is Lote => Boolean(lote));
   }, [lotes, selectedIds]);
 
-  const totales = useMemo(() => calcularTotales(selectedLots, porcentajeEnganche, meses), [
-    selectedLots,
-    porcentajeEnganche,
-    meses,
-  ]);
+  const totales = useMemo(
+    () => calcularTotales(selectedLots, porcentajeEnganche, meses, financeSettings),
+    [selectedLots, porcentajeEnganche, meses, financeSettings],
+  );
 
   const toggleLote = useCallback(
     (loteId: string) => {
@@ -185,19 +225,27 @@ export const useCotizacion = () => {
     setSelectedIds([]);
   }, []);
 
-  const actualizarPorcentaje = useCallback((valor: number) => {
-    setPorcentajeEnganche(sanitizePercentage(valor));
-  }, []);
+  const actualizarPorcentaje = useCallback(
+    (valor: number) => {
+      setPorcentajeEnganche(sanitizePercentage(valor, financeSettings));
+    },
+    [financeSettings],
+  );
 
-  const actualizarMeses = useCallback((valor: number) => {
-    setMeses(sanitizeMonths(valor));
-  }, []);
+  const actualizarMeses = useCallback(
+    (valor: number) => {
+      setMeses(sanitizeMonths(valor, financeSettings));
+    },
+    [financeSettings],
+  );
 
   return {
     lotes,
     lotsMeta,
     loading,
     error,
+    financeSettings,
+    loadingFinanceSettings: loadingSettings,
     selectedIds,
     selectedLots,
     porcentajeEnganche,

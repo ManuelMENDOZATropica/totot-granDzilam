@@ -8,6 +8,10 @@ import { lotsRouter } from './routes/lots.route';
 import { financeRouter } from './routes/finance.route';
 import { imagineRouter } from './routes/imagine.route';
 import { errorHandler } from './middleware/error-handler';
+import { authRouter } from './routes/auth.route';
+import { financeSettingsRouter } from './routes/finance-settings.route';
+import { adminRouter } from './routes/admin';
+import { requireAuth, requireRole } from './middleware/auth';
 
 export const createApp = () => {
   const { CORS_ORIGIN } = loadEnv();
@@ -20,8 +24,11 @@ export const createApp = () => {
 
   app.use('/api/health', healthRouter);
   app.use('/api/healthz', healthRouter);
+  app.use('/api/auth', authRouter);
   app.use('/api/lots', lotsRouter);
   app.use('/api/finance', financeRouter);
+  app.use('/api/finance-settings', financeSettingsRouter);
+  app.use('/api/admin', requireAuth, requireRole('admin'), adminRouter);
   app.use('/api', imagineRouter);
 
   app.use(errorHandler);

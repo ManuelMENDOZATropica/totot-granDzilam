@@ -3,6 +3,7 @@ export interface FinanceCalculationInput {
   porcentajeEnganche: number;
   meses: number;
   interes?: number;
+  constraints?: FinanceConstraints;
 }
 
 export interface FinanceCalculationResult {
@@ -14,25 +15,34 @@ export interface FinanceCalculationResult {
   mensualidad: number;
 }
 
-const MIN_ENGANCHE = 10;
-const MAX_ENGANCHE = 80;
-const MIN_MONTHS = 6;
-const MAX_MONTHS = 60;
+export interface FinanceConstraints {
+  minEnganche: number;
+  maxEnganche: number;
+  minMeses: number;
+  maxMeses: number;
+}
 
-export const sanitizePercentage = (value: number) => {
-  if (Number.isNaN(value)) {
-    return MIN_ENGANCHE;
-  }
-
-  return Math.min(Math.max(Math.round(value), MIN_ENGANCHE), MAX_ENGANCHE);
+const DEFAULT_CONSTRAINTS: FinanceConstraints = {
+  minEnganche: 10,
+  maxEnganche: 80,
+  minMeses: 6,
+  maxMeses: 60,
 };
 
-export const sanitizeMonths = (value: number) => {
-  if (!Number.isFinite(value)) {
-    return MIN_MONTHS;
-  }
+const clamp = (value: number, min: number, max: number) => {
+  return Math.min(Math.max(value, min), max);
+};
 
-  return Math.min(Math.max(Math.round(value), MIN_MONTHS), MAX_MONTHS);
+export const sanitizePercentage = (value: number, constraints?: FinanceConstraints) => {
+  const limits = constraints ?? DEFAULT_CONSTRAINTS;
+  const parsed = Number.isFinite(value) ? Math.round(value) : limits.minEnganche;
+  return clamp(parsed, limits.minEnganche, limits.maxEnganche);
+};
+
+export const sanitizeMonths = (value: number, constraints?: FinanceConstraints) => {
+  const limits = constraints ?? DEFAULT_CONSTRAINTS;
+  const parsed = Number.isFinite(value) ? Math.round(value) : limits.minMeses;
+  return clamp(parsed, limits.minMeses, limits.maxMeses);
 };
 
 export const calculateFinance = ({
@@ -40,10 +50,11 @@ export const calculateFinance = ({
   porcentajeEnganche,
   meses,
   interes = 0,
+  constraints,
 }: FinanceCalculationInput): FinanceCalculationResult => {
   const total = Math.max(totalSeleccionado, 0);
-  const porcentaje = sanitizePercentage(porcentajeEnganche);
-  const mesesSanitized = sanitizeMonths(meses);
+  const porcentaje = sanitizePercentage(porcentajeEnganche, constraints);
+  const mesesSanitized = sanitizeMonths(meses, constraints);
 
   if (mesesSanitized < 1) {
     throw new Error('El plazo en meses debe ser mayor o igual a 1.');

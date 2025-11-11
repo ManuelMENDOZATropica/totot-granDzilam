@@ -1,3 +1,5 @@
+import { apiFetch } from './http';
+
 export type EstadoLote = 'disponible' | 'vendido' | 'apartado';
 export type LotStatus = EstadoLote;
 
@@ -17,16 +19,6 @@ export interface LotsResponse {
   pageSize: number;
 }
 
-const sanitizeBaseUrl = (url: string | undefined) => {
-  if (!url) return '';
-  return url.replace(/\/+$/, '');
-};
-
-const buildLotsEndpoint = () => {
-  const base = sanitizeBaseUrl(process.env.NEXT_PUBLIC_API_URL);
-  return base ? `${base}/api/lots` : '/api/lots';
-};
-
 const isValidLot = (value: unknown): value is LoteDTO => {
   if (!value || typeof value !== 'object') return false;
   const candidate = value as Record<string, unknown>;
@@ -43,7 +35,7 @@ const normalizeLots = (items: unknown[]): LoteDTO[] => {
 };
 
 export const obtenerLotes = async (signal?: AbortSignal): Promise<LotsResponse> => {
-  const respuesta = await fetch(buildLotsEndpoint(), { signal });
+  const respuesta = await apiFetch('/api/lots', { signal });
 
   if (!respuesta.ok) {
     throw new Error('No se pudo obtener la lista de lotes');

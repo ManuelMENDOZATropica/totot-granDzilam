@@ -20,12 +20,22 @@ const createResponse = () => {
 };
 
 test('listLots normalizes service response into a consistent payload', async () => {
-  mock.method(lotsService, 'fetchLots', async () => lotsMock.slice(0, 12));
+  const sample = lotsMock.slice(0, 12).map((lot, index) => ({
+    id: lot.id,
+    superficieM2: lot.superficieM2,
+    precio: lot.precio,
+    estado: lot.estado,
+    order: index,
+  }));
+
+  mock.method(lotsService, 'fetchLots', async () => sample);
 
   const req = { query: {} } as unknown as Request;
   const res = createResponse();
 
-  await listLots(req, res);
+  await listLots(req, res, () => {
+    throw new Error('next should not be called');
+  });
 
   assert.equal(res.statusCode, 200);
   assert.ok(Array.isArray(res.data.items));
@@ -50,7 +60,9 @@ test('listLots returns empty array structure when service yields no lots', async
   const req = { query: {} } as unknown as Request;
   const res = createResponse();
 
-  await listLots(req, res);
+  await listLots(req, res, () => {
+    throw new Error('next should not be called');
+  });
 
   assert.equal(res.statusCode, 200);
   assert.ok(Array.isArray(res.data.items));
@@ -62,18 +74,20 @@ test('listLots returns empty array structure when service yields no lots', async
   mock.restoreAll();
 });
 
-test('listLots responds with 500 when service throws an error', async () => {
+test('listLots forwards errors to next handler', async () => {
+  const failure = new Error('db offline');
   mock.method(lotsService, 'fetchLots', async () => {
-    throw new Error('db offline');
+    throw failure;
   });
 
   const req = { query: {} } as unknown as Request;
   const res = createResponse();
+  const next = mock.fn();
 
-  await listLots(req, res);
+  await listLots(req, res, next as unknown as (err?: unknown) => void);
 
-  assert.equal(res.statusCode, 500);
-  assert.deepEqual(res.data, { message: 'No se pudo obtener la lista de lotes' });
+  assert.equal(next.mock.calls.length, 1);
+  assert.equal(next.mock.calls[0].arguments[0], failure);
 
   mock.restoreAll();
 });

@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 import { logger } from '../utils/logger';
 import { loadEnv } from './env';
+import { initializeSeedData } from '../seed';
 
 export const connectDatabase = async (): Promise<void> => {
   const { MONGO_URI } = loadEnv();
@@ -8,6 +9,7 @@ export const connectDatabase = async (): Promise<void> => {
   try {
     await mongoose.connect(MONGO_URI);
     logger.info('Connected to MongoDB');
+    await initializeSeedData();
   } catch (error) {
     logger.warn('Failed to connect to MongoDB. Continuing without database connection.', error);
   }
