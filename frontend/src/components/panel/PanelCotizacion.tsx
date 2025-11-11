@@ -1,4 +1,5 @@
 import type { Lote, TotalesCotizacion } from '@/hooks/useCotizacion';
+import type { FinanceSettingsDTO } from '@/lib/financeSettings';
 import { formatearMoneda } from '@/lib/formatoMoneda';
 
 interface PanelCotizacionProps {
@@ -6,6 +7,8 @@ interface PanelCotizacionProps {
   porcentajeEnganche: number;
   meses: number;
   totales: TotalesCotizacion;
+  configuracion: FinanceSettingsDTO;
+  configuracionCargando?: boolean;
   onPorcentajeChange: (valor: number) => void;
   onMesesChange: (valor: number) => void;
   onLimpiar: () => void;
@@ -16,11 +19,14 @@ export const PanelCotizacion = ({
   porcentajeEnganche,
   meses,
   totales,
+  configuracion,
+  configuracionCargando = false,
   onPorcentajeChange,
   onMesesChange,
   onLimpiar,
 }: PanelCotizacionProps) => {
   const totalMetros = lotesSeleccionados.reduce((acum, lote) => acum + lote.superficieM2, 0);
+  const interesActivo = configuracion.interes > 0;
 
   return (
     <aside className="flex w-full flex-col gap-8 border-t border-slate-200 pt-8 lg:max-w-sm lg:border-l lg:border-t-0 lg:pl-10 lg:pt-0">
@@ -56,6 +62,11 @@ export const PanelCotizacion = ({
           <dt className="uppercase tracking-[0.25em] text-slate-400">Mensualidad</dt>
           <dd className="text-xl font-semibold text-slate-900">{formatearMoneda(totales.mensualidad)}</dd>
         </div>
+        {interesActivo ? (
+          <div className="text-xs text-slate-400">
+            Incluye interés del {configuracion.interes}% aplicado al saldo a financiar.
+          </div>
+        ) : null}
       </dl>
 
       <div className="flex flex-col gap-6">
@@ -66,21 +77,23 @@ export const PanelCotizacion = ({
           </span>
           <input
             type="range"
-            min={10}
-            max={80}
+            min={configuracion.minEnganche}
+            max={configuracion.maxEnganche}
             step={1}
             value={porcentajeEnganche}
             onChange={(event) => onPorcentajeChange(Number(event.target.value))}
             className="h-1 w-full appearance-none rounded-full bg-slate-200 accent-slate-900"
+            disabled={configuracionCargando}
           />
           <input
             type="number"
-            min={10}
-            max={80}
+            min={configuracion.minEnganche}
+            max={configuracion.maxEnganche}
             step={1}
             value={porcentajeEnganche}
             onChange={(event) => onPorcentajeChange(Number(event.target.value))}
             className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900"
+            disabled={configuracionCargando}
           />
         </label>
 
@@ -91,21 +104,23 @@ export const PanelCotizacion = ({
           </span>
           <input
             type="range"
-            min={6}
-            max={60}
+            min={configuracion.minMeses}
+            max={configuracion.maxMeses}
             step={1}
             value={meses}
             onChange={(event) => onMesesChange(Number(event.target.value))}
             className="h-1 w-full appearance-none rounded-full bg-slate-200 accent-slate-900"
+            disabled={configuracionCargando}
           />
           <input
             type="number"
-            min={6}
-            max={60}
+            min={configuracion.minMeses}
+            max={configuracion.maxMeses}
             step={1}
             value={meses}
             onChange={(event) => onMesesChange(Number(event.target.value))}
             className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900"
+            disabled={configuracionCargando}
           />
         </label>
       </div>
