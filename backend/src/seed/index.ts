@@ -6,7 +6,7 @@ import { LotModel } from '../models/lot.model';
 import { UserModel } from '../models/user.model';
 import { hashPassword } from '../utils/password';
 
-const ADMIN_EMAIL = 'manu@totot.me';
+const ADMIN_EMAIL = 'manu@totot.mx';
 const ADMIN_NAME = 'Manu';
 
 const getDefaultAdminPassword = () => {
