@@ -120,6 +120,15 @@ export default function Home() {
             sizes="100vw"
             className={`object-cover transition-opacity duration-500 ${fading ? 'opacity-0' : 'opacity-100'}`}
           />
+{/* ACCESO ADMINISTRATIVO */}
+<div className="absolute top-6 right-6 z-30">
+  <a
+    href="/crm"
+    className="rounded-full bg-[#385C7A] px-5 py-2 text-sm font-medium text-white shadow-lg transition hover:bg-[#2d4a63]"
+  >
+    Acceso administrativo
+  </a>
+</div>
 
           {/* Logo superior centrado */}
           <div className="absolute top-8 left-1/2 z-20 -translate-x-1/2">
