@@ -28,7 +28,7 @@ export const HeroLanding = () => {
 
       {/* Flecha inline SVG con animación al presionar */}
       <Link
-        href="#cotizador"
+        href="#macro-terreno"
         aria-label="Ir al cotizador"
         className="
           group
