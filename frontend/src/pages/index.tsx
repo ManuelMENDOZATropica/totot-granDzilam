@@ -24,7 +24,7 @@ const vistas = [
   {
     nombre: 'Punto de fuga',
     src: '/assets/vistas/3.png',
-  }
+  },
 ];
 
 export default function Home() {
@@ -108,7 +108,10 @@ export default function Home() {
         {/* ============================ */}
         {/* SECCIÓN MACRO TERRENO        */}
         {/* ============================ */}
-        <section id="macro-terreno" className="relative isolate min-h-screen overflow-hidden text-white">
+        <section
+          id="macro-terreno"
+          className="relative isolate min-h-screen overflow-hidden text-white"
+        >
           <Image
             src={fondoActual}
             alt="Plano aéreo de Gran Dzilam"
@@ -132,26 +135,25 @@ export default function Home() {
 
           {/* Selector de vistas – escritorio (columna derecha) */}
           <div className="absolute right-4 top-1/2 z-30 hidden -translate-y-1/2 flex-col gap-4 md:flex">
-  {vistas.map((vista, index) => (
-    <button
-      key={vista.nombre}
-      type="button"
-      onClick={() => handleCambioVista(index)}
-      className="group overflow-hidden rounded-xl transition"
-    >
-      <Image
-        src={vista.src}
-        alt={vista.nombre}
-        width={160}
-        height={100}
-        className={`h-[100px] w-[160px] object-cover transition-transform duration-300 ${
-          vistaActiva === index ? 'scale-[1.05]' : 'group-hover:scale-[1.03]'
-        }`}
-      />
-    </button>
-  ))}
-</div>
-
+            {vistas.map((vista, index) => (
+              <button
+                key={vista.nombre}
+                type="button"
+                onClick={() => handleCambioVista(index)}
+                className="group overflow-hidden rounded-xl transition"
+              >
+                <Image
+                  src={vista.src}
+                  alt={vista.nombre}
+                  width={160}
+                  height={100}
+                  className={`h-[100px] w-[160px] object-cover transition-transform duration-300 ${
+                    vistaActiva === index ? 'scale-[1.05]' : 'group-hover:scale-[1.03]'
+                  }`}
+                />
+              </button>
+            ))}
+          </div>
 
           {/* Selector de vistas – móvil (barra inferior centrada) */}
           <div className="absolute inset-x-0 bottom-32 z-30 flex justify-center md:hidden">
@@ -162,7 +164,9 @@ export default function Home() {
                   type="button"
                   onClick={() => handleCambioVista(index)}
                   className={`group overflow-hidden rounded-xl border-2 transition ${
-                    vistaActiva === index ? 'border-slate-900' : 'border-slate-300 hover:border-slate-900'
+                    vistaActiva === index
+                      ? 'border-slate-900'
+                      : 'border-slate-300 hover:border-slate-900'
                   }`}
                 >
                   <Image
@@ -177,65 +181,82 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="relative z-10 mx-auto flex h-full max-w-6xl flex-col justify-between px-4 py-10 sm:px-6 lg:px-8">
-            {/* === PANEL DE IMAGINAR === */}
-            <div className="max-w-xl rounded-3xl bg-white/80 p-6 text-slate-900 shadow-2xl backdrop-blur">
-              <p className="text-xs uppercase tracking-[0.35em] text-slate-500">Gran Dzilam</p>
-              <div className="mt-3 flex items-center gap-3">
-                <h1 className="text-3xl font-semibold leading-tight sm:text-4xl">Imagina tu proyecto ideal</h1>
-                <span className="hidden rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700 sm:inline">
-                  Macro terreno
-                </span>
-              </div>
-              <p className="mt-3 text-sm text-slate-600 sm:text-base">
-                Inspírate con una propuesta de usos o introduce tu propia idea. Luego cotiza el macro terreno con los valores
-                actualizados del cotizador.
-              </p>
+          <div
+            className="
+    absolute 
+    top-[22%] 
+    right-[6%]
 
-              <form onSubmit={handleImagineSubmit} className="mt-6 space-y-3">
-                <label className="flex flex-col gap-2 text-sm text-slate-600">
-                  <span className="text-xs uppercase tracking-[0.3em] text-slate-400">Describe tu proyecto</span>
-                  <input
-                    type="text"
-                    value={prompt}
-                    onChange={(event) => setPrompt(event.target.value)}
-                    placeholder="Escribe aquí tu proyecto"
-                    className="w-full rounded-full border border-slate-200 bg-white/80 px-4 py-3 text-sm text-slate-900 shadow-inner focus:outline-none focus:ring-2 focus:ring-slate-900"
-                  />
-                </label>
+    sm:top-[20%] 
+    sm:right-[8%]
 
-                <div className="flex flex-wrap gap-3 text-sm font-medium text-slate-700">
-                  {['Imaginar proyecto', 'Un hotel ecológico', 'Un jungle gym'].map((idea) => (
-                    <button
-                      key={idea}
-                      type="button"
-                      onClick={() => handleImagineShortcut(idea)}
-                      className="rounded-full border border-slate-200 bg-white/70 px-4 py-2 transition hover:-translate-y-0.5 hover:shadow-md"
-                    >
-                      {idea}
-                    </button>
-                  ))}
+    md:top-[18%] 
+    md:right-[10%]
+
+    lg:top-[17%]
+    lg:right-[12%]
+
+    xl:top-[16%]
+    xl:right-[14%]
+
+    w-full max-w-md
+  "
+          >
+            {' '}
+            {/* === PANEL DE IMAGINAR (COLOR 385C7A) === */}
+            <div className="w-full max-w-md text-center">
+              <h1 className="text-[40px] leading-[1.1] font-semibold text-white drop-shadow-[0_2px_6px_rgba(0,0,0,0.45)]">
+                Imagina tu
+                <br />
+                proyecto ideal
+              </h1>
+
+              <form onSubmit={handleImagineSubmit} className="mt-4 space-y-3 max-w-sm ml-auto">
+                {/* INPUT */}
+                <input
+                  type="text"
+                  value={prompt}
+                  onChange={(event) => setPrompt(event.target.value)}
+                  placeholder="Escribe aquí tu proyecto..."
+                  className="w-full rounded-full bg-white px-5 py-3 text-sm text-slate-900 shadow-lg outline-none placeholder-[#6b85b5] focus:ring-2 focus:ring-white"
+                />
+
+                {/* BOTÓN PRINCIPAL (COLOR 385C7A) */}
+                <button
+                  type="submit"
+                  className="w-full rounded-full bg-[#385C7A] px-5 py-2 text-sm font-semibold text-white shadow-md transition hover:bg-[#2d4a63]"
+                >
+                  Imaginar proyecto
+                </button>
+
+                {/* TEXTO + CHIPS */}
+                <div className="pt-1 text-left">
+                  <p className="text-[12px] text-white/85">
+                    ¿Sin ideas? Inspírate, cualquier cosa es posible:
+                  </p>
+
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {['Un hotel ecológico', 'Un jungle gym', 'Un desarrollo mixto'].map((idea) => (
+                      <button
+                        key={idea}
+                        type="button"
+                        onClick={() => handleImagineShortcut(idea)}
+                        className="rounded-full bg-[#385C7A] px-4 py-1.5 text-[12px] text-white transition hover:bg-[#2d4a63]"
+                      >
+                        {idea}
+                      </button>
+                    ))}
+                  </div>
                 </div>
 
-                <div className="flex flex-wrap gap-4 text-xs uppercase tracking-[0.3em] text-slate-400">
+                {/* ESTADO DEL GENERADOR */}
+                <div className="flex flex-wrap gap-4 text-[11px] uppercase tracking-[0.3em] text-white/70 drop-shadow">
                   <span>{status === 'loading' ? 'Generando idea…' : 'Inspiración lista'}</span>
-                  {imagineError ? <span className="text-rose-500">{imagineError}</span> : null}
-                </div>
-
-                <div className="flex gap-3">
-                  <button
-                    type="submit"
-                    className="rounded-full bg-slate-900 px-5 py-2 text-sm font-semibold text-white shadow-lg transition hover:-translate-y-0.5 hover:bg-slate-800"
-                  >
-                    Imaginar proyecto
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleImagineShortcut('Más inspiración')}
-                    className="rounded-full border border-slate-200 px-5 py-2 text-sm font-semibold text-slate-700 hover:-translate-y-0.5 hover:shadow-md"
-                  >
-                    Más ideas
-                  </button>
+                  {imagineError ? (
+                    <span className="text-rose-300 normal-case tracking-normal">
+                      {imagineError}
+                    </span>
+                  ) : null}
                 </div>
               </form>
             </div>
@@ -326,14 +347,18 @@ export default function Home() {
               ) : lotes.length === 0 ? (
                 <div className="flex min-h-[320px] flex-col items-center justify-center gap-3 rounded-lg border border-dashed border-slate-200 bg-white p-10 text-center">
                   <p className="text-base font-medium text-slate-700">No hay lotes disponibles</p>
-                  <p className="text-sm text-slate-500">Vuelve más tarde para conocer las nuevas disponibilidades.</p>
+                  <p className="text-sm text-slate-500">
+                    Vuelve más tarde para conocer las nuevas disponibilidades.
+                  </p>
                 </div>
               ) : (
                 <div className="flex flex-col gap-4">
                   <div className="flex flex-wrap items-center justify-between gap-3 text-xs uppercase tracking-[0.3em] text-slate-500">
                     <div className="flex items-center gap-2">
                       <span>Disponibles</span>
-                      <span className="text-base font-semibold text-slate-900">{lotsMeta.total}</span>
+                      <span className="text-base font-semibold text-slate-900">
+                        {lotsMeta.total}
+                      </span>
                     </div>
                     <div className="flex items-center gap-2 rounded-full bg-white px-3 py-1 text-[11px] font-semibold text-slate-700 shadow">
                       <span className="h-2.5 w-2.5 rounded-full bg-gran-sky" />
