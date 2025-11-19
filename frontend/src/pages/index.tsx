@@ -1,5 +1,6 @@
 import Head from 'next/head';
 import Image from 'next/image';
+import Link from 'next/link';
 import { Inter } from 'next/font/google';
 import { FormEvent, useEffect, useRef, useState } from 'react';
 import { useCotizacion } from '@/hooks/useCotizacion';
@@ -122,12 +123,12 @@ export default function Home() {
           />
 {/* ACCESO ADMINISTRATIVO */}
 <div className="absolute top-6 right-6 z-30">
-  <a
+  <Link
     href="/crm"
     className="rounded-full bg-[#385C7A] px-5 py-2 text-sm font-medium text-white shadow-lg transition hover:bg-[#2d4a63]"
   >
     Acceso administrativo
-  </a>
+  </Link>
 </div>
 
           {/* Logo superior centrado */}
