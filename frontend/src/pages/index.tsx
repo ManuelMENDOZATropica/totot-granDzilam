@@ -5,6 +5,7 @@ import { useCotizacion } from '@/hooks/useCotizacion';
 import { MapaLotes } from '@/components/mapa/MapaLotes';
 import { PanelCotizacion } from '@/components/panel/PanelCotizacion';
 import { ImagineSection } from '@/components/home/ImagineSection';
+import { HeroLanding } from '@/components/home/HeroLanding';
 import { ChatbotWidget } from '@/components/chat/ChatbotWidget';
 import { type ImagineSize, useImagine } from '@/hooks/useImagine';
 import { HeaderBar } from '@/components/layout/HeaderBar';
@@ -64,7 +65,9 @@ export default function Home() {
         />
       </Head>
       <main className={`${inter.variable} min-h-screen bg-white text-slate-900`}>
-        <div className="mx-auto min-h-screen max-w-6xl px-4 pb-16 pt-8 sm:px-6 lg:px-8">
+        <HeroLanding />
+
+        <div id="cotizador" className="mx-auto min-h-screen max-w-6xl px-4 pb-16 pt-8 sm:px-6 lg:px-8">
           <HeaderBar />
           <div className="flex flex-col gap-12 lg:flex-row lg:gap-14">
             <section className="flex flex-1 flex-col gap-10">
@@ -82,35 +85,35 @@ export default function Home() {
                   <div className="flex flex-1 flex-col items-center justify-center gap-4 text-slate-400">
                     <div
                       className="h-12 w-12 animate-spin rounded-full border-4 border-slate-200 border-t-gran-sky"
-                    aria-hidden="true"
-                  />
-                  <p className="text-sm">Cargando disponibilidad…</p>
-                </div>
-              ) : error ? (
-                <div className="flex flex-1 flex-col items-center justify-center gap-4 rounded-lg border border-slate-200 p-8 text-center">
-                  <p className="text-sm text-slate-500">{error}</p>
-                  <button
-                    type="button"
-                    onClick={() => window.location.reload()}
-                    className="text-sm font-medium text-slate-600 underline-offset-4 hover:text-slate-900"
-                  >
-                    Reintentar
-                  </button>
-                </div>
-              ) : lotes.length === 0 ? (
-                <div className="flex flex-1 flex-col items-center justify-center gap-3 rounded-lg border border-dashed border-slate-200 p-10 text-center">
-                  <p className="text-base font-medium text-slate-600">No hay lotes disponibles</p>
-                  <p className="text-sm text-slate-400">Vuelve más tarde para conocer las nuevas disponibilidades.</p>
-                </div>
-              ) : (
-                <div className="flex flex-1 flex-col gap-6">
-                  <div className="flex items-center justify-between text-xs uppercase tracking-[0.35em] text-slate-400">
-                    <span>Disponibles</span>
-                    <span className="text-base font-semibold text-slate-900">{lotsMeta.total}</span>
+                      aria-hidden="true"
+                    />
+                    <p className="text-sm">Cargando disponibilidad…</p>
                   </div>
-                  <MapaLotes lotes={lotes} seleccionados={selectedIds} onToggle={toggleLote} />
-                </div>
-              )}
+                ) : error ? (
+                  <div className="flex flex-1 flex-col items-center justify-center gap-4 rounded-lg border border-slate-200 p-8 text-center">
+                    <p className="text-sm text-slate-500">{error}</p>
+                    <button
+                      type="button"
+                      onClick={() => window.location.reload()}
+                      className="text-sm font-medium text-slate-600 underline-offset-4 hover:text-slate-900"
+                    >
+                      Reintentar
+                    </button>
+                  </div>
+                ) : lotes.length === 0 ? (
+                  <div className="flex flex-1 flex-col items-center justify-center gap-3 rounded-lg border border-dashed border-slate-200 p-10 text-center">
+                    <p className="text-base font-medium text-slate-600">No hay lotes disponibles</p>
+                    <p className="text-sm text-slate-400">Vuelve más tarde para conocer las nuevas disponibilidades.</p>
+                  </div>
+                ) : (
+                  <div className="flex flex-1 flex-col gap-6">
+                    <div className="flex items-center justify-between text-xs uppercase tracking-[0.35em] text-slate-400">
+                      <span>Disponibles</span>
+                      <span className="text-base font-semibold text-slate-900">{lotsMeta.total}</span>
+                    </div>
+                    <MapaLotes lotes={lotes} seleccionados={selectedIds} onToggle={toggleLote} />
+                  </div>
+                )}
               </div>
             </section>
 
