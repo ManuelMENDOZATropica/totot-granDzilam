@@ -10,6 +10,7 @@ import { ImagineSection } from '@/components/home/ImagineSection';
 import { HeroLanding } from '@/components/home/HeroLanding';
 import { ChatbotWidget } from '@/components/chat/ChatbotWidget';
 import { type ImagineSize, useImagine } from '@/hooks/useImagine';
+import { useAuth } from '@/contexts/AuthContext';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
 
@@ -47,6 +48,7 @@ export default function Home() {
     actualizarMeses,
   } = useCotizacion();
   const { status, result, error: imagineError, generate, reset, lastPrompt } = useImagine();
+  const { user } = useAuth();
   const [prompt, setPrompt] = useState('');
   const [size, setSize] = useState<ImagineSize>('1024x1024');
   const promptLoaded = useRef(false);
@@ -121,15 +123,26 @@ export default function Home() {
             sizes="100vw"
             className={`object-cover transition-opacity duration-500 ${fading ? 'opacity-0' : 'opacity-100'}`}
           />
-{/* ACCESO ADMINISTRATIVO */}
-<div className="absolute top-6 right-6 z-30">
-  <Link
-    href="/crm"
-    className="rounded-full bg-[#385C7A] px-5 py-2 text-sm font-medium text-white shadow-lg transition hover:bg-[#2d4a63]"
-  >
-    Acceso administrativo
-  </Link>
-</div>
+          {/* ACCESO ADMINISTRATIVO */}
+          <div className="absolute top-6 right-6 z-30">
+            {user ? (
+              <Link
+                href="/crm"
+                className="flex flex-col items-start rounded-2xl bg-white/20 px-5 py-3 text-left text-white shadow-lg backdrop-blur transition hover:bg-white/30"
+              >
+                <span className="text-xs font-semibold uppercase tracking-[0.3em] text-white/80">{user.role}</span>
+                <span className="text-base font-semibold">Panel admin</span>
+                <span className="text-sm text-white/90">{user.name}</span>
+              </Link>
+            ) : (
+              <Link
+                href="/crm"
+                className="rounded-full bg-[#385C7A] px-5 py-2 text-sm font-medium text-white shadow-lg transition hover:bg-[#2d4a63]"
+              >
+                Acceso administrativo
+              </Link>
+            )}
+          </div>
 
           {/* Logo superior centrado */}
           <div className="absolute top-8 left-1/2 z-20 -translate-x-1/2">
