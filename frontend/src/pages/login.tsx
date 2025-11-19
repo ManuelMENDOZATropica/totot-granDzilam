@@ -13,7 +13,7 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
-  const next = typeof router.query.next === 'string' ? router.query.next : '/';
+  const next = typeof router.query.next === 'string' ? router.query.next : '/crm';
 
   useEffect(() => {
     if (!isLoading && user) {
