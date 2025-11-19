@@ -65,9 +65,13 @@ export default function Home() {
           content="Selecciona tus lotes y simula la mensualidad en segundos con el cotizador interactivo de Gran Dzilam."
         />
       </Head>
+
       <main className={`${inter.variable} min-h-screen bg-white text-slate-900 scroll-smooth`}>
         <HeroLanding />
 
+        {/* ============================ */}
+        {/* SECCIÓN MACRO TERRENO        */}
+        {/* ============================ */}
         <section id="macro-terreno" className="relative isolate min-h-screen overflow-hidden bg-slate-900 text-white">
           <Image
             src="/assets/Group 9.png"
@@ -80,6 +84,8 @@ export default function Home() {
           <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/70 to-transparent" aria-hidden="true" />
 
           <div className="relative z-10 mx-auto flex h-full max-w-6xl flex-col justify-between px-4 py-10 sm:px-6 lg:px-8">
+
+            {/* === PANEL DE IMAGINAR === */}
             <div className="max-w-xl rounded-3xl bg-white/80 p-6 text-slate-900 shadow-2xl backdrop-blur">
               <p className="text-xs uppercase tracking-[0.35em] text-slate-500">Gran Dzilam</p>
               <div className="mt-3 flex items-center gap-3">
@@ -104,33 +110,36 @@ export default function Home() {
                     className="w-full rounded-full border border-slate-200 bg-white/80 px-4 py-3 text-sm text-slate-900 shadow-inner focus:outline-none focus:ring-2 focus:ring-slate-900"
                   />
                 </label>
+
                 <div className="flex flex-wrap gap-3 text-sm font-medium text-slate-700">
                   {['Imaginar proyecto', 'Un hotel ecológico', 'Un jungle gym'].map((idea) => (
                     <button
                       key={idea}
                       type="button"
                       onClick={() => handleImagineShortcut(idea)}
-                      className="rounded-full border border-slate-200 bg-white/70 px-4 py-2 transition hover:-translate-y-0.5 hover:shadow-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900"
+                      className="rounded-full border border-slate-200 bg-white/70 px-4 py-2 transition hover:-translate-y-0.5 hover:shadow-md"
                     >
                       {idea}
                     </button>
                   ))}
                 </div>
+
                 <div className="flex flex-wrap gap-4 text-xs uppercase tracking-[0.3em] text-slate-400">
                   <span>{status === 'loading' ? 'Generando idea…' : 'Inspiración lista'}</span>
                   {imagineError ? <span className="text-rose-500">{imagineError}</span> : null}
                 </div>
+
                 <div className="flex gap-3">
                   <button
                     type="submit"
-                    className="rounded-full bg-slate-900 px-5 py-2 text-sm font-semibold text-white shadow-lg transition hover:-translate-y-0.5 hover:bg-slate-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+                    className="rounded-full bg-slate-900 px-5 py-2 text-sm font-semibold text-white shadow-lg transition hover:-translate-y-0.5 hover:bg-slate-800"
                   >
                     Imaginar proyecto
                   </button>
                   <button
                     type="button"
                     onClick={() => handleImagineShortcut('Más inspiración')}
-                    className="rounded-full border border-slate-200 px-5 py-2 text-sm font-semibold text-slate-700 transition hover:-translate-y-0.5 hover:shadow-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+                    className="rounded-full border border-slate-200 px-5 py-2 text-sm font-semibold text-slate-700 hover:-translate-y-0.5 hover:shadow-md"
                   >
                     Más ideas
                   </button>
@@ -138,28 +147,37 @@ export default function Home() {
               </form>
             </div>
 
-            <div className="pointer-events-none flex justify-center pb-4 sm:pb-8">
-              <button
-                type="button"
-                onClick={() => setPanelMacroAbierto(true)}
-                className="pointer-events-auto group inline-flex items-center gap-3 rounded-full border border-white/70 bg-white/80 px-6 py-3 text-base font-semibold text-slate-900 shadow-xl backdrop-blur transition hover:-translate-y-0.5 hover:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
-              >
-                <span className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-900 text-white transition group-hover:scale-105">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    strokeWidth="1.5"
-                    stroke="currentColor"
-                    className="h-5 w-5"
-                  >
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-                  </svg>
-                </span>
-                Cotizar macro terreno
-              </button>
-            </div>
           </div>
+
+          {/* ================================ */}
+          {/* BOTÓN INFERIOR TIPO BARRA (NUEVO) */}
+          {/* ================================ */}
+{/* BOTÓN INFERIOR TIPO BARRA */}
+<div className="pointer-events-none absolute bottom-6 left-[150px] right-0 pr-6 lg:bottom-5">
+  <button
+    type="button"
+    onClick={() => setPanelMacroAbierto(true)}
+    className="pointer-events-auto flex w-full items-center rounded-[20px] border border-slate-900/25 bg-white/95 px-8 py-[10px] text-[30px] font-semibold text-slate-900 shadow-2xl backdrop-blur-sm transition hover:-translate-y-0.5 hover:bg-white"
+  >
+    <span className="mr-4 flex h-11 w-11 items-center justify-center rounded-full border border-slate-900/60 bg-white">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        fill="none"
+        viewBox="0 0 24 24"
+        strokeWidth={1.7}
+        stroke="currentColor"
+        className="h-8 w-8"
+      >
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+      </svg>
+    </span>
+    <span>Cotizar macro terreno</span>
+  </button>
+</div>
+
+
+
+
         </section>
 
         <ImagineSection
@@ -175,17 +193,20 @@ export default function Home() {
           onRetry={handleImagineRetry}
         />
       </main>
+
       <ChatbotWidget />
 
+      {/* PANEL DESLIZABLE MACRO TERRENO */}
       <div
-        className={`fixed inset-x-0 bottom-0 z-50 transform transition-transform duration-500 ease-out ${
-          panelMacroAbierto ? 'translate-y-0' : 'translate-y-[calc(100%+2rem)]'
-        }`}
-        role="dialog"
-        aria-modal="true"
-        aria-label="Cotizador macro terreno"
-      >
-        <div className="mx-auto max-w-6xl rounded-t-3xl border border-slate-200 bg-white shadow-2xl">
+  className={`fixed bottom-0 left-[150px] right-0 pr-6 z-50 transform transition-transform duration-500 ease-out ${
+    panelMacroAbierto ? 'translate-y-0' : 'translate-y-[calc(100%+2rem)]'
+  }`}
+  role="dialog"
+  aria-modal="true"
+  aria-label="Cotizador macro terreno"
+>
+  <div className="w-full rounded-t-[20px] border border-slate-200 bg-white shadow-2xl">
+
           <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4">
             <div>
               <p className="text-xs uppercase tracking-[0.3em] text-slate-400">Cotizar</p>
@@ -194,7 +215,7 @@ export default function Home() {
             <button
               type="button"
               onClick={() => setPanelMacroAbierto(false)}
-              className="rounded-full border border-slate-200 px-3 py-1 text-sm font-semibold text-slate-600 transition hover:border-slate-900 hover:text-slate-900"
+              className="rounded-full border border-slate-200 px-3 py-1 text-sm font-semibold text-slate-600 hover:border-slate-900 hover:text-slate-900"
             >
               Cerrar
             </button>
@@ -204,17 +225,13 @@ export default function Home() {
             <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 shadow-inner">
               {loading ? (
                 <div className="flex min-h-[320px] flex-col items-center justify-center gap-4 text-slate-400">
-                  <div className="h-12 w-12 animate-spin rounded-full border-4 border-slate-200 border-t-gran-sky" aria-hidden="true" />
+                  <div className="h-12 w-12 animate-spin rounded-full border-4 border-slate-200 border-t-gran-sky" />
                   <p className="text-sm">Cargando disponibilidad…</p>
                 </div>
               ) : error ? (
                 <div className="flex min-h-[320px] flex-col items-center justify-center gap-4 rounded-lg border border-slate-200 bg-white p-8 text-center">
                   <p className="text-sm text-slate-600">{error}</p>
-                  <button
-                    type="button"
-                    onClick={() => window.location.reload()}
-                    className="text-sm font-medium text-slate-700 underline-offset-4 hover:text-slate-900"
-                  >
+                  <button type="button" onClick={() => window.location.reload()} className="text-sm font-medium text-slate-700 underline">
                     Reintentar
                   </button>
                 </div>
@@ -231,10 +248,11 @@ export default function Home() {
                       <span className="text-base font-semibold text-slate-900">{lotsMeta.total}</span>
                     </div>
                     <div className="flex items-center gap-2 rounded-full bg-white px-3 py-1 text-[11px] font-semibold text-slate-700 shadow">
-                      <span className="h-2.5 w-2.5 rounded-full bg-gran-sky" aria-hidden="true" />
+                      <span className="h-2.5 w-2.5 rounded-full bg-gran-sky" />
                       Selección activa
                     </div>
                   </div>
+
                   <div className="max-h-[60vh] overflow-y-auto pr-1">
                     <MapaLotes lotes={lotes} seleccionados={selectedIds} onToggle={toggleLote} />
                   </div>
