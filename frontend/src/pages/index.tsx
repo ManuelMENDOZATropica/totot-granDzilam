@@ -12,6 +12,21 @@ import { type ImagineSize, useImagine } from '@/hooks/useImagine';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
 
+const vistas = [
+  {
+    nombre: 'Perspectiva 1',
+    src: '/assets/vistas/1.png',
+  },
+  {
+    nombre: 'Vista superior',
+    src: '/assets/vistas/2.png',
+  },
+  {
+    nombre: 'Punto de fuga',
+    src: '/assets/vistas/3.png',
+  }
+];
+
 export default function Home() {
   const {
     lotes,
@@ -36,6 +51,10 @@ export default function Home() {
   const promptLoaded = useRef(false);
   const [panelMacroAbierto, setPanelMacroAbierto] = useState(false);
 
+  const [fondoActual, setFondoActual] = useState('/assets/Group 9.png');
+  const [vistaActiva, setVistaActiva] = useState<number | null>(null);
+  const [fading, setFading] = useState(false);
+
   useEffect(() => {
     if (!promptLoaded.current && lastPrompt) {
       setPrompt(lastPrompt);
@@ -56,6 +75,23 @@ export default function Home() {
     reset();
   };
 
+  const handleCambioVista = (index: number) => {
+    const vista = vistas[index];
+    if (!vista) return;
+    if (vista.src === fondoActual) {
+      setVistaActiva(index);
+      return;
+    }
+
+    setVistaActiva(index);
+    setFading(true);
+
+    setTimeout(() => {
+      setFondoActual(vista.src);
+      setFading(false);
+    }, 200);
+  };
+
   return (
     <>
       <Head>
@@ -72,19 +108,76 @@ export default function Home() {
         {/* ============================ */}
         {/* SECCIÓN MACRO TERRENO        */}
         {/* ============================ */}
-        <section id="macro-terreno" className="relative isolate min-h-screen overflow-hidden bg-slate-900 text-white">
+        <section id="macro-terreno" className="relative isolate min-h-screen overflow-hidden text-white">
           <Image
-            src="/assets/Group 9.png"
+            src={fondoActual}
             alt="Plano aéreo de Gran Dzilam"
             fill
             priority
             sizes="100vw"
-            className="object-cover"
+            className={`object-cover transition-opacity duration-500 ${fading ? 'opacity-0' : 'opacity-100'}`}
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/70 to-transparent" aria-hidden="true" />
+
+          {/* Logo superior centrado */}
+          <div className="absolute top-8 left-1/2 z-20 -translate-x-1/2">
+            <Image
+              src="/assets/GD.png"
+              alt="Logo Gran Dzilam"
+              width={160}
+              height={160}
+              className="object-contain"
+              priority
+            />
+          </div>
+
+          {/* Selector de vistas – escritorio (columna derecha) */}
+          <div className="absolute right-4 top-1/2 z-30 hidden -translate-y-1/2 flex-col gap-4 md:flex">
+  {vistas.map((vista, index) => (
+    <button
+      key={vista.nombre}
+      type="button"
+      onClick={() => handleCambioVista(index)}
+      className="group overflow-hidden rounded-xl transition"
+    >
+      <Image
+        src={vista.src}
+        alt={vista.nombre}
+        width={160}
+        height={100}
+        className={`h-[100px] w-[160px] object-cover transition-transform duration-300 ${
+          vistaActiva === index ? 'scale-[1.05]' : 'group-hover:scale-[1.03]'
+        }`}
+      />
+    </button>
+  ))}
+</div>
+
+
+          {/* Selector de vistas – móvil (barra inferior centrada) */}
+          <div className="absolute inset-x-0 bottom-32 z-30 flex justify-center md:hidden">
+            <div className="flex gap-3 rounded-2xl bg-white/85 p-2 shadow-lg backdrop-blur">
+              {vistas.map((vista, index) => (
+                <button
+                  key={vista.nombre}
+                  type="button"
+                  onClick={() => handleCambioVista(index)}
+                  className={`group overflow-hidden rounded-xl border-2 transition ${
+                    vistaActiva === index ? 'border-slate-900' : 'border-slate-300 hover:border-slate-900'
+                  }`}
+                >
+                  <Image
+                    src={vista.src}
+                    alt={vista.nombre}
+                    width={96}
+                    height={64}
+                    className="h-16 w-24 object-cover transition-transform duration-300 group-hover:scale-105"
+                  />
+                </button>
+              ))}
+            </div>
+          </div>
 
           <div className="relative z-10 mx-auto flex h-full max-w-6xl flex-col justify-between px-4 py-10 sm:px-6 lg:px-8">
-
             {/* === PANEL DE IMAGINAR === */}
             <div className="max-w-xl rounded-3xl bg-white/80 p-6 text-slate-900 shadow-2xl backdrop-blur">
               <p className="text-xs uppercase tracking-[0.35em] text-slate-500">Gran Dzilam</p>
@@ -146,38 +239,30 @@ export default function Home() {
                 </div>
               </form>
             </div>
-
           </div>
 
-          {/* ================================ */}
-          {/* BOTÓN INFERIOR TIPO BARRA (NUEVO) */}
-          {/* ================================ */}
-{/* BOTÓN INFERIOR TIPO BARRA */}
-<div className="pointer-events-none absolute bottom-6 left-[150px] right-0 pr-6 lg:bottom-5">
-  <button
-    type="button"
-    onClick={() => setPanelMacroAbierto(true)}
-    className="pointer-events-auto flex w-full items-center rounded-[20px] border border-slate-900/25 bg-white/95 px-8 py-[10px] text-[30px] font-semibold text-slate-900 shadow-2xl backdrop-blur-sm transition hover:-translate-y-0.5 hover:bg-white"
-  >
-    <span className="mr-4 flex h-11 w-11 items-center justify-center rounded-full border border-slate-900/60 bg-white">
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        fill="none"
-        viewBox="0 0 24 24"
-        strokeWidth={1.7}
-        stroke="currentColor"
-        className="h-8 w-8"
-      >
-        <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-      </svg>
-    </span>
-    <span>Cotizar macro terreno</span>
-  </button>
-</div>
-
-
-
-
+          {/* BOTÓN INFERIOR TIPO BARRA */}
+          <div className="pointer-events-none absolute bottom-6 left-[150px] right-0 pr-6 lg:bottom-5">
+            <button
+              type="button"
+              onClick={() => setPanelMacroAbierto(true)}
+              className="pointer-events-auto flex w-full items-center rounded-[20px] border border-slate-900/25 bg-white/95 px-8 py-[10px] text-[30px] font-semibold text-slate-900 shadow-2xl backdrop-blur-sm transition hover:-translate-y-0.5 hover:bg-white"
+            >
+              <span className="mr-4 flex h-11 w-11 items-center justify-center rounded-full border border-slate-900/60 bg-white">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={1.7}
+                  stroke="currentColor"
+                  className="h-8 w-8"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                </svg>
+              </span>
+              <span>Cotizar macro terreno</span>
+            </button>
+          </div>
         </section>
 
         <ImagineSection
@@ -198,15 +283,14 @@ export default function Home() {
 
       {/* PANEL DESLIZABLE MACRO TERRENO */}
       <div
-  className={`fixed bottom-0 left-[150px] right-0 pr-6 z-50 transform transition-transform duration-500 ease-out ${
-    panelMacroAbierto ? 'translate-y-0' : 'translate-y-[calc(100%+2rem)]'
-  }`}
-  role="dialog"
-  aria-modal="true"
-  aria-label="Cotizador macro terreno"
->
-  <div className="w-full rounded-t-[20px] border border-slate-200 bg-white shadow-2xl">
-
+        className={`fixed bottom-0 left-[150px] right-0 pr-6 z-50 transform transition-transform duration-500 ease-out ${
+          panelMacroAbierto ? 'translate-y-0' : 'translate-y-[calc(100%+2rem)]'
+        }`}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Cotizador macro terreno"
+      >
+        <div className="w-full rounded-t-[20px] border border-slate-200 bg-white">
           <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4">
             <div>
               <p className="text-xs uppercase tracking-[0.3em] text-slate-400">Cotizar</p>
@@ -231,7 +315,11 @@ export default function Home() {
               ) : error ? (
                 <div className="flex min-h-[320px] flex-col items-center justify-center gap-4 rounded-lg border border-slate-200 bg-white p-8 text-center">
                   <p className="text-sm text-slate-600">{error}</p>
-                  <button type="button" onClick={() => window.location.reload()} className="text-sm font-medium text-slate-700 underline">
+                  <button
+                    type="button"
+                    onClick={() => window.location.reload()}
+                    className="text-sm font-medium text-slate-700 underline"
+                  >
                     Reintentar
                   </button>
                 </div>
