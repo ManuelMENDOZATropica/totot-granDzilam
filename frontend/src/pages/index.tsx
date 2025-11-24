@@ -9,6 +9,7 @@ import { HeroLanding } from '@/components/home/HeroLanding';
 import { ChatbotWidget } from '@/components/chat/ChatbotWidget';
 import { type ImagineSize, useImagine } from '@/hooks/useImagine';
 import { useAuth } from '@/contexts/AuthContext';
+import { InfoPanel } from '@/components/info/InfoPanel';
 
 const vistas = [
   { nombre: 'Perspectiva 1', src: '/assets/vistas/1.png' },
@@ -47,6 +48,7 @@ export default function Home() {
   const [fondoActual, setFondoActual] = useState('/assets/Group 9.png');
   const [vistaActiva, setVistaActiva] = useState<number | null>(null);
   const [fading, setFading] = useState(false);
+  const [infoPanelReset, setInfoPanelReset] = useState(0);
 
   useEffect(() => {
     if (!promptLoaded.current && lastPrompt) {
@@ -67,6 +69,7 @@ export default function Home() {
   const handleCambioVista = (index: number) => {
     const vista = vistas[index];
     if (!vista) return;
+    setInfoPanelReset((value) => value + 1);
     if (vista.src === fondoActual) {
       setVistaActiva(index);
       return;
@@ -107,6 +110,8 @@ export default function Home() {
             sizes="100vw"
             className={`object-cover transition-opacity duration-500 ${fading ? 'opacity-0' : 'opacity-100'}`}
           />
+
+          <InfoPanel closeSignal={infoPanelReset} />
           
           {/* ACCESO ADMINISTRATIVO */}
           <div className="absolute top-6 right-6 z-30">
