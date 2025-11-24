@@ -4,6 +4,7 @@ import { ReactNode, useEffect, useMemo, useRef, useState } from 'react';
 interface InfoSection {
   id: string;
   label: string;
+  iconPath: string;
   title: string;
   highlight?: string;
   content: ReactNode;
@@ -22,6 +23,7 @@ export const InfoPanel = ({ closeSignal }: InfoPanelProps) => {
       {
         id: 'sobre',
         label: 'Sobre Gran Dzilam',
+        iconPath: '/assets/iconos/sobre gran dzilam.png',
         title: 'Gran Dzilam',
         highlight: 'Comunidad planeada frente al mar',
         content: (
@@ -45,6 +47,7 @@ export const InfoPanel = ({ closeSignal }: InfoPanelProps) => {
       {
         id: 'ubicacion',
         label: 'Ubicación',
+        iconPath: '/assets/iconos/Ubicación.png',
         title: 'Dzilam de Bravo, Yucatán',
         highlight: 'Conectividad estratégica',
         content: (
@@ -74,6 +77,7 @@ export const InfoPanel = ({ closeSignal }: InfoPanelProps) => {
       {
         id: 'fotos',
         label: 'Fotografías',
+        iconPath: '/assets/iconos/fotografias.png',
         title: 'Galería de inspiración',
         highlight: 'Vistas del master plan',
         content: (
@@ -102,6 +106,7 @@ export const InfoPanel = ({ closeSignal }: InfoPanelProps) => {
       {
         id: 'especificaciones',
         label: 'Especificaciones',
+        iconPath: '/assets/iconos/especificaciones.png',
         title: 'Características del macro-terreno',
         highlight: 'Listo para proyectar',
         content: (
@@ -126,6 +131,7 @@ export const InfoPanel = ({ closeSignal }: InfoPanelProps) => {
       {
         id: 'contacto',
         label: 'Contacto',
+        iconPath: '/assets/iconos/contacto.png',
         title: 'Hablemos de tu proyecto',
         highlight: 'Acompañamiento personalizado',
         content: (
@@ -187,27 +193,36 @@ export const InfoPanel = ({ closeSignal }: InfoPanelProps) => {
 
   return (
     <div className="pointer-events-none absolute inset-0 z-30 flex items-start justify-start px-4 pt-28 sm:px-6 lg:px-12">
-      <div className="flex flex-col gap-2 pointer-events-auto">
+      <div className="flex flex-col gap-4 pointer-events-auto">
         {sections.map((section) => (
           <button
             key={section.id}
             type="button"
             onClick={() => setActiveId((current) => (current === section.id ? null : section.id))}
-            className={`group flex items-center gap-3 rounded-full bg-white/80 px-4 py-2 text-left text-sm font-semibold shadow-lg backdrop-blur transition hover:bg-white ${
-              activeId === section.id ? 'ring-2 ring-[#385C7A]' : 'ring-1 ring-slate-200'
+            // CAMBIOS AQUÍ:
+            // 1. h-14 w-14: Define el tamaño del botón.
+            // 2. p-0: Elimina el relleno interno.
+            // 3. overflow-hidden: Asegura que la imagen no se salga de los bordes redondeados.
+            className={`group relative h-14 w-14 overflow-hidden rounded-full shadow-lg backdrop-blur transition-transform hover:scale-110 hover:shadow-xl ${
+              activeId === section.id ? 'ring-4 ring-[#385C7A]' : 'ring-1 ring-white/50'
             }`}
+            aria-label={section.label}
           >
-            <span className="flex h-10 w-10 items-center justify-center rounded-full bg-white shadow-inner">
-              <Image src="/assets/iconos/GD.png" alt="GD" width={28} height={28} className="h-7 w-7 object-contain" />
-            </span>
-            <span className="pr-2 text-slate-900">{section.label}</span>
+            {/* 4. La imagen ocupa el 100% de alto y ancho con object-cover */}
+            <Image
+              src={section.iconPath}
+              alt={section.label}
+              width={56} // Coincide con w-14 (56px) para optimización
+              height={56}
+              className="h-full w-full object-cover"
+            />
           </button>
         ))}
       </div>
 
       <div
         ref={cardRef}
-        className={`pointer-events-auto ml-4 max-w-2xl flex-1 rounded-2xl bg-white/95 p-6 shadow-2xl transition-all duration-300 backdrop-blur-md ${
+        className={`pointer-events-auto ml-6 max-w-2xl flex-1 rounded-2xl bg-white/95 p-6 shadow-2xl transition-all duration-300 backdrop-blur-md ${
           activeSection ? 'translate-y-0 opacity-100' : 'pointer-events-none -translate-y-2 opacity-0'
         }`}
       >

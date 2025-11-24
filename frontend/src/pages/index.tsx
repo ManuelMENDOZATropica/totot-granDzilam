@@ -12,9 +12,9 @@ import { useAuth } from '@/contexts/AuthContext';
 import { InfoPanel } from '@/components/info/InfoPanel';
 
 const vistas = [
-  { nombre: 'Perspectiva 1', src: '/assets/vistas/1.png' },
-  { nombre: 'Vista superior', src: '/assets/vistas/2.png' },
-  { nombre: 'Punto de fuga', src: '/assets/vistas/3.png' },
+  { nombre: '1', src: '/assets/vistas/1.png' },
+  { nombre: '2', src: '/assets/vistas/2.png' },
+  { nombre: '3', src: '/assets/vistas/3.png' },
 ];
 
 export default function Home() {
@@ -45,7 +45,7 @@ export default function Home() {
   // Estado para abrir/cerrar panel
   const [panelMacroAbierto, setPanelMacroAbierto] = useState(false);
 
-  const [fondoActual, setFondoActual] = useState('/assets/Group 9.png');
+  const [fondoActual, setFondoActual] = useState('/assets/vistas/1.png');
   const [vistaActiva, setVistaActiva] = useState<number | null>(null);
   const [fading, setFading] = useState(false);
   const [infoPanelReset, setInfoPanelReset] = useState(0);
