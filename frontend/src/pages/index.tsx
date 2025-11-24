@@ -1,7 +1,6 @@
 import Head from 'next/head';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Inter } from 'next/font/google';
 import { FormEvent, useEffect, useRef, useState } from 'react';
 import { useCotizacion } from '@/hooks/useCotizacion';
 import { MapaLotes } from '@/components/mapa/MapaLotes';
@@ -10,8 +9,6 @@ import { HeroLanding } from '@/components/home/HeroLanding';
 import { ChatbotWidget } from '@/components/chat/ChatbotWidget';
 import { type ImagineSize, useImagine } from '@/hooks/useImagine';
 import { useAuth } from '@/contexts/AuthContext';
-
-const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
 
 const vistas = [
   { nombre: 'Perspectiva 1', src: '/assets/vistas/1.png' },
@@ -92,7 +89,7 @@ export default function Home() {
         />
       </Head>
 
-      <main className={`${inter.variable} min-h-screen bg-white text-slate-900 scroll-smooth`}>
+      <main className="min-h-screen bg-white text-slate-900 scroll-smooth">
         <HeroLanding />
 
         {/* ============================ */}

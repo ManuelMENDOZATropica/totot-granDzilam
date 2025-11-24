@@ -5,7 +5,8 @@ const config: Config = {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['var(--font-inter)', 'Inter', 'sans-serif'],
+        sans: ['"Source Sans Pro"', 'sans-serif'],
+        display: ['"Freight Big Pro"', 'serif'],
       },
       colors: {
         'gran-sky': '#E0F2FE',
