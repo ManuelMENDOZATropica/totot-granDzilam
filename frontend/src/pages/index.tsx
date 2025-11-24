@@ -14,18 +14,9 @@ import { useAuth } from '@/contexts/AuthContext';
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
 
 const vistas = [
-  {
-    nombre: 'Perspectiva 1',
-    src: '/assets/vistas/1.png',
-  },
-  {
-    nombre: 'Vista superior',
-    src: '/assets/vistas/2.png',
-  },
-  {
-    nombre: 'Punto de fuga',
-    src: '/assets/vistas/3.png',
-  },
+  { nombre: 'Perspectiva 1', src: '/assets/vistas/1.png' },
+  { nombre: 'Vista superior', src: '/assets/vistas/2.png' },
+  { nombre: 'Punto de fuga', src: '/assets/vistas/3.png' },
 ];
 
 export default function Home() {
@@ -46,11 +37,14 @@ export default function Home() {
     actualizarPorcentaje,
     actualizarMeses,
   } = useCotizacion();
+  
   const { status, error: imagineError, generate, lastPrompt } = useImagine();
   const { user } = useAuth();
   const [prompt, setPrompt] = useState('');
   const [size, setSize] = useState<ImagineSize>('1024x1024');
   const promptLoaded = useRef(false);
+  
+  // Estado para abrir/cerrar panel
   const [panelMacroAbierto, setPanelMacroAbierto] = useState(false);
 
   const [fondoActual, setFondoActual] = useState('/assets/Group 9.png');
@@ -80,10 +74,8 @@ export default function Home() {
       setVistaActiva(index);
       return;
     }
-
     setVistaActiva(index);
     setFading(true);
-
     setTimeout(() => {
       setFondoActual(vista.src);
       setFading(false);
@@ -118,6 +110,7 @@ export default function Home() {
             sizes="100vw"
             className={`object-cover transition-opacity duration-500 ${fading ? 'opacity-0' : 'opacity-100'}`}
           />
+          
           {/* ACCESO ADMINISTRATIVO */}
           <div className="absolute top-6 right-6 z-30">
             {user ? (
@@ -151,7 +144,7 @@ export default function Home() {
             />
           </div>
 
-          {/* Selector de vistas – escritorio (columna derecha) */}
+          {/* Selector de vistas – escritorio */}
           <div className="absolute right-4 top-1/2 z-30 hidden -translate-y-1/2 flex-col gap-4 md:flex">
             {vistas.map((vista, index) => (
               <button
@@ -173,7 +166,7 @@ export default function Home() {
             ))}
           </div>
 
-          {/* Selector de vistas – móvil (barra inferior centrada) */}
+          {/* Selector de vistas – móvil */}
           <div className="absolute inset-x-0 bottom-32 z-30 flex justify-center md:hidden">
             <div className="flex gap-3 rounded-2xl bg-white/85 p-2 shadow-lg backdrop-blur">
               {vistas.map((vista, index) => (
@@ -199,29 +192,8 @@ export default function Home() {
             </div>
           </div>
 
-          <div
-            className="
-    absolute 
-    top-[22%] 
-    right-[6%]
-
-    sm:top-[20%] 
-    sm:right-[8%]
-
-    md:top-[18%] 
-    md:right-[10%]
-
-    lg:top-[17%]
-    lg:right-[12%]
-
-    xl:top-[16%]
-    xl:right-[14%]
-
-    w-full max-w-md
-  "
-          >
-            {' '}
-            {/* === PANEL DE IMAGINAR (COLOR 385C7A) === */}
+          {/* PANEL IMAGINAR */}
+          <div className="absolute top-[22%] right-[6%] sm:top-[20%] sm:right-[8%] md:top-[18%] md:right-[10%] lg:top-[17%] lg:right-[12%] xl:top-[16%] xl:right-[14%] w-full max-w-md">
             <div className="w-full max-w-md text-center">
               <h1 className="text-[40px] leading-[1.1] font-semibold text-white drop-shadow-[0_2px_6px_rgba(0,0,0,0.45)]">
                 Imagina tu
@@ -230,7 +202,6 @@ export default function Home() {
               </h1>
 
               <form onSubmit={handleImagineSubmit} className="mt-4 space-y-3 max-w-sm ml-auto">
-                {/* INPUT */}
                 <input
                   type="text"
                   value={prompt}
@@ -239,7 +210,6 @@ export default function Home() {
                   className="w-full rounded-full bg-white px-5 py-3 text-sm text-slate-900 shadow-lg outline-none placeholder-[#6b85b5] focus:ring-2 focus:ring-white"
                 />
 
-                {/* BOTÓN PRINCIPAL (COLOR 385C7A) */}
                 <button
                   type="submit"
                   className="w-full rounded-full bg-[#385C7A] px-5 py-2 text-sm font-semibold text-white shadow-md transition hover:bg-[#2d4a63]"
@@ -247,12 +217,10 @@ export default function Home() {
                   Imaginar proyecto
                 </button>
 
-                {/* TEXTO + CHIPS */}
                 <div className="pt-1 text-left">
                   <p className="text-[12px] text-white/85">
                     ¿Sin ideas? Inspírate, cualquier cosa es posible:
                   </p>
-
                   <div className="mt-2 flex flex-wrap gap-2">
                     {['Un hotel ecológico', 'Un jungle gym', 'Un desarrollo mixto'].map((idea) => (
                       <button
@@ -267,133 +235,122 @@ export default function Home() {
                   </div>
                 </div>
 
-                {/* ESTADO DEL GENERADOR */}
                 <div className="flex flex-wrap gap-4 text-[11px] uppercase tracking-[0.3em] text-white/70 drop-shadow">
                   <span>{status === 'loading' ? 'Generando idea…' : 'Inspiración lista'}</span>
                   {imagineError ? (
-                    <span className="text-rose-300 normal-case tracking-normal">
-                      {imagineError}
-                    </span>
+                    <span className="text-rose-300 normal-case tracking-normal">{imagineError}</span>
                   ) : null}
                 </div>
               </form>
             </div>
           </div>
 
-          {/* BOTÓN INFERIOR TIPO BARRA */}
-         <div className="pointer-events-none absolute left-[150px] right-0 pr-6 lg:bottom-[0px]">
-  <button
-    type="button"
-    onClick={() => setPanelMacroAbierto(true)}
-    className="pointer-events-auto flex w-full items-center rounded-[20px] border border-slate-900/25 bg-white/95 px-8 py-[10px] text-[30px] font-semibold text-slate-900 shadow-2xl backdrop-blur-sm transition hover:-translate-y-0.5 hover:bg-white"
-  >
-    <span className="mr-4 flex h-11 w-11 items-center justify-center rounded-full border border-slate-900/60 bg-white">
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        fill="none"
-        viewBox="0 0 24 24"
-        strokeWidth={1.7}
-        stroke="currentColor"
-        className="h-8 w-8"
-      >
-        <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-      </svg>
-    </span>
-    <span className="pb-3 block">Cotizar macro terreno</span>
-  </button>
-</div>
+          {/* ========================================================= */}
+          {/* PANEL DESLIZABLE UNIFICADO (AHORA DENTRO DE LA SECCIÓN)   */}
+          {/* ========================================================= */}
+          {/* CAMBIOS REALIZADOS:
+              1. Movido dentro de <section>
+              2. Cambiado 'fixed' por 'absolute'
+              3. z-40 para que esté por encima de la imagen de fondo (y del selector de vistas si se solapan)
+          */}
+          <div
+            className={`
+              absolute bottom-0 left-[150px] right-0 pr-6 z-40
+              transform transition-transform duration-500 ease-out
+              ${panelMacroAbierto ? 'translate-y-0' : 'translate-y-[calc(100%-72px)]'}
+            `}
+          >
+            <div className="flex flex-col w-full rounded-t-[20px] bg-white shadow-2xl border border-slate-900/10">
+              
+              {/* CABECERA QUE FUNCIONA COMO BOTÓN */}
+              <button
+                type="button"
+                onClick={() => setPanelMacroAbierto(!panelMacroAbierto)}
+                className="group relative flex w-full items-center justify-between px-8 py-[10px] text-[30px] font-semibold text-slate-900 outline-none hover:bg-slate-50 rounded-t-[20px] transition-colors"
+              >
+                <div className="flex items-center">
+                  <span className={`mr-4 flex h-11 w-11 items-center justify-center rounded-full border border-slate-900/60 bg-white transition-transform duration-500 ${panelMacroAbierto ? 'rotate-180 bg-slate-100' : ''}`}>
+                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.7} stroke="currentColor" className="h-6 w-6">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 15.75l7.5-7.5 7.5 7.5" />
+                      </svg>
+                  </span>
+                  <span className="pb-2 block">Cotizar macro terreno</span>
+                </div>
+              </button>
+
+              {/* CONTENIDO DEL PANEL */}
+              <div className="h-[85vh] overflow-y-auto border-t border-slate-200 bg-white pb-20">
+                <div className="grid gap-8 px-6 py-6 lg:grid-cols-[1.2fr,0.9fr]">
+                  
+                  {/* ZONA DEL MAPA */}
+                  <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 shadow-inner">
+                    {loading ? (
+                      <div className="flex min-h-[320px] flex-col items-center justify-center gap-4 text-slate-400">
+                        <div className="h-12 w-12 animate-spin rounded-full border-4 border-slate-200 border-t-gran-sky" />
+                        <p className="text-sm">Cargando disponibilidad…</p>
+                      </div>
+                    ) : error ? (
+                      <div className="flex min-h-[320px] flex-col items-center justify-center gap-4 rounded-lg border border-slate-200 bg-white p-8 text-center">
+                        <p className="text-sm text-slate-600">{error}</p>
+                        <button
+                          type="button"
+                          onClick={() => window.location.reload()}
+                          className="text-sm font-medium text-slate-700 underline"
+                        >
+                          Reintentar
+                        </button>
+                      </div>
+                    ) : lotes.length === 0 ? (
+                      <div className="flex min-h-[320px] flex-col items-center justify-center gap-3 rounded-lg border border-dashed border-slate-200 bg-white p-10 text-center">
+                        <p className="text-base font-medium text-slate-700">No hay lotes disponibles</p>
+                        <p className="text-sm text-slate-500">
+                          Vuelve más tarde para conocer las nuevas disponibilidades.
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="flex flex-col gap-4">
+                        <div className="flex flex-wrap items-center justify-between gap-3 text-xs uppercase tracking-[0.3em] text-slate-500">
+                          <div className="flex items-center gap-2">
+                            <span>Disponibles</span>
+                            <span className="text-base font-semibold text-slate-900">
+                              {lotsMeta.total}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-2 rounded-full bg-white px-3 py-1 text-[11px] font-semibold text-slate-700 shadow">
+                            <span className="h-2.5 w-2.5 rounded-full bg-gran-sky" />
+                            Selección activa
+                          </div>
+                        </div>
+
+                        <div className="max-h-[60vh] overflow-y-auto pr-1">
+                          <MapaLotes lotes={lotes} seleccionados={selectedIds} onToggle={toggleLote} />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* ZONA DE COTIZACIÓN */}
+                  <PanelCotizacion
+                    lotesSeleccionados={selectedLots}
+                    porcentajeEnganche={porcentajeEnganche}
+                    meses={meses}
+                    totales={totales}
+                    configuracion={financeSettings}
+                    configuracionCargando={loadingFinanceSettings}
+                    onPorcentajeChange={actualizarPorcentaje}
+                    onMesesChange={actualizarMeses}
+                    onLimpiar={limpiarSeleccion}
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
 
         </section>
 
       </main>
 
       <ChatbotWidget />
-
-      {/* PANEL DESLIZABLE MACRO TERRENO */}
-      <div
-        className={`fixed bottom-0 left-[150px] right-0 pr-6 z-50 transform transition-transform duration-500 ease-out ${
-          panelMacroAbierto ? 'translate-y-0' : 'translate-y-[calc(100%+2rem)]'
-        }`}
-        role="dialog"
-        aria-modal="true"
-        aria-label="Cotizador macro terreno"
-      >
-        <div className="w-full rounded-t-[20px] border border-slate-200 bg-white">
-          <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4">
-            <div>
-              <p className="text-xs uppercase tracking-[0.3em] text-slate-400">Cotizar</p>
-              <h2 className="text-lg font-semibold text-slate-900">Macro terreno</h2>
-            </div>
-            <button
-              type="button"
-              onClick={() => setPanelMacroAbierto(false)}
-              className="rounded-full border border-slate-200 px-3 py-1 text-sm font-semibold text-slate-600 hover:border-slate-900 hover:text-slate-900"
-            >
-              Cerrar
-            </button>
-          </div>
-
-          <div className="grid gap-8 px-6 py-6 lg:grid-cols-[1.2fr,0.9fr]">
-            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 shadow-inner">
-              {loading ? (
-                <div className="flex min-h-[320px] flex-col items-center justify-center gap-4 text-slate-400">
-                  <div className="h-12 w-12 animate-spin rounded-full border-4 border-slate-200 border-t-gran-sky" />
-                  <p className="text-sm">Cargando disponibilidad…</p>
-                </div>
-              ) : error ? (
-                <div className="flex min-h-[320px] flex-col items-center justify-center gap-4 rounded-lg border border-slate-200 bg-white p-8 text-center">
-                  <p className="text-sm text-slate-600">{error}</p>
-                  <button
-                    type="button"
-                    onClick={() => window.location.reload()}
-                    className="text-sm font-medium text-slate-700 underline"
-                  >
-                    Reintentar
-                  </button>
-                </div>
-              ) : lotes.length === 0 ? (
-                <div className="flex min-h-[320px] flex-col items-center justify-center gap-3 rounded-lg border border-dashed border-slate-200 bg-white p-10 text-center">
-                  <p className="text-base font-medium text-slate-700">No hay lotes disponibles</p>
-                  <p className="text-sm text-slate-500">
-                    Vuelve más tarde para conocer las nuevas disponibilidades.
-                  </p>
-                </div>
-              ) : (
-                <div className="flex flex-col gap-4">
-                  <div className="flex flex-wrap items-center justify-between gap-3 text-xs uppercase tracking-[0.3em] text-slate-500">
-                    <div className="flex items-center gap-2">
-                      <span>Disponibles</span>
-                      <span className="text-base font-semibold text-slate-900">
-                        {lotsMeta.total}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2 rounded-full bg-white px-3 py-1 text-[11px] font-semibold text-slate-700 shadow">
-                      <span className="h-2.5 w-2.5 rounded-full bg-gran-sky" />
-                      Selección activa
-                    </div>
-                  </div>
-
-                  <div className="max-h-[60vh] overflow-y-auto pr-1">
-                    <MapaLotes lotes={lotes} seleccionados={selectedIds} onToggle={toggleLote} />
-                  </div>
-                </div>
-              )}
-            </div>
-
-            <PanelCotizacion
-              lotesSeleccionados={selectedLots}
-              porcentajeEnganche={porcentajeEnganche}
-              meses={meses}
-              totales={totales}
-              configuracion={financeSettings}
-              configuracionCargando={loadingFinanceSettings}
-              onPorcentajeChange={actualizarPorcentaje}
-              onMesesChange={actualizarMeses}
-              onLimpiar={limpiarSeleccion}
-            />
-          </div>
-        </div>
-      </div>
     </>
   );
 }
