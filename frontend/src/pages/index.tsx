@@ -286,27 +286,28 @@ export default function Home() {
           </div>
 
           {/* BOTÓN INFERIOR TIPO BARRA */}
-          <div className="pointer-events-none absolute bottom-6 left-[150px] right-0 pr-6 lg:bottom-5">
-            <button
-              type="button"
-              onClick={() => setPanelMacroAbierto(true)}
-              className="pointer-events-auto flex w-full items-center rounded-[20px] border border-slate-900/25 bg-white/95 px-8 py-[10px] text-[30px] font-semibold text-slate-900 shadow-2xl backdrop-blur-sm transition hover:-translate-y-0.5 hover:bg-white"
-            >
-              <span className="mr-4 flex h-11 w-11 items-center justify-center rounded-full border border-slate-900/60 bg-white">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  strokeWidth={1.7}
-                  stroke="currentColor"
-                  className="h-8 w-8"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-                </svg>
-              </span>
-              <span>Cotizar macro terreno</span>
-            </button>
-          </div>
+         <div className="pointer-events-none absolute left-[150px] right-0 pr-6 lg:bottom-[0px]">
+  <button
+    type="button"
+    onClick={() => setPanelMacroAbierto(true)}
+    className="pointer-events-auto flex w-full items-center rounded-[20px] border border-slate-900/25 bg-white/95 px-8 py-[10px] text-[30px] font-semibold text-slate-900 shadow-2xl backdrop-blur-sm transition hover:-translate-y-0.5 hover:bg-white"
+  >
+    <span className="mr-4 flex h-11 w-11 items-center justify-center rounded-full border border-slate-900/60 bg-white">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        fill="none"
+        viewBox="0 0 24 24"
+        strokeWidth={1.7}
+        stroke="currentColor"
+        className="h-8 w-8"
+      >
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+      </svg>
+    </span>
+    <span className="pb-3 block">Cotizar macro terreno</span>
+  </button>
+</div>
+
         </section>
 
         <ImagineSection

@@ -4,29 +4,20 @@ import Link from 'next/link';
 export const HeroLanding = () => {
   return (
     <section className="relative flex min-h-screen items-center justify-center overflow-hidden bg-white">
-      <Image
-  src="/assets/Group 9.png"
-  alt="Fondo Gran Dzilam"
-  fill
-  priority
-  quality={100}
-  sizes="100vw"
-  className="object-cover"
-/>
 
+      {/* 🎥 VIDEO DE FONDO */}
+      <video
+        src="/assets/EXPECTATIVA DZILAM.mov"
+        autoPlay
+        loop
+        muted
+        playsInline
+        className="absolute inset-0 h-full w-full object-cover"
+      />
 
-      <div className="absolute inset-0 flex items-center justify-center">
-        <Image
-          src="/assets/Group 6.png"
-          alt="Logotipo Gran Dzilam"
-          width={1200}
-          height={700}
-          priority
-          className="h-auto w-auto max-w-[300px]"
-        />
-      </div>
+    
 
-      {/* Flecha inline SVG con animación al presionar */}
+      {/* Flecha con animación */}
       <Link
         href="#macro-terreno"
         aria-label="Ir al cotizador"
