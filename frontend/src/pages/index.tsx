@@ -6,7 +6,6 @@ import { FormEvent, useEffect, useRef, useState } from 'react';
 import { useCotizacion } from '@/hooks/useCotizacion';
 import { MapaLotes } from '@/components/mapa/MapaLotes';
 import { PanelCotizacion } from '@/components/panel/PanelCotizacion';
-import { ImagineSection } from '@/components/home/ImagineSection';
 import { HeroLanding } from '@/components/home/HeroLanding';
 import { ChatbotWidget } from '@/components/chat/ChatbotWidget';
 import { type ImagineSize, useImagine } from '@/hooks/useImagine';
@@ -47,7 +46,7 @@ export default function Home() {
     actualizarPorcentaje,
     actualizarMeses,
   } = useCotizacion();
-  const { status, result, error: imagineError, generate, reset, lastPrompt } = useImagine();
+  const { status, error: imagineError, generate, lastPrompt } = useImagine();
   const { user } = useAuth();
   const [prompt, setPrompt] = useState('');
   const [size, setSize] = useState<ImagineSize>('1024x1024');
@@ -72,10 +71,6 @@ export default function Home() {
 
   const handleImagineShortcut = (value: string) => {
     setPrompt(value);
-  };
-
-  const handleImagineRetry = () => {
-    reset();
   };
 
   const handleCambioVista = (index: number) => {
@@ -310,18 +305,6 @@ export default function Home() {
 
         </section>
 
-        <ImagineSection
-          prompt={prompt}
-          size={size}
-          status={status}
-          result={result}
-          imagineError={imagineError}
-          onPromptChange={setPrompt}
-          onSizeChange={setSize}
-          onSubmit={handleImagineSubmit}
-          onShortcut={handleImagineShortcut}
-          onRetry={handleImagineRetry}
-        />
       </main>
 
       <ChatbotWidget />
