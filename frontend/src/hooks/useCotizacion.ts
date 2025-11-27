@@ -111,13 +111,12 @@ export const useCotizacion = () => {
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedIds, setSelectedIds] = useState<string[]>(() => leerLocalStorage(SELECCION_STORAGE_KEY, []));
-  const [porcentajeEnganche, setPorcentajeEnganche] = useState(() =>
-    sanitizePercentage(leerParametrosIniciales().porcentaje, DEFAULT_SETTINGS),
-  );
-  const [meses, setMeses] = useState(() => sanitizeMonths(leerParametrosIniciales().meses, DEFAULT_SETTINGS));
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [porcentajeEnganche, setPorcentajeEnganche] = useState(() => DEFAULT_SETTINGS.defaultEnganche);
+  const [meses, setMeses] = useState(() => DEFAULT_SETTINGS.defaultMeses);
   const [financeSettings, setFinanceSettings] = useState<FinanceSettingsDTO>(DEFAULT_SETTINGS);
   const [loadingSettings, setLoadingSettings] = useState(true);
+  const [hydratedFromStorage, setHydratedFromStorage] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -182,15 +181,32 @@ export const useCotizacion = () => {
   }, []);
 
   useEffect(() => {
-    escribirLocalStorage(SELECCION_STORAGE_KEY, selectedIds);
-  }, [selectedIds]);
+    const storedSelection = leerLocalStorage<string[] | null>(SELECCION_STORAGE_KEY, null);
+    const storedParams = leerParametrosIniciales();
+
+    if (storedSelection) {
+      setSelectedIds(storedSelection);
+    }
+
+    setPorcentajeEnganche(sanitizePercentage(storedParams.porcentaje, financeSettings));
+    setMeses(sanitizeMonths(storedParams.meses, financeSettings));
+    setHydratedFromStorage(true);
+    // financeSettings solo cambia cuando llega la configuración remota, por lo que
+    // este efecto usa la versión más reciente para sanear valores persistidos.
+  }, [financeSettings]);
 
   useEffect(() => {
+    if (!hydratedFromStorage) return;
+    escribirLocalStorage(SELECCION_STORAGE_KEY, selectedIds);
+  }, [hydratedFromStorage, selectedIds]);
+
+  useEffect(() => {
+    if (!hydratedFromStorage) return;
     escribirLocalStorage(PARAMETROS_STORAGE_KEY, {
       porcentaje: porcentajeEnganche,
       meses,
     });
-  }, [porcentajeEnganche, meses]);
+  }, [hydratedFromStorage, porcentajeEnganche, meses]);
 
   const selectedLots = useMemo(() => {
     if (!selectedIds.length) return [] as Lote[];
