@@ -98,7 +98,7 @@ export const InteractiveMap = ({ src, className }: InteractiveMapProps) => {
         {isInteractiveView && (
           <svg
             className="absolute top-0 left-0 w-full h-full pointer-events-none"
-            viewBox="0 0 1080 920"
+            viewBox="0 0 1000 800"
             preserveAspectRatio="none"
           >
             <g className="pointer-events-auto">
