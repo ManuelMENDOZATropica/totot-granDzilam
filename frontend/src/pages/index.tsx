@@ -276,7 +276,7 @@ export default function Home() {
                         <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 15.75l7.5-7.5 7.5 7.5" />
                       </svg>
                   </span>
-                  <span className="pb-2 block">Cotizar macro terreno</span>
+                  <span className="pb-2 block">Cotizar macro terrenoo</span>
                 </div>
               </button>
 
