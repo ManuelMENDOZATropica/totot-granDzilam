@@ -1,3 +1,4 @@
+import React from 'react';
 import type { Lote, TotalesCotizacion } from '@/hooks/useCotizacion';
 import type { FinanceSettingsDTO } from '@/lib/financeSettings';
 import { formatearMoneda } from '@/lib/formatoMoneda';
@@ -12,6 +13,7 @@ interface PanelCotizacionProps {
   onPorcentajeChange: (valor: number) => void;
   onMesesChange: (valor: number) => void;
   onLimpiar: () => void;
+  onCerrar?: () => void;
 }
 
 export const PanelCotizacion = ({
@@ -24,115 +26,212 @@ export const PanelCotizacion = ({
   onPorcentajeChange,
   onMesesChange,
   onLimpiar,
+  onCerrar
 }: PanelCotizacionProps) => {
-  const totalMetros = lotesSeleccionados.reduce((acum, lote) => acum + lote.superficieM2, 0);
-  const interesActivo = configuracion.interes > 0;
+  const totalMetros = lotesSeleccionados.reduce(
+    (acum, lote) => acum + lote.superficieM2,
+    0
+  );
+
+  const colors = {
+    bg: '#F3F1EC',
+    text: '#1C2533',
+    textLight: '#64748B',
+    badge: '#E2E0DB'
+  };
 
   return (
-    <aside className="flex w-full flex-col gap-8 border-t border-slate-200 pt-8 lg:max-w-sm lg:border-l lg:border-t-0 lg:pl-10 lg:pt-0">
-      <div className="flex flex-col gap-2">
-        <h2 className="text-lg font-semibold text-slate-900">Cotización en tiempo real</h2>
-        <p className="text-sm text-slate-500">
-          Ajusta el enganche y el plazo para conocer la mensualidad estimada de tu selección.
-        </p>
-      </div>
+    <aside
+      className="flex w-full flex-col lg:max-w-[480px] max-h-screen"
+      style={{ backgroundColor: colors.bg }}
+    >
+      {/* CONTENIDO SCROLLEABLE */}
+      <div className="flex-1 overflow-y-auto px-8 py-10 lg:px-12">
+        
+        {/* --- Título --- */}
+        <h2 className="mb-10 font-serif text-3xl font-medium text-[#1C2533]">
+          Genera tu estimación
+        </h2>
 
-      <dl className="space-y-4 text-sm text-slate-600">
-        <div className="flex items-center justify-between">
-          <dt className="uppercase tracking-[0.25em] text-slate-400">Lotes seleccionados</dt>
-          <dd className="text-base font-semibold text-slate-900">{lotesSeleccionados.length}</dd>
-        </div>
-        <div className="flex items-center justify-between">
-          <dt className="uppercase tracking-[0.25em] text-slate-400">Superficie total</dt>
-          <dd className="text-base font-medium text-slate-900">{totalMetros} m²</dd>
-        </div>
-        <div className="flex items-center justify-between">
-          <dt className="uppercase tracking-[0.25em] text-slate-400">Total</dt>
-          <dd className="text-base font-semibold text-slate-900">{formatearMoneda(totales.totalSeleccionado)}</dd>
-        </div>
-        <div className="flex items-center justify-between">
-          <dt className="uppercase tracking-[0.25em] text-slate-400">Enganche</dt>
-          <dd className="text-base font-medium text-slate-900">{formatearMoneda(totales.enganche)}</dd>
-        </div>
-        <div className="flex items-center justify-between">
-          <dt className="uppercase tracking-[0.25em] text-slate-400">Saldo</dt>
-          <dd className="text-base font-medium text-slate-900">{formatearMoneda(totales.saldoFinanciar)}</dd>
-        </div>
-        <div className="flex items-center justify-between">
-          <dt className="uppercase tracking-[0.25em] text-slate-400">Mensualidad</dt>
-          <dd className="text-xl font-semibold text-slate-900">{formatearMoneda(totales.mensualidad)}</dd>
-        </div>
-        {interesActivo ? (
-          <div className="text-xs text-slate-400">
-            Incluye interés del {configuracion.interes}% aplicado al saldo a financiar.
+        {/* --- Medidas --- */}
+        <div className="mb-8">
+          <div className="mb-3 flex items-center gap-3">
+            <span className="text-sm font-bold text-[#1C2533]">Medidas</span>
+            <span
+              className="flex items-center gap-1 rounded px-2 py-0.5 text-[10px] font-medium text-[#1C2533]"
+              style={{ backgroundColor: colors.badge }}
+            >
+              m²
+              <svg width="8" height="6" viewBox="0 0 10 6" fill="none">
+                <path
+                  d="M1 1L5 5L9 1"
+                  stroke="#1C2533"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </span>
           </div>
-        ) : null}
-      </dl>
 
-      <div className="flex flex-col gap-6">
-        <label className="flex flex-col gap-2 text-sm text-slate-600">
-          <span className="flex items-center justify-between text-xs uppercase tracking-[0.3em] text-slate-400">
-            Enganche
-            <span className="text-base font-semibold text-slate-900">{porcentajeEnganche}%</span>
-          </span>
-          <input
-            type="range"
-            min={configuracion.minEnganche}
-            max={configuracion.maxEnganche}
-            step={1}
-            value={porcentajeEnganche}
-            onChange={(event) => onPorcentajeChange(Number(event.target.value))}
-            className="h-1 w-full appearance-none rounded-full bg-slate-200 accent-slate-900"
-            disabled={configuracionCargando}
-          />
-          <input
-            type="number"
-            min={configuracion.minEnganche}
-            max={configuracion.maxEnganche}
-            step={1}
-            value={porcentajeEnganche}
-            onChange={(event) => onPorcentajeChange(Number(event.target.value))}
-            className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900"
-            disabled={configuracionCargando}
-          />
-        </label>
+          <div className="space-y-2 text-sm text-[#1C2533]">
+            {lotesSeleccionados.map((lote, index) => (
+              <div key={lote.id || index} className="flex justify-between">
+                <span>{lote.nombre || `Lote ${index + 1}`}</span>
+                <span>
+                  {lote.superficieM2.toLocaleString('es-MX', {
+                    minimumFractionDigits: 2
+                  })}{' '}
+                  m²
+                </span>
+              </div>
+            ))}
 
-        <label className="flex flex-col gap-2 text-sm text-slate-600">
-          <span className="flex items-center justify-between text-xs uppercase tracking-[0.3em] text-slate-400">
-            Plazo
-            <span className="text-base font-semibold text-slate-900">{meses} meses</span>
-          </span>
-          <input
-            type="range"
-            min={configuracion.minMeses}
-            max={configuracion.maxMeses}
-            step={1}
-            value={meses}
-            onChange={(event) => onMesesChange(Number(event.target.value))}
-            className="h-1 w-full appearance-none rounded-full bg-slate-200 accent-slate-900"
-            disabled={configuracionCargando}
-          />
-          <input
-            type="number"
-            min={configuracion.minMeses}
-            max={configuracion.maxMeses}
-            step={1}
-            value={meses}
-            onChange={(event) => onMesesChange(Number(event.target.value))}
-            className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900"
-            disabled={configuracionCargando}
-          />
-        </label>
+            <div className="flex justify-between pt-2 font-bold">
+              <span>TOTAL</span>
+              <span>
+                {totalMetros.toLocaleString('es-MX', {
+                  minimumFractionDigits: 2
+                })}{' '}
+                m²
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* --- Estimación de costo --- */}
+        <div className="mb-10">
+          <div className="mb-3 flex items-center gap-3">
+            <span className="text-sm font-bold text-[#1C2533]">
+              Estimación de costo
+            </span>
+            <span
+              className="flex items-center gap-1 rounded px-2 py-0.5 text-[10px] font-medium text-[#1C2533]"
+              style={{ backgroundColor: colors.badge }}
+            >
+              mxn
+              <svg width="8" height="6" viewBox="0 0 10 6" fill="none">
+                <path
+                  d="M1 1L5 5L9 1"
+                  stroke="#1C2533"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </span>
+          </div>
+
+          <div className="space-y-3 text-sm text-[#1C2533]">
+            {lotesSeleccionados.map((lote, index) => (
+              <div key={lote.id || index} className="flex justify-between">
+                <span>{lote.nombre || `Lote ${index + 1}`}</span>
+                <span>{formatearMoneda(lote.precioTotal || 0)} mxn</span>
+              </div>
+            ))}
+
+            <div className="flex justify-between pb-4 font-bold">
+              <span>TOTAL</span>
+              <span>{formatearMoneda(totales.totalSeleccionado)} mxn</span>
+            </div>
+
+            <div className="space-y-2">
+              <div className="flex justify-between">
+                <span>Enganche</span>
+                <span>{formatearMoneda(totales.enganche)} mxn</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Saldo</span>
+                <span>{formatearMoneda(totales.saldoFinanciar)} mxn</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Mensualidad</span>
+                <span>{formatearMoneda(totales.mensualidad)} mxn</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* --- Personaliza tu cotización --- */}
+        <div className="mb-10">
+          <h3 className="mb-6 text-sm font-bold text-[#1C2533]">
+            Personaliza tu cotización
+          </h3>
+
+          <div className="flex flex-col gap-8">
+            {/* Enganche */}
+            <div className="flex flex-col gap-3">
+              <div className="flex justify-between text-xs uppercase tracking-wider text-[#64748B]">
+                <span>Enganche</span>
+              </div>
+              <input
+                type="range"
+                min={configuracion.minEnganche}
+                max={configuracion.maxEnganche}
+                step={1}
+                value={porcentajeEnganche}
+                onChange={(e) => onPorcentajeChange(Number(e.target.value))}
+                disabled={configuracionCargando}
+                className="h-1 w-full cursor-pointer appearance-none rounded-full bg-[#E2E0DB] accent-[#1C2533]"
+              />
+              <div className="text-right text-sm font-semibold text-[#1C2533]">
+                {porcentajeEnganche}%
+              </div>
+            </div>
+
+            {/* Plazo */}
+            <div className="flex flex-col gap-3">
+              <div className="flex justify-between text-xs uppercase tracking-wider text-[#64748B]">
+                <span>Plazo</span>
+              </div>
+              <input
+                type="range"
+                min={configuracion.minMeses}
+                max={configuracion.maxMeses}
+                step={1}
+                value={meses}
+                onChange={(e) => onMesesChange(Number(e.target.value))}
+                disabled={configuracionCargando}
+                className="h-1 w-full cursor-pointer appearance-none rounded-full bg-[#E2E0DB] accent-[#1C2533]"
+              />
+              <div className="text-right text-sm font-semibold text-[#1C2533]">
+                {meses} meses
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* --- Botones principales --- */}
+        <div className="mb-12 flex gap-4">
+          <button
+            type="button"
+            className="flex-1 rounded-full bg-[#1C2533] px-4 py-3 text-sm font-medium text-white hover:bg-[#2d3b50]"
+          >
+            Descargar cotización
+          </button>
+          <button
+            type="button"
+            className="flex-1 rounded-full border border-[#1C2533] px-4 py-3 text-sm font-medium text-[#1C2533] hover:bg-[#1C2533] hover:text-white"
+          >
+            Contáctanos
+          </button>
+        </div>
       </div>
 
-      <button
-        type="button"
-        onClick={onLimpiar}
-        className="self-start text-sm font-medium text-slate-500 underline-offset-4 transition-colors hover:text-slate-900"
-        disabled={!lotesSeleccionados.length}
-      >
-        Limpiar selección
-      </button>
+      {/* FOOTER FIJO */}
+      <div className="border-t border-slate-300 bg-[#F3F1EC] px-8 py-6 lg:px-12">
+        <button
+          onClick={onCerrar || onLimpiar}
+          className="group flex items-center gap-4 text-3xl font-serif text-[#1C2533] hover:opacity-80 transition-opacity"
+        >
+          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#1C2533] text-white group-hover:bg-[#2d3b50]">
+            <svg width="24" height="2" viewBox="0 0 24 2" fill="none">
+              <rect width="24" height="2" rx="1" fill="currentColor" />
+            </svg>
+          </div>
+          Cerrar cotizador
+        </button>
+      </div>
     </aside>
   );
 };

@@ -262,90 +262,115 @@ export default function Home() {
               ${panelMacroAbierto ? 'translate-y-0' : 'translate-y-[calc(100%-72px)]'}
             `}
           >
-            <div className="flex flex-col w-full rounded-t-[20px] bg-white shadow-2xl border border-slate-900/10">
-              
-              {/* CABECERA QUE FUNCIONA COMO BOTÓN */}
-              <button
-                type="button"
-                onClick={() => setPanelMacroAbierto(!panelMacroAbierto)}
-                className="group relative flex w-full items-center justify-between px-8 py-[10px] text-[30px] font-semibold text-slate-900 outline-none hover:bg-slate-50 rounded-t-[20px] transition-colors"
-              >
-                <div className="flex items-center">
-                  <span className={`mr-4 flex h-11 w-11 items-center justify-center rounded-full border border-slate-900/60 bg-white transition-transform duration-500 ${panelMacroAbierto ? 'rotate-180 bg-slate-100' : ''}`}>
-                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.7} stroke="currentColor" className="h-6 w-6">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 15.75l7.5-7.5 7.5 7.5" />
-                      </svg>
-                  </span>
-                  <span className="pb-2 block">Cotizar macro terrenoo</span>
-                </div>
-              </button>
+            <div className="flex w-full flex-col rounded-t-[20px] bg-white shadow-2xl border border-black/5 font-sans text-[#1C2533]">
+  
+  {/* --- CABECERA (BOTÓN TOGGLE) --- */}
+  <button
+    type="button"
+    onClick={() => setPanelMacroAbierto(!panelMacroAbierto)}
+    className="group relative flex w-full items-center justify-between rounded-t-[20px] bg-white px-6 py-5 text-left outline-none transition-colors hover:bg-[#F8F7F4] lg:px-8"
+  >
+    <div className="flex items-center gap-5">
+      {/* Icono Flecha con animación */}
+      <span 
+        className={`flex h-10 w-10 items-center justify-center rounded-full border transition-all duration-500 ${
+          panelMacroAbierto 
+            ? 'bg-[#1C2533] border-[#1C2533] text-white rotate-180' 
+            : 'bg-white border-[#E2E0DB] text-[#1C2533] group-hover:border-[#1C2533]'
+        }`}
+      >
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M6 9L12 15L18 9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+      </span>
+      
+      <span className="font-serif text-2xl font-medium text-[#1C2533]">
+        Cotizar macro terreno
+      </span>
+    </div>
+  </button>
 
-              {/* CONTENIDO DEL PANEL */}
-              <div className="h-[85vh] overflow-y-auto border-t border-slate-200 bg-white pb-20">
-                <div className="grid gap-8 px-6 py-6 lg:grid-cols-[1.2fr,0.9fr]">
-                  
-                  {/* ZONA DEL MAPA */}
-                  <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 shadow-inner">
-                    {loading ? (
-                      <div className="flex min-h-[320px] flex-col items-center justify-center gap-4 text-slate-400">
-                        <div className="h-12 w-12 animate-spin rounded-full border-4 border-slate-200 border-t-gran-sky" />
-                        <p className="text-sm">Cargando disponibilidad…</p>
-                      </div>
-                    ) : error ? (
-                      <div className="flex min-h-[320px] flex-col items-center justify-center gap-4 rounded-lg border border-slate-200 bg-white p-8 text-center">
-                        <p className="text-sm text-slate-600">{error}</p>
-                        <button
-                          type="button"
-                          onClick={() => window.location.reload()}
-                          className="text-sm font-medium text-slate-700 underline"
-                        >
-                          Reintentar
-                        </button>
-                      </div>
-                    ) : lotes.length === 0 ? (
-                      <div className="flex min-h-[320px] flex-col items-center justify-center gap-3 rounded-lg border border-dashed border-slate-200 bg-white p-10 text-center">
-                        <p className="text-base font-medium text-slate-700">No hay lotes disponibles</p>
-                        <p className="text-sm text-slate-500">
-                          Vuelve más tarde para conocer las nuevas disponibilidades.
-                        </p>
-                      </div>
-                    ) : (
-                      <div className="flex flex-col gap-4">
-                        <div className="flex flex-wrap items-center justify-between gap-3 text-xs uppercase tracking-[0.3em] text-slate-500">
-                          <div className="flex items-center gap-2">
-                            <span>Disponibles</span>
-                            <span className="text-base font-semibold text-slate-900">
-                              {lotsMeta.total}
-                            </span>
-                          </div>
-                          <div className="flex items-center gap-2 rounded-full bg-white px-3 py-1 text-[11px] font-semibold text-slate-700 shadow">
-                            <span className="h-2.5 w-2.5 rounded-full bg-gran-sky" />
-                            Selección activa
-                          </div>
-                        </div>
-
-                        <div className="max-h-[60vh] overflow-y-auto pr-1">
-                          <MapaLotes lotes={lotes} seleccionados={selectedIds} onToggle={toggleLote} />
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* ZONA DE COTIZACIÓN */}
-                  <PanelCotizacion
-                    lotesSeleccionados={selectedLots}
-                    porcentajeEnganche={porcentajeEnganche}
-                    meses={meses}
-                    totales={totales}
-                    configuracion={financeSettings}
-                    configuracionCargando={loadingFinanceSettings}
-                    onPorcentajeChange={actualizarPorcentaje}
-                    onMesesChange={actualizarMeses}
-                    onLimpiar={limpiarSeleccion}
-                  />
+  {/* --- CONTENIDO DESPLEGABLE --- */}
+  {panelMacroAbierto && (
+    <div className="h-[85vh] overflow-hidden border-t border-[#E2E0DB] bg-[#F8F7F4]">
+      {/* Grid: Mapa (Flexible) | Panel (Fijo 450px aprox) */}
+      <div className="grid h-full lg:grid-cols-[1fr_460px]">
+        
+        {/* ================= ZONA DEL MAPA (IZQUIERDA) ================= */}
+        <div className="relative flex flex-col p-4 lg:p-6 overflow-hidden">
+          
+          <div className="flex h-full flex-col overflow-hidden rounded-xl border border-[#E2E0DB] bg-white shadow-sm">
+            
+            {/* ESTADOS DE CARGA / ERROR */}
+            {loading ? (
+              <div className="flex h-full flex-col items-center justify-center gap-4 text-[#64748B]">
+                <div className="h-10 w-10 animate-spin rounded-full border-4 border-[#E2E0DB] border-t-[#1C2533]" />
+                <p className="text-sm font-medium tracking-wide">Cargando disponibilidad...</p>
+              </div>
+            ) : error ? (
+              <div className="flex h-full flex-col items-center justify-center gap-6 p-8 text-center">
+                <p className="text-[#64748B]">{error}</p>
+                <button
+                  type="button"
+                  onClick={() => window.location.reload()}
+                  className="border-b border-[#1C2533] pb-0.5 text-sm font-medium text-[#1C2533] transition-opacity hover:opacity-70"
+                >
+                  Reintentar
+                </button>
+              </div>
+            ) : lotes.length === 0 ? (
+              <div className="flex h-full flex-col items-center justify-center gap-4 p-10 text-center">
+                <span className="flex h-16 w-16 items-center justify-center rounded-full bg-[#F3F1EC] text-[#1C2533]">
+                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M3 3L21 21M4.5 4.5L19.5 19.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                  </svg>
+                </span>
+                <div>
+                  <p className="font-serif text-xl font-medium text-[#1C2533]">No hay lotes disponibles</p>
+                  <p className="mt-2 text-sm text-[#64748B]">
+                    Por favor, verifica más tarde para nuevas disponibilidades.
+                  </p>
                 </div>
               </div>
-            </div>
+            ) : (
+              <div className="flex h-full flex-col">
+                
+                {/* COMPONENTE MAPA */}
+                <div className="relative flex-1 bg-[#F3F1EC]/30">
+                  <div className="absolute inset-0 overflow-y-auto">
+                    {/* Aseguramos que MapaLotes tenga contenedor full */}
+                    <MapaLotes 
+                      lotes={lotes} 
+                      seleccionados={selectedIds} 
+                      onToggle={toggleLote} 
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* ================= ZONA DE COTIZACIÓN (DERECHA) ================= */}
+        <div className="h-full border-l border-[#E2E0DB] bg-[#F3F1EC]">
+          <PanelCotizacion
+            lotesSeleccionados={selectedLots}
+            porcentajeEnganche={porcentajeEnganche}
+            meses={meses}
+            totales={totales}
+            configuracion={financeSettings}
+            configuracionCargando={loadingFinanceSettings}
+            onPorcentajeChange={actualizarPorcentaje}
+            onMesesChange={actualizarMeses}
+            onLimpiar={limpiarSeleccion}
+            onCerrar={() => setPanelMacroAbierto(false)} 
+          />
+        </div>
+
+      </div>
+    </div>
+  )}
+</div>
           </div>
 
         </section>
