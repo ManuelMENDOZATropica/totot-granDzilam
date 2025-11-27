@@ -1,5 +1,4 @@
 import { useMemo, useState } from 'react';
-import Image from 'next/image';
 import type { Lote } from '@/hooks/useCotizacion';
 import { formatearMoneda } from '@/lib/formatoMoneda';
 
@@ -30,21 +29,21 @@ const estadoStyles: Record<
   { fill: string; stroke: string; text: string; badge: string }
 > = {
   disponible: {
-    fill: 'rgba(56, 92, 122, 0.25)',
-    stroke: 'rgba(255, 255, 255, 0.8)',
+    fill: '#b7d28b',
+    stroke: '#6a7f3a',
     text: 'text-slate-800',
     badge: 'bg-emerald-100 text-emerald-700 border-emerald-200',
   },
   apartado: {
-    fill: 'rgba(226, 232, 240, 0.85)',
-    stroke: 'rgba(148, 163, 184, 0.8)',
-    text: 'text-slate-500',
+    fill: 'rgba(234, 179, 8, 0.35)',
+    stroke: 'rgba(202, 138, 4, 0.8)',
+    text: 'text-slate-600',
     badge: 'bg-amber-100 text-amber-700 border-amber-200',
   },
   vendido: {
-    fill: 'rgba(209, 213, 219, 0.75)',
-    stroke: 'rgba(148, 163, 184, 0.8)',
-    text: 'text-slate-500',
+    fill: 'rgba(120, 69, 32, 0.35)',
+    stroke: 'rgba(88, 41, 18, 0.8)',
+    text: 'text-slate-600',
     badge: 'bg-rose-100 text-rose-700 border-rose-200',
   },
 };
@@ -75,7 +74,7 @@ export const MapaLotes = ({ lotes, seleccionados, onToggle }: MapaLotesProps) =>
     }
 
     if (seleccionado) {
-      return 'rgba(14, 165, 233, 0.45)';
+      return '#6b7c2e';
     }
 
     return estadoStyles.disponible.fill;
@@ -87,7 +86,7 @@ export const MapaLotes = ({ lotes, seleccionados, onToggle }: MapaLotesProps) =>
     }
 
     if (seleccionado) {
-      return '#38bdf8';
+      return '#4a5b1f';
     }
 
     return estadoStyles.disponible.stroke;
@@ -110,64 +109,67 @@ export const MapaLotes = ({ lotes, seleccionados, onToggle }: MapaLotesProps) =>
         </div>
         <div className="flex flex-wrap items-center gap-4 text-xs text-slate-500">
           <div className="flex items-center gap-2">
-            <span className="h-3 w-3 rounded border border-slate-300 bg-white" aria-hidden="true" />
+            <span className="h-3 w-3 rounded border border-slate-300 bg-[#b7d28b]" aria-hidden="true" />
             Disponible
           </div>
           <div className="flex items-center gap-2">
-            <span className="h-3 w-3 rounded border border-slate-300 bg-[#bae6fd]" aria-hidden="true" />
+            <span className="h-3 w-3 rounded border border-slate-300 bg-[#6b7c2e]" aria-hidden="true" />
             Seleccionado
           </div>
           <div className="flex items-center gap-2">
-            <span className="h-3 w-3 rounded bg-slate-200" aria-hidden="true" />
-            Apartado / Vendido
+            <span className="h-3 w-3 rounded bg-[rgba(234,179,8,0.6)]" aria-hidden="true" />
+            Apartado
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="h-3 w-3 rounded bg-[rgba(120,69,32,0.6)]" aria-hidden="true" />
+            Vendido
           </div>
         </div>
       </div>
 
       <div className="relative flex min-h-[340px] items-center justify-center overflow-hidden rounded-2xl border border-slate-200 bg-slate-50">
-        <Image
-          src="/assets/vistas/1.png"
-          alt="Plano macro-terreno"
-          fill
-          priority
-          className="object-cover opacity-90"
-          sizes="(min-width: 1024px) 700px, 100vw"
-        />
+        <svg className="h-full w-full" viewBox="0 0 1000 800" preserveAspectRatio="none">
+          <defs>
+            <linearGradient id="terrenoGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#c7dca5" />
+              <stop offset="100%" stopColor="#90a95a" />
+            </linearGradient>
+          </defs>
 
-        <div className="absolute inset-0">
-          <svg className="h-full w-full" viewBox="0 0 1000 800" preserveAspectRatio="none">
-            <g className="pointer-events-auto" transform="translate(20, -65)">
-              {shapes.map((shape) => {
-                const lote = shape.lote as Lote;
-                const seleccionado = seleccionados.includes(lote.id);
-                const esDisponible = lote.estado === 'disponible';
+          <g transform="translate(20, -65)">
+            <rect x="300" y="150" width="520" height="650" rx="18" fill="url(#terrenoGradient)" transform="rotate(-12 560 475)" />
+            <line x1="310" y1="150" x2="800" y2="800" stroke="rgba(255,255,255,0.7)" strokeWidth="6" transform="rotate(-12 555 475)" />
 
-                return (
-                  <polygon
-                    key={shape.id}
-                    points={shape.points}
-                    fill={getFill(lote, seleccionado)}
-                    stroke={getStroke(lote, seleccionado)}
-                    strokeWidth={seleccionado ? 3 : 1.5}
-                    className={`transition-all duration-200 ${esDisponible ? 'cursor-pointer hover:brightness-110' : 'cursor-not-allowed opacity-70'}`}
-                    onClick={() => {
-                      if (!esDisponible) return;
-                      onToggle(lote.id);
-                    }}
-                    onMouseEnter={() => setHoveredId(lote.id)}
-                    onMouseLeave={() => setHoveredId(null)}
-                  >
-                    <title>
-                      {`${lote.id} • ${lote.superficieM2} m² • ${formatearMoneda(lote.precio)}${
-                        esDisponible ? '' : ` (${lote.estado})`
-                      }`}
-                    </title>
-                  </polygon>
-                );
-              })}
-            </g>
-          </svg>
-        </div>
+            {shapes.map((shape) => {
+              const lote = shape.lote as Lote;
+              const seleccionado = seleccionados.includes(lote.id);
+              const esDisponible = lote.estado === 'disponible';
+
+              return (
+                <polygon
+                  key={shape.id}
+                  points={shape.points}
+                  fill={getFill(lote, seleccionado)}
+                  stroke={getStroke(lote, seleccionado)}
+                  strokeWidth={seleccionado ? 3 : 1.5}
+                  className={`transition-all duration-200 ${esDisponible ? 'cursor-pointer hover:brightness-110' : 'cursor-not-allowed opacity-70'}`}
+                  onClick={() => {
+                    if (!esDisponible) return;
+                    onToggle(lote.id);
+                  }}
+                  onMouseEnter={() => setHoveredId(lote.id)}
+                  onMouseLeave={() => setHoveredId(null)}
+                >
+                  <title>
+                    {`${lote.id} • ${lote.superficieM2} m² • ${formatearMoneda(lote.precio)}${
+                      esDisponible ? '' : ` (${lote.estado})`
+                    }`}
+                  </title>
+                </polygon>
+              );
+            })}
+          </g>
+        </svg>
 
         {hoveredLote && (
           <div className="absolute bottom-4 right-4 z-10 w-60 rounded-xl border border-slate-200 bg-white/95 p-4 shadow-lg backdrop-blur">
