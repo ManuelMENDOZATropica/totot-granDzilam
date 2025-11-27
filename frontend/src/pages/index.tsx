@@ -36,20 +36,28 @@ export default function Home() {
     actualizarPorcentaje,
     actualizarMeses,
   } = useCotizacion();
-  
+   
   const { status, error: imagineError, generate, lastPrompt } = useImagine();
   const { user } = useAuth();
+  
+  // --- FIX 1: ESTADO PARA EVITAR ERROR DE HIDRATACIÓN ---
+  const [mounted, setMounted] = useState(false);
+
   const [prompt, setPrompt] = useState('');
   const [size, setSize] = useState<ImagineSize>('1024x1024');
   const promptLoaded = useRef(false);
-  
-  // Estado para abrir/cerrar panel
+   
   const [panelMacroAbierto, setPanelMacroAbierto] = useState(false);
 
   const [fondoActual, setFondoActual] = useState('/assets/vistas/1.png');
   const [vistaActiva, setVistaActiva] = useState<number | null>(null);
   const [fading, setFading] = useState(false);
   const [infoPanelReset, setInfoPanelReset] = useState(0);
+
+  // --- FIX 1: DETECTAR CUANDO EL COMPONENTE ESTÁ MONTADO EN EL CLIENTE ---
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     if (!promptLoaded.current && lastPrompt) {
@@ -103,17 +111,18 @@ export default function Home() {
           id="macro-terreno"
           className="relative isolate min-h-screen overflow-hidden text-white"
         >
-          {/* REEMPLAZAR LA ETIQUETA <Image> ACTUAL POR ESTO: */}
-<InteractiveMap
-  src={fondoActual}
-  className={`transition-opacity duration-500 ${fading ? 'opacity-0' : 'opacity-100'}`}
-/>
+          {/* --- FIX 2: CLASES CSS PARA QUE LA IMAGEN SE VEA (absolute inset-0) --- */}
+          <InteractiveMap
+            src={fondoActual}
+            className={`absolute inset-0 z-0 object-cover transition-opacity duration-500 ${fading ? 'opacity-0' : 'opacity-100'}`}
+          />
 
           <InfoPanel closeSignal={infoPanelReset} />
-          
+           
           {/* ACCESO ADMINISTRATIVO */}
           <div className="absolute top-6 right-6 z-30">
-            {user ? (
+            {/* --- FIX 1: USAR 'mounted' PARA RENDERIZAR ESTO SOLO EN EL CLIENTE --- */}
+            {mounted && user ? (
               <Link
                 href="/crm"
                 className="flex flex-col items-start rounded-2xl bg-white/20 px-5 py-3 text-left text-white shadow-lg backdrop-blur transition hover:bg-white/30"
@@ -245,14 +254,7 @@ export default function Home() {
             </div>
           </div>
 
-          {/* ========================================================= */}
-          {/* PANEL DESLIZABLE UNIFICADO (AHORA DENTRO DE LA SECCIÓN)   */}
-          {/* ========================================================= */}
-          {/* CAMBIOS REALIZADOS:
-              1. Movido dentro de <section>
-              2. Cambiado 'fixed' por 'absolute'
-              3. z-40 para que esté por encima de la imagen de fondo (y del selector de vistas si se solapan)
-          */}
+          {/* PANEL DESLIZABLE UNIFICADO */}
           <div
             className={`
               absolute bottom-0 left-[150px] right-0 pr-6 z-40
