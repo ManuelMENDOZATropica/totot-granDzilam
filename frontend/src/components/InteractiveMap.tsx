@@ -1,4 +1,4 @@
-import { useState, useEffect, MouseEvent } from 'react';
+import { useState, useEffect, MouseEvent, ChangeEvent } from 'react';
 import Image from 'next/image';
 
 interface PublicLot {
@@ -36,6 +36,7 @@ export const InteractiveMap = ({ src, className }: InteractiveMapProps) => {
   const [lots, setLots] = useState<PublicLot[]>([]);
   const [hoveredLot, setHoveredLot] = useState<PublicLot | null>(null);
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+  const [svgOrigin, setSvgOrigin] = useState({ x: 0, y: 0 });
 
   // Solo mostramos los polígonos si estamos en la vista 1
   const isInteractiveView = src.includes('1.png') || src.includes('1.jpg');
@@ -80,6 +81,13 @@ export const InteractiveMap = ({ src, className }: InteractiveMapProps) => {
     return new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(price);
   };
 
+  const handleOriginChange = (axis: 'x' | 'y') => (event: ChangeEvent<HTMLInputElement>) => {
+    setSvgOrigin((prev) => ({
+      ...prev,
+      [axis]: Number(event.target.value || 0),
+    }));
+  };
+
   return (
     <div className={className}>
       <div className="relative h-full w-full" onMouseMove={handleMouseMove}>
@@ -97,9 +105,10 @@ export const InteractiveMap = ({ src, className }: InteractiveMapProps) => {
         {/* 2. SVG Superpuesto (Solo en vista 1) */}
         {isInteractiveView && (
           <svg
-            className="absolute top-0 left-0 w-full h-full pointer-events-none"
+            className="absolute w-full h-full pointer-events-none"
             viewBox="0 0 1000 800"
             preserveAspectRatio="none"
+            style={{ top: svgOrigin.y, left: svgOrigin.x }}
           >
             <g className="pointer-events-auto">
               {lots.map((lot, index) => {
@@ -123,7 +132,34 @@ export const InteractiveMap = ({ src, className }: InteractiveMapProps) => {
           </svg>
         )}
 
-        {/* 3. Tooltip */}
+        {/* 3. Control para ajustar la esquina superior izquierda del SVG */}
+        {isInteractiveView && (
+          <div className="absolute bottom-4 left-4 z-50 bg-white/90 backdrop-blur-sm border border-slate-200 rounded-lg shadow px-3 py-2 text-xs space-y-2">
+            <div className="font-semibold text-slate-700">Origen del SVG (px)</div>
+            <div className="flex gap-2">
+              <label className="flex items-center gap-1">
+                <span className="text-slate-500">X:</span>
+                <input
+                  type="number"
+                  value={svgOrigin.x}
+                  onChange={handleOriginChange('x')}
+                  className="w-20 rounded border border-slate-300 px-2 py-1 text-slate-800"
+                />
+              </label>
+              <label className="flex items-center gap-1">
+                <span className="text-slate-500">Y:</span>
+                <input
+                  type="number"
+                  value={svgOrigin.y}
+                  onChange={handleOriginChange('y')}
+                  className="w-20 rounded border border-slate-300 px-2 py-1 text-slate-800"
+                />
+              </label>
+            </div>
+          </div>
+        )}
+
+        {/* 4. Tooltip */}
         {hoveredLot && isInteractiveView && (
           <div
             className="absolute z-50 pointer-events-none bg-white/95 backdrop-blur-sm p-4 rounded-xl shadow-xl border border-slate-200 w-56 animate-in fade-in zoom-in duration-150"
