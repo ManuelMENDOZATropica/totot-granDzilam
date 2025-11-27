@@ -42,7 +42,7 @@ export const PanelCotizacion = ({
 
   return (
     <aside
-      className="flex w-full flex-col lg:max-w-[480px] max-h-screen"
+      className="flex w-full flex-col lg:max-w-[480px] max-h-screen border-l border-[#E2E0DB]"
       style={{ backgroundColor: colors.bg }}
     >
       {/* CONTENIDO SCROLLEABLE */}
