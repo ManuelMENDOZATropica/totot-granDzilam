@@ -101,7 +101,7 @@ export const InteractiveMap = ({ src, className }: InteractiveMapProps) => {
             viewBox="0 0 1000 800"
             preserveAspectRatio="none"
           >
-            <g className="pointer-events-auto">
+            <g className="pointer-events-auto" transform="translate(20, -65)">
               {lots.map((lot, index) => {
                 const points = LOT_PATHS_V1[index];
                 if (!points) return null;
