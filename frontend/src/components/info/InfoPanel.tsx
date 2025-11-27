@@ -192,29 +192,30 @@ export const InfoPanel = ({ closeSignal }: InfoPanelProps) => {
   const activeSection = sections.find((section) => section.id === activeId);
 
   return (
-    <div className="pointer-events-none absolute inset-0 z-30 flex items-start justify-start px-4 pt-28 sm:px-6 lg:px-12">
+    <div 
+      // CENTRADO VERTICAL: 'items-center' en lugar de 'items-start' y eliminando 'pt-28'
+      className="pointer-events-none absolute inset-0 z-30 flex items-center justify-start px-4 sm:px-6 lg:px-12"
+    >
       <div className="flex flex-col gap-4 pointer-events-auto">
         {sections.map((section) => (
           <button
             key={section.id}
             type="button"
             onClick={() => setActiveId((current) => (current === section.id ? null : section.id))}
-            // CAMBIOS AQUÍ:
-            // 1. h-14 w-14: Define el tamaño del botón.
-            // 2. p-0: Elimina el relleno interno.
-            // 3. overflow-hidden: Asegura que la imagen no se salga de los bordes redondeados.
-            className={`group relative h-14 w-14 overflow-hidden rounded-full shadow-lg backdrop-blur transition-transform hover:scale-110 hover:shadow-xl ${
+            
+            // TAMAÑO DE BOTÓN: Cambiado a h-14 w-14 (56px) y manteniendo las otras especificaciones.
+            className={`group relative h-14 w-14 overflow-hidden rounded-full p-2 shadow-lg backdrop-blur transition-transform hover:scale-110 hover:shadow-xl bg-[#f8f8f8] ${
               activeId === section.id ? 'ring-4 ring-[#385C7A]' : 'ring-1 ring-white/50'
             }`}
             aria-label={section.label}
           >
-            {/* 4. La imagen ocupa el 100% de alto y ancho con object-cover */}
             <Image
               src={section.iconPath}
               alt={section.label}
-              width={56} // Coincide con w-14 (56px) para optimización
+              // Ajustando width/height para optimización al nuevo tamaño (56px)
+              width={56} 
               height={56}
-              className="h-full w-full object-cover"
+              className="h-full w-full object-contain"
             />
           </button>
         ))}
