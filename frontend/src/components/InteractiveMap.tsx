@@ -98,10 +98,10 @@ export const InteractiveMap = ({ src, className }: InteractiveMapProps) => {
         {isInteractiveView && (
           <svg
             className="absolute top-0 left-0 w-full h-full pointer-events-none"
-            viewBox="0 0 1000 800"
+            viewBox="0 0 850 680"
             preserveAspectRatio="none"
           >
-            <g className="pointer-events-auto" transform="translate(20, -65)">
+            <g className="pointer-events-auto" transform="translate(-312, -125)">
               {lots.map((lot, index) => {
                 const points = LOT_PATHS_V1[index];
                 if (!points) return null;
@@ -111,8 +111,8 @@ export const InteractiveMap = ({ src, className }: InteractiveMapProps) => {
                     key={lot.id}
                     points={points}
                     fill={hoveredLot?.id === lot.id ? getFillColor(lot.estado) : 'transparent'}
-                    stroke={hoveredLot?.id === lot.id ? "white" : "rgba(255,255,255,0.2)"}
-                    strokeWidth={hoveredLot?.id === lot.id ? "3" : "1"}
+                    stroke={hoveredLot?.id === lot.id ? "white" : "transparent)"}
+                    strokeWidth={hoveredLot?.id === lot.id ? "3" : "0"}
                     className="cursor-pointer transition-all duration-300 ease-in-out"
                     onMouseEnter={() => setHoveredLot(lot)}
                     onMouseLeave={() => setHoveredLot(null)}
@@ -147,7 +147,7 @@ export const InteractiveMap = ({ src, className }: InteractiveMapProps) => {
                 <span className="font-semibold text-emerald-700">{formatPrice(hoveredLot.precio)}</span>
               </div>
 
-              <div className={`mt-2 inline-block px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide border
+              <div className={`mt-2 inline-block px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide border-0
                 ${hoveredLot.estado === 'disponible' ? 'bg-emerald-100 text-emerald-700 border-emerald-200' : ''}
                 ${hoveredLot.estado === 'apartado' ? 'bg-yellow-100 text-yellow-700 border-yellow-200' : ''}
                 ${hoveredLot.estado === 'vendido' ? 'bg-red-100 text-red-700 border-red-200' : ''}
