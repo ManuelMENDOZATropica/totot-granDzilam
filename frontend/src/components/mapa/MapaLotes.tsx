@@ -1,5 +1,4 @@
 import { useMemo, useState } from 'react';
-import Image from 'next/image';
 import type { Lote } from '@/hooks/useCotizacion';
 import { formatearMoneda } from '@/lib/formatoMoneda';
 
@@ -9,42 +8,26 @@ interface MapaLotesProps {
   onToggle: (id: string) => void;
 }
 
-const LOT_SHAPES: Array<{ id: string; points: string }> = [
-  { id: 'Lote 1', points: '390,200 425,200 425,700 390,720' },
-  { id: 'Lote 2', points: '425,200 460,200 460,690 425,700' },
-  { id: 'Lote 3', points: '460,200 495,200 495,680 460,690' },
-  { id: 'Lote 4', points: '495,200 530,200 530,670 495,680' },
-  { id: 'Lote 5', points: '530,200 565,200 565,660 530,670' },
-  { id: 'Lote 6', points: '565,200 600,200 600,650 565,660' },
-  { id: 'Lote 7', points: '600,200 635,200 635,640 600,650' },
-  { id: 'Lote 8', points: '635,200 670,200 670,630 635,640' },
-  { id: 'Lote 9', points: '670,200 705,200 705,620 670,630' },
-  { id: 'Lote 10', points: '705,200 740,200 740,610 705,620' },
-  { id: 'Lote 11', points: '740,200 775,200 775,600 740,610' },
-  { id: 'Lote 12', points: '775,200 810,200 810,590 775,600' },
-  { id: 'Lote 13', points: '810,200 845,200 845,580 810,590' },
-];
-
 const estadoStyles: Record<
   Lote['estado'],
   { fill: string; stroke: string; text: string; badge: string }
 > = {
   disponible: {
-    fill: 'rgba(56, 92, 122, 0.25)',
-    stroke: 'rgba(255, 255, 255, 0.8)',
+    fill: '#c2df9b',
+    stroke: '#7a9350',
     text: 'text-slate-800',
     badge: 'bg-emerald-100 text-emerald-700 border-emerald-200',
   },
   apartado: {
-    fill: 'rgba(226, 232, 240, 0.85)',
-    stroke: 'rgba(148, 163, 184, 0.8)',
-    text: 'text-slate-500',
+    fill: 'rgba(252, 215, 103, 0.45)',
+    stroke: 'rgba(214, 164, 25, 0.85)',
+    text: 'text-slate-600',
     badge: 'bg-amber-100 text-amber-700 border-amber-200',
   },
   vendido: {
-    fill: 'rgba(209, 213, 219, 0.75)',
-    stroke: 'rgba(148, 163, 184, 0.8)',
-    text: 'text-slate-500',
+    fill: 'rgba(146, 100, 60, 0.45)',
+    stroke: 'rgba(107, 64, 33, 0.85)',
+    text: 'text-slate-600',
     badge: 'bg-rose-100 text-rose-700 border-rose-200',
   },
 };
@@ -60,14 +43,29 @@ export const MapaLotes = ({ lotes, seleccionados, onToggle }: MapaLotesProps) =>
 
   const hoveredLote = hoveredId ? lotesPorId.get(hoveredId) ?? null : null;
 
-  const shapes = useMemo(
-    () =>
-      LOT_SHAPES.map((shape) => ({
-        ...shape,
-        lote: lotesPorId.get(shape.id),
-      })).filter((shape) => shape.lote),
-    [lotesPorId],
-  );
+  const shapes = useMemo(() => {
+    const total = 13;
+    const gap = 16;
+    const topWidth = 32;
+    const bottomWidth = 44;
+    const topY = 150;
+    const bottomY = 520;
+    const startX = 200;
+
+    return Array.from({ length: total }, (_, index) => {
+      const topLeftX = startX + index * (topWidth + gap);
+      const topRightX = topLeftX + topWidth;
+      const bottomLeftX = topLeftX - 8;
+      const bottomRightX = bottomLeftX + bottomWidth;
+      const id = `Lote ${index + 1}`;
+
+      return {
+        id,
+        lote: lotesPorId.get(id),
+        points: `${topLeftX},${topY} ${topRightX},${topY} ${bottomRightX},${bottomY} ${bottomLeftX},${bottomY}`,
+      };
+    }).filter((shape) => shape.lote);
+  }, [lotesPorId]);
 
   const getFill = (lote: Lote, seleccionado: boolean) => {
     if (lote.estado !== 'disponible') {
@@ -75,7 +73,7 @@ export const MapaLotes = ({ lotes, seleccionados, onToggle }: MapaLotesProps) =>
     }
 
     if (seleccionado) {
-      return 'rgba(14, 165, 233, 0.45)';
+      return '#6b7c2e';
     }
 
     return estadoStyles.disponible.fill;
@@ -87,56 +85,81 @@ export const MapaLotes = ({ lotes, seleccionados, onToggle }: MapaLotesProps) =>
     }
 
     if (seleccionado) {
-      return '#38bdf8';
+      return '#3f5517';
     }
 
     return estadoStyles.disponible.stroke;
   };
 
+  const disponibles = lotes.filter((lote) => lote.estado === 'disponible').length;
+
   return (
-    <section aria-labelledby="mapa-lotes" className="flex w-full flex-col gap-6">
-      <div className="flex flex-col gap-2">
-        <div className="flex flex-wrap items-end justify-between gap-4">
+    <section aria-labelledby="mapa-lotes" className="flex w-full flex-col gap-5">
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <div className="flex flex-col">
+            <span className="text-[11px] font-semibold uppercase tracking-[0.25em] text-slate-400">Disponibles</span>
+            <span className="text-2xl font-semibold text-slate-900">{disponibles}</span>
+          </div>
+          <div className="h-10 w-px bg-slate-200" aria-hidden="true" />
           <div>
             <h2 id="mapa-lotes" className="text-lg font-semibold text-slate-900">
               Plano de lotes
             </h2>
             <p className="text-sm text-slate-500">Selecciona los lotes disponibles directamente en el plano.</p>
           </div>
-          <div className="flex items-center gap-3 text-xs uppercase tracking-[0.25em] text-slate-400">
-            <span>Seleccionados</span>
-            <span className="text-base font-semibold text-slate-900">{seleccionados.length}</span>
-          </div>
         </div>
-        <div className="flex flex-wrap items-center gap-4 text-xs text-slate-500">
-          <div className="flex items-center gap-2">
-            <span className="h-3 w-3 rounded border border-slate-300 bg-white" aria-hidden="true" />
-            Disponible
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="h-3 w-3 rounded border border-slate-300 bg-[#bae6fd]" aria-hidden="true" />
-            Seleccionado
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="h-3 w-3 rounded bg-slate-200" aria-hidden="true" />
-            Apartado / Vendido
-          </div>
+
+        <div className="flex items-center gap-3 rounded-full border border-emerald-100 bg-emerald-50 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-emerald-700 shadow-sm">
+          <span className="h-2 w-2 rounded-full bg-emerald-500" aria-hidden="true" />
+          Selección activa
+          <span className="rounded-full border border-emerald-100 bg-white px-2 py-0.5 text-emerald-700">
+            {seleccionados.length}
+          </span>
         </div>
       </div>
 
-      <div className="relative flex min-h-[340px] items-center justify-center overflow-hidden rounded-2xl border border-slate-200 bg-slate-50">
-        <Image
-          src="/assets/vistas/1.png"
-          alt="Plano macro-terreno"
-          fill
-          priority
-          className="object-cover opacity-90"
-          sizes="(min-width: 1024px) 700px, 100vw"
-        />
+      <div className="flex flex-wrap items-center gap-4 text-xs text-slate-500">
+        <div className="flex items-center gap-2">
+          <span className="h-3 w-3 rounded border border-slate-300 bg-[#c2df9b]" aria-hidden="true" />
+          Disponible
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="h-3 w-3 rounded border border-slate-300 bg-[#5b7a24]" aria-hidden="true" />
+          Seleccionado
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="h-3 w-3 rounded bg-[rgba(252,215,103,0.6)]" aria-hidden="true" />
+          Apartado
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="h-3 w-3 rounded bg-[rgba(146,100,60,0.6)]" aria-hidden="true" />
+          Vendido
+        </div>
+      </div>
 
-        <div className="absolute inset-0">
-          <svg className="h-full w-full" viewBox="0 0 1000 800" preserveAspectRatio="none">
-            <g className="pointer-events-auto" transform="translate(20, -65)">
+      <div className="relative overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+        <div className="aspect-[4/3] w-full">
+          <svg className="h-full w-full" viewBox="0 0 960 680" preserveAspectRatio="xMidYMid meet">
+            <defs>
+              <linearGradient id="terrenoGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#dbeac3" />
+                <stop offset="100%" stopColor="#a1be6c" />
+              </linearGradient>
+            </defs>
+
+            <g transform="rotate(-6 480 340)">
+              <rect x="150" y="120" width="660" height="440" rx="28" fill="url(#terrenoGradient)" />
+              <g opacity="0.85">
+                <rect x="180" y="120" width="6" height="440" fill="rgba(255,255,255,0.35)" />
+                <rect x="240" y="120" width="10" height="440" fill="rgba(255,255,255,0.25)" />
+                <rect x="360" y="120" width="12" height="440" fill="rgba(255,255,255,0.3)" />
+                <rect x="460" y="120" width="8" height="440" fill="rgba(255,255,255,0.25)" />
+                <rect x="520" y="120" width="14" height="440" fill="rgba(255,255,255,0.28)" />
+                <rect x="640" y="120" width="12" height="440" fill="rgba(255,255,255,0.3)" />
+                <rect x="720" y="120" width="8" height="440" fill="rgba(255,255,255,0.2)" />
+              </g>
+
               {shapes.map((shape) => {
                 const lote = shape.lote as Lote;
                 const seleccionado = seleccionados.includes(lote.id);
@@ -149,7 +172,9 @@ export const MapaLotes = ({ lotes, seleccionados, onToggle }: MapaLotesProps) =>
                     fill={getFill(lote, seleccionado)}
                     stroke={getStroke(lote, seleccionado)}
                     strokeWidth={seleccionado ? 3 : 1.5}
-                    className={`transition-all duration-200 ${esDisponible ? 'cursor-pointer hover:brightness-110' : 'cursor-not-allowed opacity-70'}`}
+                    className={`transition-all duration-200 ${
+                      esDisponible ? 'cursor-pointer hover:brightness-110' : 'cursor-not-allowed opacity-70'
+                    }`}
                     onClick={() => {
                       if (!esDisponible) return;
                       onToggle(lote.id);
