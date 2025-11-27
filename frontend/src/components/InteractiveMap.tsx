@@ -81,83 +81,83 @@ export const InteractiveMap = ({ src, className }: InteractiveMapProps) => {
   };
 
   return (
-    // IMPORTANTE: Aquí aplicamos el className que viene desde index.tsx
-    // Esto permite que el componente sea 'absolute' y ocupe toda la pantalla
-    <div className={`relative w-full h-full ${className}`} onMouseMove={handleMouseMove}>
-      
-      {/* 1. Imagen de Fondo Dinámica */}
-      <Image 
-        src={src} 
-        alt="Mapa de lotes" 
-        fill
-        priority
-        className="object-cover select-none"
-        sizes="100vw"
-      />
+    <div className={className}>
+      <div className="relative h-full w-full" onMouseMove={handleMouseMove}>
 
-      {/* 2. SVG Superpuesto (Solo en vista 1) */}
-      {isInteractiveView && (
-        <svg 
-          className="absolute top-0 left-0 w-full h-full pointer-events-none"
-          viewBox="0 0 1000 800"
-          preserveAspectRatio="none"
-        >
-          <g className="pointer-events-auto">
-            {lots.map((lot, index) => {
-              const points = LOT_PATHS_V1[index];
-              if (!points) return null;
+        {/* 1. Imagen de Fondo Dinámica */}
+        <Image
+          src={src}
+          alt="Mapa de lotes"
+          fill
+          priority
+          className="object-cover select-none"
+          sizes="100vw"
+        />
 
-              return (
-                <polygon
-                  key={lot.id}
-                  points={points}
-                  fill={hoveredLot?.id === lot.id ? getFillColor(lot.estado) : 'transparent'}
-                  stroke={hoveredLot?.id === lot.id ? "white" : "rgba(255,255,255,0.2)"}
-                  strokeWidth={hoveredLot?.id === lot.id ? "3" : "1"}
-                  className="cursor-pointer transition-all duration-300 ease-in-out"
-                  onMouseEnter={() => setHoveredLot(lot)}
-                  onMouseLeave={() => setHoveredLot(null)}
-                />
-              );
-            })}
-          </g>
-        </svg>
-      )}
+        {/* 2. SVG Superpuesto (Solo en vista 1) */}
+        {isInteractiveView && (
+          <svg
+            className="absolute top-0 left-0 w-full h-full pointer-events-none"
+            viewBox="0 0 1000 800"
+            preserveAspectRatio="none"
+          >
+            <g className="pointer-events-auto">
+              {lots.map((lot, index) => {
+                const points = LOT_PATHS_V1[index];
+                if (!points) return null;
 
-      {/* 3. Tooltip */}
-      {hoveredLot && isInteractiveView && (
-        <div 
-          className="absolute z-50 pointer-events-none bg-white/95 backdrop-blur-sm p-4 rounded-xl shadow-xl border border-slate-200 w-56 animate-in fade-in zoom-in duration-150"
-          style={{ 
-            top: mousePos.y - 140, 
-            left: mousePos.x - 112 
-          }}
-        >
-          <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-4 h-4 bg-white rotate-45 border-b border-r border-slate-200"></div>
-          
-          <div className="text-slate-800 text-center space-y-1">
-            <h3 className="font-bold text-xl text-slate-900">{hoveredLot.id}</h3>
-            
-            <div className="flex justify-between text-sm px-2 py-1 bg-slate-50 rounded">
-              <span className="text-slate-500">Superficie:</span>
-              <span className="font-semibold">{hoveredLot.superficieM2} m²</span>
-            </div>
-            
-            <div className="flex justify-between text-sm px-2">
-              <span className="text-slate-500">Precio:</span>
-              <span className="font-semibold text-emerald-700">{formatPrice(hoveredLot.precio)}</span>
-            </div>
+                return (
+                  <polygon
+                    key={lot.id}
+                    points={points}
+                    fill={hoveredLot?.id === lot.id ? getFillColor(lot.estado) : 'transparent'}
+                    stroke={hoveredLot?.id === lot.id ? "white" : "rgba(255,255,255,0.2)"}
+                    strokeWidth={hoveredLot?.id === lot.id ? "3" : "1"}
+                    className="cursor-pointer transition-all duration-300 ease-in-out"
+                    onMouseEnter={() => setHoveredLot(lot)}
+                    onMouseLeave={() => setHoveredLot(null)}
+                  />
+                );
+              })}
+            </g>
+          </svg>
+        )}
 
-            <div className={`mt-2 inline-block px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide border
-              ${hoveredLot.estado === 'disponible' ? 'bg-emerald-100 text-emerald-700 border-emerald-200' : ''}
-              ${hoveredLot.estado === 'apartado' ? 'bg-yellow-100 text-yellow-700 border-yellow-200' : ''}
-              ${hoveredLot.estado === 'vendido' ? 'bg-red-100 text-red-700 border-red-200' : ''}
-            `}>
-              {hoveredLot.estado}
+        {/* 3. Tooltip */}
+        {hoveredLot && isInteractiveView && (
+          <div
+            className="absolute z-50 pointer-events-none bg-white/95 backdrop-blur-sm p-4 rounded-xl shadow-xl border border-slate-200 w-56 animate-in fade-in zoom-in duration-150"
+            style={{
+              top: mousePos.y - 140,
+              left: mousePos.x - 112
+            }}
+          >
+            <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-4 h-4 bg-white rotate-45 border-b border-r border-slate-200"></div>
+
+            <div className="text-slate-800 text-center space-y-1">
+              <h3 className="font-bold text-xl text-slate-900">{hoveredLot.id}</h3>
+
+              <div className="flex justify-between text-sm px-2 py-1 bg-slate-50 rounded">
+                <span className="text-slate-500">Superficie:</span>
+                <span className="font-semibold">{hoveredLot.superficieM2} m²</span>
+              </div>
+
+              <div className="flex justify-between text-sm px-2">
+                <span className="text-slate-500">Precio:</span>
+                <span className="font-semibold text-emerald-700">{formatPrice(hoveredLot.precio)}</span>
+              </div>
+
+              <div className={`mt-2 inline-block px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide border
+                ${hoveredLot.estado === 'disponible' ? 'bg-emerald-100 text-emerald-700 border-emerald-200' : ''}
+                ${hoveredLot.estado === 'apartado' ? 'bg-yellow-100 text-yellow-700 border-yellow-200' : ''}
+                ${hoveredLot.estado === 'vendido' ? 'bg-red-100 text-red-700 border-red-200' : ''}
+              `}>
+                {hoveredLot.estado}
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 };
