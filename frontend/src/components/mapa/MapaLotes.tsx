@@ -110,7 +110,7 @@ export const MapaLotes = ({ lotes, seleccionados, onToggle }: MapaLotesProps) =>
           </div>
         </div>
 
-        <div className="flex items-center gap-3 rounded-full border border-emerald-100 bg-emerald-50 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-emerald-700 shadow-sm">
+        <div className="flex items-center gap-3 rounded-full border border-emerald-100 bg-emerald-50 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-emerald-700">
           <span className="h-2 w-2 rounded-full bg-emerald-500" aria-hidden="true" />
           Selección activa
           <span className="rounded-full border border-emerald-100 bg-white px-2 py-0.5 text-emerald-700">
@@ -138,7 +138,7 @@ export const MapaLotes = ({ lotes, seleccionados, onToggle }: MapaLotesProps) =>
         </div>
       </div>
 
-      <div className="relative overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+      <div className="relative overflow-hidden rounded-3xl border border-slate-200 bg-slate-50">
         <div className="aspect-[4/3] w-full">
           <svg className="h-full w-full" viewBox="0 0 960 680" preserveAspectRatio="xMidYMid meet">
             <defs>
@@ -195,7 +195,7 @@ export const MapaLotes = ({ lotes, seleccionados, onToggle }: MapaLotesProps) =>
         </div>
 
         {hoveredLote && (
-          <div className="absolute bottom-4 right-4 z-10 w-60 rounded-xl border border-slate-200 bg-white/95 p-4 shadow-lg backdrop-blur">
+          <div className="absolute bottom-4 right-4 z-10 w-60 rounded-xl border border-slate-200 bg-slate-50/95 p-4 backdrop-blur">
             <div className="flex items-baseline justify-between">
               <p className="text-sm font-semibold text-slate-500">{hoveredLote.id}</p>
               <span

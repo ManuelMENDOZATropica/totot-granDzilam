@@ -258,11 +258,11 @@ export default function Home() {
           <div
             className={`
               absolute bottom-0 left-[150px] right-0 pr-6 z-40
-              transform transition-transform duration-500 ease-out
+              transform transition-transform duration-500 ease-in-out
               ${panelMacroAbierto ? 'translate-y-0' : 'translate-y-[calc(100%-72px)]'}
             `}
           >
-            <div className="flex flex-col w-full rounded-t-[20px] bg-white shadow-2xl border border-slate-900/10">
+            <div className="flex flex-col w-full rounded-t-[20px] border border-slate-200 bg-slate-50">
               
               {/* CABECERA QUE FUNCIONA COMO BOTÓN */}
               <button
@@ -281,11 +281,11 @@ export default function Home() {
               </button>
 
               {/* CONTENIDO DEL PANEL */}
-              <div className="h-[85vh] overflow-y-auto border-t border-slate-200 bg-white pb-20">
+              <div className="h-[85vh] overflow-y-auto border-t border-slate-200 bg-slate-50 pb-20">
                 <div className="grid gap-8 px-6 py-6 lg:grid-cols-[1.2fr,0.9fr]">
                   
                   {/* ZONA DEL MAPA */}
-                  <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 shadow-inner">
+                  <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
                     {loading ? (
                       <div className="flex min-h-[320px] flex-col items-center justify-center gap-4 text-slate-400">
                         <div className="h-12 w-12 animate-spin rounded-full border-4 border-slate-200 border-t-gran-sky" />
@@ -318,7 +318,7 @@ export default function Home() {
                               {lotsMeta.total}
                             </span>
                           </div>
-                          <div className="flex items-center gap-2 rounded-full bg-white px-3 py-1 text-[11px] font-semibold text-slate-700 shadow">
+                          <div className="flex items-center gap-2 rounded-full bg-white px-3 py-1 text-[11px] font-semibold text-slate-700">
                             <span className="h-2.5 w-2.5 rounded-full bg-gran-sky" />
                             Selección activa
                           </div>

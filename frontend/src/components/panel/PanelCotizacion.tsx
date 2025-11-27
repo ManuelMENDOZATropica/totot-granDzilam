@@ -29,7 +29,7 @@ export const PanelCotizacion = ({
   const interesActivo = configuracion.interes > 0;
 
   return (
-    <aside className="flex w-full flex-col gap-8 border-t border-slate-200 pt-8 lg:max-w-sm lg:border-l lg:border-t-0 lg:pl-10 lg:pt-0">
+    <aside className="flex w-full flex-col gap-8 border-t border-slate-200 bg-slate-50 pt-8 lg:max-w-sm lg:border-l lg:border-t-0 lg:border-slate-300 lg:pl-10 lg:pt-0">
       <div className="flex flex-col gap-2">
         <h2 className="text-lg font-semibold text-slate-900">Cotización en tiempo real</h2>
         <p className="text-sm text-slate-500">
