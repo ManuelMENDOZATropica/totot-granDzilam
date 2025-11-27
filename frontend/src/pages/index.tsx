@@ -10,6 +10,7 @@ import { ChatbotWidget } from '@/components/chat/ChatbotWidget';
 import { type ImagineSize, useImagine } from '@/hooks/useImagine';
 import { useAuth } from '@/contexts/AuthContext';
 import { InfoPanel } from '@/components/info/InfoPanel';
+import { InteractiveMap } from '@/components/InteractiveMap';
 
 const vistas = [
   { nombre: '1', src: '/assets/vistas/1.png' },
@@ -102,14 +103,11 @@ export default function Home() {
           id="macro-terreno"
           className="relative isolate min-h-screen overflow-hidden text-white"
         >
-          <Image
-            src={fondoActual}
-            alt="Plano aéreo de Gran Dzilam"
-            fill
-            priority
-            sizes="100vw"
-            className={`object-cover transition-opacity duration-500 ${fading ? 'opacity-0' : 'opacity-100'}`}
-          />
+          {/* REEMPLAZAR LA ETIQUETA <Image> ACTUAL POR ESTO: */}
+<InteractiveMap
+  src={fondoActual}
+  className={`transition-opacity duration-500 ${fading ? 'opacity-0' : 'opacity-100'}`}
+/>
 
           <InfoPanel closeSignal={infoPanelReset} />
           
