@@ -258,11 +258,11 @@ export default function Home() {
           <div
             className={`
               absolute bottom-0 left-[150px] right-0 pr-6 z-40
-              transform transition-transform duration-500 ease-out
+              transform transition-transform duration-500 ease-in-out
               ${panelMacroAbierto ? 'translate-y-0' : 'translate-y-[calc(100%-72px)]'}
             `}
           >
-            <div className="flex w-full flex-col rounded-t-[20px] bg-white shadow-2xl border border-black/5 font-sans text-[#1C2533]">
+            <div className="flex w-full flex-col rounded-t-[20px] bg-[#F3F1EC] border border-[#E2E0DB] font-sans text-[#1C2533]">
   
   {/* --- CABECERA (BOTÓN TOGGLE) --- */}
   <button
@@ -291,15 +291,18 @@ export default function Home() {
   </button>
 
   {/* --- CONTENIDO DESPLEGABLE --- */}
-  {panelMacroAbierto && (
-    <div className="h-[85vh] overflow-hidden border-t border-[#E2E0DB] bg-[#F8F7F4]">
+  <div
+    className={`h-[85vh] overflow-hidden border-t border-[#E2E0DB] bg-[#F3F1EC] transition-opacity duration-500 ${
+      panelMacroAbierto ? 'opacity-100' : 'opacity-0 pointer-events-none'
+    }`}
+  >
       {/* Grid: Mapa (Flexible) | Panel (Fijo 450px aprox) */}
-      <div className="grid h-full lg:grid-cols-[1fr_460px]">
+      <div className="grid h-full lg:grid-cols-[1fr_460px] bg-[#F3F1EC]">
         
         {/* ================= ZONA DEL MAPA (IZQUIERDA) ================= */}
         <div className="relative flex flex-col p-4 lg:p-6 overflow-hidden">
-          
-          <div className="flex h-full flex-col overflow-hidden rounded-xl border border-[#E2E0DB] bg-white shadow-sm">
+
+          <div className="flex h-full flex-col overflow-hidden rounded-xl border border-[#E2E0DB] bg-[#F3F1EC]">
             
             {/* ESTADOS DE CARGA / ERROR */}
             {loading ? (
@@ -369,7 +372,6 @@ export default function Home() {
 
       </div>
     </div>
-  )}
 </div>
           </div>
 
