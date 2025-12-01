@@ -12,10 +12,13 @@ import { useAuth } from '@/contexts/AuthContext';
 import { InfoPanel } from '@/components/info/InfoPanel';
 import { InteractiveMap } from '@/components/InteractiveMap';
 
+// 1. DEFINIMOS LAS 5 VISTAS
 const vistas = [
   { nombre: '1', src: '/assets/vistas/1.png' },
   { nombre: '2', src: '/assets/vistas/2.png' },
   { nombre: '3', src: '/assets/vistas/3.png' },
+  { nombre: '4', src: '/assets/vistas/4.png' },
+  { nombre: '5', src: '/assets/vistas/5.png' },
 ];
 
 export default function Home() {
@@ -24,7 +27,6 @@ export default function Home() {
 
   const {
     lotes,
-    lotsMeta,
     loading,
     error,
     financeSettings,
@@ -39,37 +41,32 @@ export default function Home() {
     actualizarPorcentaje,
     actualizarMeses,
   } = useCotizacion();
-   
+    
   const { status, error: imagineError, generate, lastPrompt } = useImagine();
   const { user } = useAuth();
-  
-  // --- FIX 1: ESTADO PARA EVITAR ERROR DE HIDRATACIÓN ---
+   
   const [mounted, setMounted] = useState(false);
-
   const [prompt, setPrompt] = useState('');
   const [size, setSize] = useState<ImagineSize>('1024x1024');
   const promptLoaded = useRef(false);
-   
   const [panelMacroAbierto, setPanelMacroAbierto] = useState(false);
 
+  // Inicialización
   const [fondoActual, setFondoActual] = useState('/assets/vistas/1.png');
-  const [vistaActiva, setVistaActiva] = useState<number | null>(null);
+  const [vistaActiva, setVistaActiva] = useState<number | null>(0); 
   const [fading, setFading] = useState(false);
   const [infoPanelReset, setInfoPanelReset] = useState(0);
 
-  // --- FIX 1: DETECTAR CUANDO EL COMPONENTE ESTÁ MONTADO EN EL CLIENTE ---
   useEffect(() => {
     setMounted(true);
   }, []);
 
   useEffect(() => {
     const storedConsent = localStorage.getItem('cookieConsent');
-
     if (storedConsent === 'all' || storedConsent === 'essential') {
       setCookieConsent(storedConsent);
       return;
     }
-
     setShowCookieBanner(true);
   }, []);
 
@@ -93,10 +90,12 @@ export default function Home() {
     const vista = vistas[index];
     if (!vista) return;
     setInfoPanelReset((value) => value + 1);
+    
     if (vista.src === fondoActual) {
       setVistaActiva(index);
       return;
     }
+    
     setVistaActiva(index);
     setFading(true);
     setTimeout(() => {
@@ -114,6 +113,21 @@ export default function Home() {
   const handleOpenCookieBanner = () => {
     setShowCookieBanner(true);
   };
+
+  // --- LÓGICA DEL CARRUSEL VERTICAL (DESKTOP) ---
+  // Separamos la vista 1 de las demás
+  const vistaFija = vistas[0]; // La 1
+  const vistasDinamicas = vistas.slice(1); // Las 2, 3, 4, 5
+  
+  // Altura de cada item + gap. (h-100px + gap-4 = 100 + 16 = 116px)
+  const ITEM_HEIGHT_WITH_GAP = 116; 
+  
+  // Calculamos el offset (desplazamiento)
+  // Si seleccionamos la 1, 2 o 3 (índices globales 0, 1, 2) -> Offset 0 (Muestra 2,3,4)
+  // Si seleccionamos la 4 o 5 (índices globales 3, 4) -> Offset 1 (Muestra 3,4,5)
+  // Nota: vistaActiva es null al inicio, lo tratamos como 0
+  const activeIndex = vistaActiva ?? 0;
+  const scrollOffset = activeIndex >= 3 ? 1 : 0;
 
   return (
     <>
@@ -135,17 +149,15 @@ export default function Home() {
           id="macro-terreno"
           className="relative isolate min-h-screen overflow-hidden text-white"
         >
-          {/* --- FIX 2: CLASES CSS PARA QUE LA IMAGEN SE VEA (absolute inset-0) --- */}
           <InteractiveMap
             src={fondoActual}
             className={`absolute inset-0 z-0 object-cover transition-opacity duration-500 ${fading ? 'opacity-0' : 'opacity-100'}`}
           />
 
           <InfoPanel closeSignal={infoPanelReset} />
-           
+            
           {/* ACCESO ADMINISTRATIVO */}
           <div className="absolute top-6 right-6 z-30">
-            {/* --- FIX 1: USAR 'mounted' PARA RENDERIZAR ESTO SOLO EN EL CLIENTE --- */}
             {mounted && user ? (
               <Link
                 href="/crm"
@@ -177,37 +189,84 @@ export default function Home() {
             />
           </div>
 
-          {/* Selector de vistas – escritorio */}
+          {/* ======================================================== */}
+          {/* SELECTOR DE VISTAS (ESCRITORIO - CARRUSEL VERTICAL)     */}
+          {/* ======================================================== */}
           <div className="absolute right-4 top-1/2 z-30 hidden -translate-y-1/2 flex-col gap-4 md:flex">
-            {vistas.map((vista, index) => (
-              <button
-                key={vista.nombre}
-                type="button"
-                onClick={() => handleCambioVista(index)}
-                className="group overflow-hidden rounded-xl transition"
-              >
-                <Image
-                  src={vista.src}
-                  alt={vista.nombre}
-                  width={160}
-                  height={100}
-                  className={`h-[100px] w-[160px] object-cover transition-transform duration-300 ${
-                    vistaActiva === index ? 'scale-[1.05]' : 'group-hover:scale-[1.03]'
-                  }`}
-                />
-              </button>
-            ))}
-          </div>
+            
+            {/* 1. OPCIÓN FIJA (Vista 1) */}
+            <button
+              type="button"
+              onClick={() => handleCambioVista(0)}
+              className="group overflow-hidden rounded-xl transition relative z-20"
+            >
+              <Image
+                src={vistaFija.src}
+                alt={vistaFija.nombre}
+                width={160}
+                height={100}
+                className={`h-[100px] w-[160px] object-cover transition-transform duration-300 ${
+                  vistaActiva === 0 ? 'scale-[1.05] ring-2 ring-white' : 'group-hover:scale-[1.03] opacity-80 hover:opacity-100'
+                }`}
+              />
+              {/* Etiqueta opcional para identificar */}
+              <div className="absolute bottom-1 right-2 text-[10px] font-bold text-white drop-shadow-md opacity-0 group-hover:opacity-100 transition-opacity">
+                Vista 1
+              </div>
+            </button>
 
-          {/* Selector de vistas – móvil */}
+            {/* Separador visual opcional o simplemente el gap del flex padre */}
+
+            {/* 2. MÁSCARA DEL CARRUSEL (Muestra 3 opciones) */}
+            {/* Altura = (100px * 3) + (16px * 2 gaps) = 332px */}
+            <div className="relative h-[332px] w-[160px] overflow-hidden rounded-xl">
+              
+              {/* Contenedor que se mueve (TRACK) */}
+              <div 
+                className="flex flex-col gap-4 transition-transform duration-500 ease-in-out will-change-transform"
+                style={{ transform: `translateY(-${scrollOffset * ITEM_HEIGHT_WITH_GAP}px)` }}
+              >
+                {vistasDinamicas.map((vista, index) => {
+                  // Ajustamos el indice global: index del map (0..3) + 1 = (1..4)
+                  const globalIndex = index + 1;
+                  
+                  return (
+                    <button
+                      key={vista.nombre}
+                      type="button"
+                      onClick={() => handleCambioVista(globalIndex)}
+                      className="group overflow-hidden rounded-xl transition shrink-0"
+                    >
+                      <Image
+                        src={vista.src}
+                        alt={vista.nombre}
+                        width={160}
+                        height={100}
+                        className={`h-[100px] w-[160px] object-cover transition-transform duration-300 ${
+                          vistaActiva === globalIndex 
+                            ? 'scale-[1.05] ring-2 ring-white' 
+                            : 'group-hover:scale-[1.03] opacity-80 hover:opacity-100'
+                        }`}
+                      />
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+          </div>
+          {/* ======================================================== */}
+
+
+          {/* Selector de vistas – móvil (Scroll Horizontal para soportar 5 items) */}
           <div className="absolute inset-x-0 bottom-32 z-30 flex justify-center md:hidden">
-            <div className="flex gap-3 rounded-2xl bg-white/85 p-2 shadow-lg backdrop-blur">
+            <div className="flex gap-2 rounded-2xl bg-white/85 p-2 shadow-lg backdrop-blur overflow-x-auto max-w-[90vw] snap-x">
               {vistas.map((vista, index) => (
                 <button
                   key={vista.nombre}
                   type="button"
                   onClick={() => handleCambioVista(index)}
-                  className={`group overflow-hidden rounded-xl border-2 transition ${
+                  className={`group shrink-0 overflow-hidden rounded-xl border-2 transition snap-center ${
                     vistaActiva === index
                       ? 'border-slate-900'
                       : 'border-slate-300 hover:border-slate-900'
@@ -218,7 +277,7 @@ export default function Home() {
                     alt={vista.nombre}
                     width={96}
                     height={64}
-                    className="h-16 w-24 object-cover transition-transform duration-300 group-hover:scale-105"
+                    className="h-14 w-16 object-cover transition-transform duration-300 group-hover:scale-105"
                   />
                 </button>
               ))}
@@ -287,7 +346,7 @@ export default function Home() {
             `}
           >
             <div className="flex w-full flex-col rounded-t-[20px] bg-[#F3F1EC] border border-[#E2E0DB] font-sans text-[#1C2533]">
-  
+   
   {/* --- CABECERA (BOTÓN TOGGLE) --- */}
   <button
     type="button"
@@ -326,12 +385,12 @@ export default function Home() {
   >
       {/* Grid: Mapa (Flexible) | Panel (Fijo 450px aprox) */}
       <div className="grid h-full lg:grid-cols-[1fr_460px] bg-[#F3F1EC]">
-        
+       
         {/* ================= ZONA DEL MAPA (IZQUIERDA) ================= */}
         <div className="relative flex flex-col p-4 lg:p-6 overflow-hidden">
 
           <div className="flex h-full flex-col overflow-hidden rounded-xl border border-[#E2E0DB] bg-[#F3F1EC]">
-            
+           
             {/* ESTADOS DE CARGA / ERROR */}
             {loading ? (
               <div className="flex h-full flex-col items-center justify-center gap-4 text-[#64748B]">
@@ -365,7 +424,7 @@ export default function Home() {
               </div>
             ) : (
               <div className="flex h-full flex-col">
-                
+               
                 {/* COMPONENTE MAPA */}
                 <div className="relative flex-1 bg-[#F3F1EC]/30">
                   <div className="absolute inset-0 overflow-y-auto">
