@@ -19,6 +19,9 @@ const vistas = [
 ];
 
 export default function Home() {
+  const [cookieConsent, setCookieConsent] = useState<'all' | 'essential' | null>(null);
+  const [showCookieBanner, setShowCookieBanner] = useState(false);
+
   const {
     lotes,
     lotsMeta,
@@ -60,6 +63,17 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
+    const storedConsent = localStorage.getItem('cookieConsent');
+
+    if (storedConsent === 'all' || storedConsent === 'essential') {
+      setCookieConsent(storedConsent);
+      return;
+    }
+
+    setShowCookieBanner(true);
+  }, []);
+
+  useEffect(() => {
     if (!promptLoaded.current && lastPrompt) {
       setPrompt(lastPrompt);
       promptLoaded.current = true;
@@ -89,6 +103,16 @@ export default function Home() {
       setFondoActual(vista.src);
       setFading(false);
     }, 200);
+  };
+
+  const handleCookieChoice = (choice: 'all' | 'essential') => {
+    setCookieConsent(choice);
+    localStorage.setItem('cookieConsent', choice);
+    setShowCookieBanner(false);
+  };
+
+  const handleOpenCookieBanner = () => {
+    setShowCookieBanner(true);
   };
 
   return (
@@ -290,6 +314,10 @@ export default function Home() {
     </div>
   </button>
 
+  <p className="px-6 pt-3 text-xs text-[#1C2533] lg:px-8">
+    Esta herramienta es una representación ilustrativa y no constituye una oferta oficial ni legal.
+  </p>
+
   {/* --- CONTENIDO DESPLEGABLE --- */}
   <div
     className={`h-[85vh] overflow-hidden border-t border-[#E2E0DB] bg-[#F3F1EC] transition-opacity duration-500 ${
@@ -375,9 +403,76 @@ export default function Home() {
 </div>
           </div>
 
-        </section>
+      </section>
 
-      </main>
+      <footer className="bg-[#0F172A] text-white">
+        <div className="mx-auto flex max-w-6xl flex-col gap-4 px-6 py-8 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="text-sm font-semibold">Gran Dzilam</p>
+            <p className="text-xs text-white/70">Tu espacio para visualizar y cotizar con confianza.</p>
+            {cookieConsent ? (
+              <p className="pt-2 text-[11px] text-white/60">
+                Preferencia actual: {cookieConsent === 'all' ? 'todas las cookies' : 'solo las esenciales'}.
+              </p>
+            ) : null}
+          </div>
+
+          <div className="flex flex-wrap items-center gap-3 text-sm">
+            <Link
+              href="/aviso-de-privacidad"
+              className="rounded-full border border-white/30 px-4 py-2 transition hover:border-white hover:bg-white hover:text-[#0F172A]"
+            >
+              Aviso de privacidad
+            </Link>
+            <button
+              type="button"
+              onClick={handleOpenCookieBanner}
+              className="rounded-full bg-white px-4 py-2 text-[#0F172A] transition hover:scale-[1.01]"
+            >
+              Preferencias de cookies
+            </button>
+          </div>
+        </div>
+      </footer>
+
+    </main>
+
+      {showCookieBanner ? (
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 px-4 py-6 sm:items-center">
+          <div className="w-full max-w-xl rounded-2xl bg-white p-6 shadow-2xl">
+            <h3 className="text-lg font-semibold text-[#1C2533]">Uso de cookies</h3>
+            <p className="mt-2 text-sm text-[#475569]">
+              Utilizamos cookies para mejorar tu experiencia y analizar la interacción con nuestro sitio. Puedes aceptar todas
+              o quedarte solo con las esenciales para el correcto funcionamiento de la página.
+            </p>
+
+            <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:justify-end">
+              <button
+                type="button"
+                onClick={() => handleCookieChoice('essential')}
+                className="rounded-full border border-[#1C2533] px-4 py-2 text-sm font-medium text-[#1C2533] transition hover:bg-[#1C2533] hover:text-white"
+              >
+                Aceptar solo esenciales
+              </button>
+              <button
+                type="button"
+                onClick={() => handleCookieChoice('all')}
+                className="rounded-full bg-[#1C2533] px-4 py-2 text-sm font-medium text-white transition hover:bg-[#2d3b50]"
+              >
+                Aceptar todas
+              </button>
+            </div>
+
+            <p className="mt-4 text-xs text-[#64748B]">
+              Para más detalles consulta nuestro{' '}
+              <Link href="/aviso-de-privacidad" className="font-semibold text-[#1C2533] underline-offset-2 hover:underline">
+                aviso de privacidad
+              </Link>
+              .
+            </p>
+          </div>
+        </div>
+      ) : null}
 
       <ChatbotWidget />
     </>
