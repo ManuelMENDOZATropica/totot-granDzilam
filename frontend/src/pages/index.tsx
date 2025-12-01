@@ -12,13 +12,14 @@ import { useAuth } from '@/contexts/AuthContext';
 import { InfoPanel } from '@/components/info/InfoPanel';
 import { InteractiveMap } from '@/components/InteractiveMap';
 
-// 1. DEFINIMOS LAS 5 VISTAS
+// 1. DEFINIMOS LAS 6 VISTAS
 const vistas = [
   { nombre: '1', src: '/assets/vistas/1.png' },
   { nombre: '2', src: '/assets/vistas/2.png' },
   { nombre: '3', src: '/assets/vistas/3.png' },
   { nombre: '4', src: '/assets/vistas/4.png' },
   { nombre: '5', src: '/assets/vistas/5.png' },
+  { nombre: '6', src: '/assets/vistas/6.png' },
 ];
 
 export default function Home() {
@@ -115,19 +116,26 @@ export default function Home() {
   };
 
   // --- LÓGICA DEL CARRUSEL VERTICAL (DESKTOP) ---
-  // Separamos la vista 1 de las demás
   const vistaFija = vistas[0]; // La 1
-  const vistasDinamicas = vistas.slice(1); // Las 2, 3, 4, 5
+  const vistasDinamicas = vistas.slice(1); // Las 2, 3, 4, 5, 6...
   
-  // Altura de cada item + gap. (h-100px + gap-4 = 100 + 16 = 116px)
+  // Altura de cada item + gap (100px + 16px)
   const ITEM_HEIGHT_WITH_GAP = 116; 
   
-  // Calculamos el offset (desplazamiento)
-  // Si seleccionamos la 1, 2 o 3 (índices globales 0, 1, 2) -> Offset 0 (Muestra 2,3,4)
-  // Si seleccionamos la 4 o 5 (índices globales 3, 4) -> Offset 1 (Muestra 3,4,5)
-  // Nota: vistaActiva es null al inicio, lo tratamos como 0
+  // Usamos el operador ?? para asegurar que activeIndex sea un número
   const activeIndex = vistaActiva ?? 0;
-  const scrollOffset = activeIndex >= 3 ? 1 : 0;
+  
+  // Muestra 3 items a la vez en la ventana deslizante
+  const VISIBLE_ITEMS = 3;
+  
+  // Límite máximo de scroll (para que no se pase al vacío al final)
+  const maxScrollIndex = Math.max(0, vistasDinamicas.length - VISIBLE_ITEMS);
+  
+  // Usamos -2 para centrar la selección y mostrar contexto
+  const idealOffset = Math.max(0, activeIndex - 2);
+
+  // Aseguramos no pasarnos del tope
+  const scrollOffset = Math.min(idealOffset, maxScrollIndex);
 
   return (
     <>
@@ -209,16 +217,14 @@ export default function Home() {
                   vistaActiva === 0 ? 'scale-[1.05] ring-2 ring-white' : 'group-hover:scale-[1.03] opacity-80 hover:opacity-100'
                 }`}
               />
-              {/* Etiqueta opcional para identificar */}
               <div className="absolute bottom-1 right-2 text-[10px] font-bold text-white drop-shadow-md opacity-0 group-hover:opacity-100 transition-opacity">
                 Vista 1
               </div>
             </button>
 
-            {/* Separador visual opcional o simplemente el gap del flex padre */}
+            {/* Separador */}
 
             {/* 2. MÁSCARA DEL CARRUSEL (Muestra 3 opciones) */}
-            {/* Altura = (100px * 3) + (16px * 2 gaps) = 332px */}
             <div className="relative h-[332px] w-[160px] overflow-hidden rounded-xl">
               
               {/* Contenedor que se mueve (TRACK) */}
@@ -227,7 +233,7 @@ export default function Home() {
                 style={{ transform: `translateY(-${scrollOffset * ITEM_HEIGHT_WITH_GAP}px)` }}
               >
                 {vistasDinamicas.map((vista, index) => {
-                  // Ajustamos el indice global: index del map (0..3) + 1 = (1..4)
+                  // Ajustamos el indice global
                   const globalIndex = index + 1;
                   
                   return (
@@ -257,8 +263,7 @@ export default function Home() {
           </div>
           {/* ======================================================== */}
 
-
-          {/* Selector de vistas – móvil (Scroll Horizontal para soportar 5 items) */}
+          {/* Selector de vistas – móvil */}
           <div className="absolute inset-x-0 bottom-32 z-30 flex justify-center md:hidden">
             <div className="flex gap-2 rounded-2xl bg-white/85 p-2 shadow-lg backdrop-blur overflow-x-auto max-w-[90vw] snap-x">
               {vistas.map((vista, index) => (
