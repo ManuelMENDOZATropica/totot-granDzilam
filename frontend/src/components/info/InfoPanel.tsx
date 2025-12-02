@@ -1,6 +1,9 @@
 import Image from 'next/image';
 import { ReactNode, useEffect, useMemo, useRef, useState } from 'react';
 
+// LISTA MANUAL DE TUS IMÁGENES REALES (Renombradas 1-24)
+const imagenesRealesList = Array.from({ length: 24 }, (_, i) => `/assets/imagenesReales/${i + 1}.png`);
+
 interface InfoSection {
   id: string;
   label: string;
@@ -16,6 +19,8 @@ interface InfoPanelProps {
 
 export const InfoPanel = ({ closeSignal }: InfoPanelProps) => {
   const [activeId, setActiveId] = useState<string | null>(null);
+  // 1. ESTADO PARA EL MODAL DEL MAPA
+  const [isMapModalOpen, setIsMapModalOpen] = useState(false);
   const cardRef = useRef<HTMLDivElement | null>(null);
 
   const sections: InfoSection[] = useMemo(
@@ -24,23 +29,29 @@ export const InfoPanel = ({ closeSignal }: InfoPanelProps) => {
         id: 'sobre',
         label: 'Sobre Gran Dzilam',
         iconPath: '/assets/iconos/sobre gran dzilam.png',
-        title: 'Gran Dzilam',
-        highlight: 'Comunidad planeada frente al mar',
+        title: 'Sobre Gran Dzilam',
+        highlight: 'Macroterrenos de inversión',
         content: (
-          <div className="space-y-4 text-slate-800">
+          <div className="space-y-4 text-slate-800 pl-[80px] pr-[80px] text-justify">
+            <p>Gran Dzilam es un conjunto de macroterrenos ubicado en Dzilam de Bravo, Yucatán.</p>
             <p>
-              Un master plan con visión de largo plazo que integra lotes urbanizados, amenidades costeras y servicios
-              planeados para crear una comunidad rodeada de naturaleza.
+              Son terrenos de propiedad privada listos para escriturar, ubicados sobre carretera con terreno plano y suelo
+              de piedra. Ideales para inversionistas que buscan propiedades de oportunidad.
             </p>
             <p>
-              Gran Dzilam equilibra inversión y estilo de vida: infraestructura lista para construir, espacios para
-              disfrutar el mar y un entorno seguro para proyectos residenciales o de hospitalidad.
+              Rodeado de más de 10 proyectos en preventa en la misma vialidad, y más de 30 en sus alrededores, incluyendo
+              residenciales y un club de golf a la orilla de la playa.
             </p>
-            <ul className="list-disc space-y-2 pl-5 text-sm text-slate-700">
-              <li>Calles blancas, energía a pie de lote y alumbrado en vialidades principales.</li>
-              <li>Club de playa proyectado con alberca, restaurante y acceso directo a la costa.</li>
-              <li>Parcelas amplias con orientación pensada para optimizar ventilación y asoleamiento.</li>
-            </ul>
+            <p>
+              A 2.2 horas de Chichen Itza, XX minutos de la playa y 1.3 horas de Mérida, Gran Dzilam es una inversión
+              emergente inteligente para quienes buscan desarrollar un proyecto con crecimiento exponencial en las próximas
+              décadas.
+            </p>
+            <p>
+              Su comercialización es a través de Eslabón Inmobiliario, una inmobiliaria con XX años de experiencia en la
+              venta de terrenos y desarrollos residenciales en la zona de Yucatán.
+            </p>
+            <p>Si quieres conocer más información sobre Gran Dzilam consulta nuestro Blog informativo.</p>
           </div>
         ),
       },
@@ -48,29 +59,40 @@ export const InfoPanel = ({ closeSignal }: InfoPanelProps) => {
         id: 'ubicacion',
         label: 'Ubicación',
         iconPath: '/assets/iconos/Ubicación.png',
-        title: 'Dzilam de Bravo, Yucatán',
-        highlight: 'Conectividad estratégica',
+        title: 'Ubicación',
+        highlight: 'Entorno de alta plusvalía',
         content: (
-          <div className="space-y-4 text-slate-800">
-            <p>
-              El desarrollo se ubica a pocos minutos de la costa de Dzilam de Bravo, sobre el corredor que conecta los
-              atractivos de la costa yucateca con Mérida y Cancún.
-            </p>
-            <div className="grid gap-3 sm:grid-cols-2">
-              <div className="rounded-xl bg-slate-50 p-3 text-sm text-slate-700 shadow-inner">
-                <p className="font-semibold text-slate-900">Cercanía inmediata</p>
-                <p>Playa, zona de manglares y servicios locales a corta distancia.</p>
-              </div>
-              <div className="rounded-xl bg-slate-50 p-3 text-sm text-slate-700 shadow-inner">
-                <p className="font-semibold text-slate-900">Vialidades principales</p>
-                <p>Acceso por carretera costera con conexión rápida hacia Mérida y Tizimín.</p>
-              </div>
+          <div className="space-y-6 text-slate-800 pl-[80px] pr-[80px] text-justify">
+            <div className="space-y-4">
+              <p>
+                Se encuentra en la <b>costa norte del estado de Yucatán</b>, es una de las pocas zonas vírgenes que quedan
+                en Yucatán y una auténtica <b>joya escondida</b> que esta en la mira de inversionistas y desarrolladores.
+              </p>
+              <p>
+                Cuenta con acceso desde <b> vialidad pavimentada</b> con más de 100m lineales de frente. Se encuentra a 5
+                minutos de la carretera <b>El Tajo</b>.
+              </p>
+              <p>
+                Si quieres conocer más información sobre la zona en la cual se encuentra Gran Dzilam, y zonas de interés
+                cercanas, visita nuestro Blog informativo.
+              </p>
             </div>
-            <ul className="list-disc space-y-2 pl-5 text-sm text-slate-700">
-              <li>Entorno natural de manglares, reservas y mar abierto.</li>
-              <li>Zona de alto crecimiento turístico y logístico en el litoral yucateco.</li>
-              <li>Oportunidad para proyectos boutique o residenciales frente al mar.</li>
-            </ul>
+
+            {/* Google Maps Embed */}
+            <div className="h-[250px] w-full overflow-hidden rounded-xl border border-slate-200 shadow-sm">
+              <iframe
+                width="100%"
+                height="100%"
+                frameBorder="0"
+                scrolling="no"
+                marginHeight={0}
+                marginWidth={0}
+                title="Ubicación Gran Dzilam"
+                src="https://maps.google.com/maps?q=21%C2%B020'49.8%22N+88%C2%B046'01.0%22W&t=m&z=11&ie=UTF8&iwloc=&output=embed"
+                className="h-full w-full"
+                loading="lazy"
+              ></iframe>
+            </div>
           </div>
         ),
       },
@@ -78,53 +100,137 @@ export const InfoPanel = ({ closeSignal }: InfoPanelProps) => {
         id: 'fotos',
         label: 'Fotografías',
         iconPath: '/assets/iconos/fotografias.png',
-        title: 'Galería de inspiración',
+        title: 'Fotografías',
         highlight: 'Vistas del master plan',
         content: (
-          <div className="space-y-4 text-slate-800">
-            <p>
-              Una selección de renders y vistas aéreas que muestran la escala del macro-terreno, las vialidades y la
-              cercanía con el mar.
-            </p>
-            <div className="grid gap-3 sm:grid-cols-3">
-              {['/assets/vistas/1.png', '/assets/vistas/2.png', '/assets/vistas/3.png'].map((src) => (
-                <div
-                  key={src}
-                  className="overflow-hidden rounded-xl border border-white/70 bg-white/60 shadow-lg shadow-slate-900/5"
-                >
-                  <Image src={src} alt="Vista de Gran Dzilam" width={420} height={280} className="h-28 w-full object-cover" />
-                </div>
-              ))}
-            </div>
-            <p className="text-sm text-slate-700">
-              Las imágenes son representativas y pueden variar conforme avance la urbanización y las amenidades del
-              proyecto.
-            </p>
+  // Mantenemos el contenedor padre
+  <div className="w-[600px] space-y-4 text-justify text-slate-800 pl-[20px] pr-[40px]">
+    
+    {/* AQUÍ AGREGAMOS LAS CLASES PARA OCULTAR LA BARRA */}
+    <div className="max-h-[60vh] overflow-x-hidden overflow-y-auto pr-4 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+      
+      <div className="grid grid-cols-1 gap-4">
+        {imagenesRealesList.map((src, index) => (
+          <div
+            key={src + index}
+            className="relative h-48 w-full overflow-hidden rounded-2xl border border-slate-200 shadow-sm transition-transform hover:scale-[1.02] sm:h-60"
+          >
+            <Image
+              src={src}
+              alt={`Vista real Gran Dzilam ${index + 1}`}
+              fill
+              className="object-cover"
+              sizes="(max-width: 768px) 100vw, 50vw"
+            />
           </div>
-        ),
+        ))}
+      </div>
+
+      {imagenesRealesList.length === 0 && (
+        <p className="py-10 text-center text-sm italic text-slate-500">
+          Próximamente imágenes de avance de obra.
+        </p>
+      )}
+    </div>
+  </div>
+),
       },
       {
         id: 'especificaciones',
         label: 'Especificaciones',
         iconPath: '/assets/iconos/especificaciones.png',
-        title: 'Características del macro-terreno',
-        highlight: 'Listo para proyectar',
+        title: 'Especificaciones',
+        highlight: 'Listo para desarrollar',
         content: (
-          <div className="space-y-4 text-slate-800">
-            <p>
-              Planeación con lotificación modular que facilita la construcción por etapas y la integración de
-              amenidades.
-            </p>
-            <ul className="list-disc space-y-2 pl-5 text-sm text-slate-700">
-              <li>Parcelas amplias pensadas para desarrollos mixtos o de hospitalidad.</li>
-              <li>Calles trazadas para optimizar flujos vehiculares y de servicios.</li>
-              <li>Áreas designadas para equipamiento, comercio ligero y zonas verdes.</li>
-              <li>Infraestructura proyectada para garantizar iluminación y drenaje pluvial.</li>
-            </ul>
-            <div className="rounded-xl bg-slate-50 p-4 text-sm text-slate-700 shadow-inner">
-              <p className="font-semibold text-slate-900">Entrega en etapas</p>
-              <p>El master plan contempla fases de urbanización que permiten activar zonas conforme avanzan las ventas.</p>
+          <div className="space-y-4 text-slate-800 pl-[80px] pr-[80px]">
+            {/* GRID DE CARACTERÍSTICAS */}
+    <div className="grid grid-cols-1 gap-y-8 gap-x-6 sm:grid-cols-2">
+      
+      {/* 1. Propiedad Privada */}
+      <div className="flex items-start gap-3">
+        <div className="shrink-0 text-[#385C7A]">
+           <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+             <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+             <polyline points="14 2 14 8 20 8"></polyline>
+             <line x1="16" y1="13" x2="8" y2="13"></line>
+             <line x1="16" y1="17" x2="8" y2="17"></line>
+             <line x1="10" y1="9" x2="8" y2="9"></line>
+           </svg>
+        </div>
+        <div>
+          <h4 className="font-bold text-slate-900 text-lg leading-tight">Propiedad privada</h4>
+          <p className="text-sm text-slate-600 mt-1">Terrenos seguros, listos para escriturar.</p>
+        </div>
+      </div>
+
+      {/* 2. Acceso Pavimentado */}
+      <div className="flex items-start gap-3">
+        <div className="shrink-0 text-[#385C7A]">
+           <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+             <path d="M18 20V4" />
+             <path d="M6 20V4" />
+             <path d="M12 4v2" />
+             <path d="M12 10v2" />
+             <path d="M12 16v2" />
+           </svg>
+        </div>
+        <div>
+          <h4 className="font-bold text-slate-900 text-lg leading-tight">Acceso pavimentado</h4>
+          <p className="text-sm text-slate-600 mt-1">Terrenos a pie de pavimento, ubicados sobre carretera.</p>
+        </div>
+      </div>
+
+      {/* 3. Dimensiones */}
+      <div className="flex items-start gap-3">
+        <div className="shrink-0 text-[#385C7A]">
+           <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+             <path d="M21.5 9.5l-7-7L2.5 14.5l7 7 12-12z" />
+             <path d="M14.5 2.5l7 7" />
+             <path d="M5.5 11.5l7 7" />
+             <path d="M9.5 7.5l-4 4" />
+           </svg>
+        </div>
+        <div>
+          <h4 className="font-bold text-slate-900 text-lg leading-tight">Dimensiones</h4>
+          <p className="text-sm text-slate-600 mt-1">Desde 8 hasta 17 hectáreas, dividido con mojoneras.</p>
+        </div>
+      </div>
+
+      {/* 4. Acceso a agua */}
+      <div className="flex items-start gap-3">
+        <div className="shrink-0 text-[#385C7A]">
+           <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+             <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path>
+           </svg>
+        </div>
+        <div>
+          <h4 className="font-bold text-slate-900 text-lg leading-tight">Acceso a agua</h4>
+          <p className="text-sm text-slate-600 mt-1">Se entrega con pozo de agua.</p>
+        </div>
+      </div>
+    </div>
+            {/* 2. IMAGEN DEL PLANO (Clickeable) */}
+            <div
+              className="w-full overflow-hidden rounded-xl border border-slate-200 shadow-sm cursor-pointer transition-transform hover:scale-[1.01]"
+              onClick={() => setIsMapModalOpen(true)}
+              role="button"
+              tabIndex={0}
+            >
+              <Image
+                src="/assets/plano.png"
+                alt="Plano Master Plan"
+                width={800}
+                height={600}
+                className="h-auto w-full object-cover"
+              />
             </div>
+            {/* Leyenda debajo */}
+            <p
+              className="text-sm text-slate-500 text-center cursor-pointer hover:text-slate-700 hover:underline"
+              onClick={() => setIsMapModalOpen(true)}
+            >
+              Click para ver en grande
+            </p>
           </div>
         ),
       },
@@ -132,40 +238,110 @@ export const InfoPanel = ({ closeSignal }: InfoPanelProps) => {
         id: 'contacto',
         label: 'Contacto',
         iconPath: '/assets/iconos/contacto.png',
-        title: 'Hablemos de tu proyecto',
-        highlight: 'Acompañamiento personalizado',
-        content: (
-          <div className="space-y-4 text-slate-800">
-            <p>
-              Nuestro equipo comercial puede ayudarte a elegir la mejor sección del desarrollo, preparar un esquema de
-              inversión o proyectar la construcción que tienes en mente.
-            </p>
-            <div className="rounded-xl bg-[#385C7A] p-4 text-white shadow-lg shadow-slate-900/10">
-              <p className="text-sm uppercase tracking-[0.2em] text-white/80">Atención al inversionista</p>
-              <p className="text-lg font-semibold">Agenda una llamada o recibe la ficha técnica completa.</p>
-              <div className="mt-3 flex flex-wrap gap-3 text-sm">
-                <a
-                  href="mailto:hola@grandzilam.com"
-                  className="rounded-full bg-white px-4 py-2 font-semibold text-[#385C7A] transition hover:bg-slate-100"
-                >
-                  hola@grandzilam.com
-                </a>
-                <a
-                  href="https://wa.me/529990000000"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="rounded-full bg-white/15 px-4 py-2 font-semibold text-white ring-1 ring-white/30 transition hover:bg-white/25"
-                >
-                  Mensaje por WhatsApp
-                </a>
-              </div>
-            </div>
-            <p className="text-sm text-slate-700">
-              También puedes usar el chatbot en la esquina inferior para resolver dudas rápidas sobre precios y
-              disponibilidad.
-            </p>
-          </div>
-        ),
+        title: 'Contacto',
+        highlight: 'Comercialización Exclusiva',
+       content: (
+  <div className="space-y-6 text-slate-800 pl-[80px] pr-[80px]">
+    
+    {/* ENCABEZADO: Correo y Teléfono */}
+    <div className="flex flex-col sm:flex-row gap-8 pb-4 border-b border-slate-200/50">
+      
+      {/* Item Correo */}
+      <div className="flex items-start gap-3">
+        <div className="pt-1">
+          {/* Icono Arroba (@) estilo espiral */}
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+            <polyline points="22,6 12,13 2,6"></polyline>
+          </svg>
+        </div>
+        <div>
+          <p className="font-bold text-slate-900 text-lg">Correo electrónico</p>
+          <a href="mailto:grandzilam@info.com" className="text-slate-600 hover:text-[#385C7A] transition-colors">
+            grandzilam@info.com
+          </a>
+        </div>
+      </div>
+
+      {/* Item Teléfono */}
+      <div className="flex items-start gap-3">
+        <div className="pt-1">
+           {/* Icono Teléfono */}
+           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+             <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+           </svg>
+        </div>
+        <div>
+          <p className="font-bold text-slate-900 text-lg">Teléfono</p>
+          <a href="tel:+0000000000" className="text-slate-600 hover:text-[#385C7A] transition-colors">
+            +00 00 000 000
+          </a>
+        </div>
+      </div>
+    </div>
+
+    {/* FORMULARIO */}
+    <div>
+      <h4 className="font-bold text-slate-900 text-lg mb-4">
+        Deja tu información y nos pondremos en contacto:
+      </h4>
+      
+      <form className="space-y-4">
+        
+        {/* Campo Nombre */}
+        <div>
+          <label htmlFor="nombre" className="block text-slate-700 font-medium mb-1">Nombre:</label>
+          <input 
+            type="text" 
+            id="nombre"
+            className="w-full h-10 rounded-xl bg-[#DCDCDC] px-3 text-slate-900 outline-none focus:ring-2 focus:ring-[#385C7A]/50 transition-all"
+          />
+        </div>
+
+        {/* Campo Correo */}
+        <div>
+          <label htmlFor="correo" className="block text-slate-700 font-medium mb-1">Correo:</label>
+          <input 
+            type="email" 
+            id="correo"
+            className="w-full h-10 rounded-xl bg-[#DCDCDC] px-3 text-slate-900 outline-none focus:ring-2 focus:ring-[#385C7A]/50 transition-all"
+          />
+        </div>
+
+        {/* Campo Teléfono */}
+        <div>
+          <label htmlFor="telefono" className="block text-slate-700 font-medium mb-1">Teléfono:</label>
+          <input 
+            type="tel" 
+            id="telefono"
+            className="w-full h-10 rounded-xl bg-[#DCDCDC] px-3 text-slate-900 outline-none focus:ring-2 focus:ring-[#385C7A]/50 transition-all"
+          />
+        </div>
+
+        {/* Campo Interés (TextArea) */}
+        <div>
+          <label htmlFor="interes" className="block text-slate-700 font-medium mb-1">Interés:</label>
+          <textarea 
+            id="interes"
+            className="w-full h-32 rounded-xl bg-[#DCDCDC] p-3 text-slate-900 outline-none resize-none focus:ring-2 focus:ring-[#385C7A]/50 transition-all"
+          ></textarea>
+        </div>
+
+        {/* Botón de Enviar (Opcional, para completar el UX) */}
+        <div className="pt-2">
+          <button 
+            type="button" 
+            className="rounded-full bg-[#385C7A] px-8 py-2 font-semibold text-white shadow-lg hover:bg-[#2a455c] transition-colors w-full sm:w-auto"
+          >
+            Enviar información
+          </button>
+        </div>
+
+      </form>
+    </div>
+
+  </div>
+),
       },
     ],
     [],
@@ -174,7 +350,10 @@ export const InfoPanel = ({ closeSignal }: InfoPanelProps) => {
   useEffect(() => {
     if (activeId) {
       const handleClickOutside = (event: MouseEvent) => {
-        if (cardRef.current && !cardRef.current.contains(event.target as Node)) {
+        const target = event.target as Element;
+        const isButton = target.closest('button');
+
+        if (cardRef.current && !cardRef.current.contains(target as Node) && !isButton) {
           setActiveId(null);
         }
       };
@@ -192,72 +371,116 @@ export const InfoPanel = ({ closeSignal }: InfoPanelProps) => {
   const activeSection = sections.find((section) => section.id === activeId);
 
   return (
-    <div 
-      // CENTRADO VERTICAL: 'items-center' en lugar de 'items-start' y eliminando 'pt-28'
-      className="pointer-events-none absolute inset-0 z-30 flex items-center justify-start px-4 sm:px-6 lg:px-12"
-    >
-      <div className="flex flex-col gap-4 pointer-events-auto">
-        {sections.map((section) => (
-          <button
-            key={section.id}
-            type="button"
-            onClick={() => setActiveId((current) => (current === section.id ? null : section.id))}
-            
-            // TAMAÑO DE BOTÓN: Cambiado a h-14 w-14 (56px) y manteniendo las otras especificaciones.
-            className={`group relative h-14 w-14 overflow-hidden rounded-full p-2 shadow-lg backdrop-blur transition-transform hover:scale-110 hover:shadow-xl bg-[#f8f8f8] ${
-              activeId === section.id ? 'ring-4 ring-[#385C7A]' : 'ring-1 ring-white/50'
+    <>
+      <div className="pointer-events-none absolute inset-0 z-30 flex items-center justify-start pl-[50px] pr-4 sm:pr-6 lg:pr-12">
+        <div className="pointer-events-auto flex items-center">
+          
+          {/* COLUMNA DE BOTONES */}
+          <div className="relative z-20 flex flex-col gap-4 py-8">
+            {sections.map((section) => (
+              <button
+                key={section.id}
+                type="button"
+                onClick={() => setActiveId((current) => (current === section.id ? null : section.id))}
+                className={`group relative h-14 w-14 overflow-hidden rounded-full p-3 shadow-lg backdrop-blur transition-all duration-300 hover:scale-110 hover:shadow-xl ${
+                  activeId === section.id ? 'bg-[#1C2E3D]' : 'bg-[#dbd8d3]'
+                }`}
+                aria-label={section.label}
+              >
+                <div
+                  className={`h-full w-full transition-colors duration-300 ${
+                    activeId === section.id ? 'bg-[#dbd8d3]' : 'bg-[#1C2E3D]'
+                  }`}
+                  style={{
+                    maskImage: `url("${section.iconPath}")`,
+                    WebkitMaskImage: `url("${section.iconPath}")`,
+                    maskSize: 'contain',
+                    WebkitMaskSize: 'contain',
+                    maskRepeat: 'no-repeat',
+                    WebkitMaskRepeat: 'no-repeat',
+                    maskPosition: 'center',
+                    WebkitMaskPosition: 'center',
+                  }}
+                />
+              </button>
+            ))}
+          </div>
+
+          {/* TARJETA DE CONTENIDO */}
+          <div
+            ref={cardRef}
+            className={`z-10 -ml-[88px] min-h-[80vh] min-w-2xl max-w-2xl flex-1 rounded-2xl bg-white/95 p-6 shadow-2xl transition-all duration-300 backdrop-blur-md bg-[#D2CEC6] pl-[110px] ${
+              activeSection ? 'translate-x-0 opacity-100' : 'pointer-events-none -translate-x-10 opacity-0'
             }`}
-            aria-label={section.label}
           >
+            {activeSection ? (
+              <div className="space-y-3">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <h3 className="ml-[88px] text-[50px] font-semibold text-slate-900 text-center">
+                      {activeSection.title}
+                    </h3>
+                  </div>
+                  <button
+                    type="button"
+                    aria-label="Cerrar"
+                    onClick={() => setActiveId(null)}
+                    className="rounded-full bg-slate-100 p-2 text-slate-500 transition hover:bg-slate-200 hover:text-slate-700"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      strokeWidth={1.5}
+                      stroke="currentColor"
+                      className="h-5 w-5"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+
+                {activeSection.content}
+              </div>
+            ) : (
+              <div className="h-64 w-full opacity-0"></div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* 4. MODAL A PANTALLA COMPLETA */}
+      {isMapModalOpen && (
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4 backdrop-blur-sm transition-opacity"
+          onClick={() => setIsMapModalOpen(false)}
+        >
+          <div className="relative h-auto max-h-[90vh] w-auto max-w-[90vw] overflow-hidden rounded-lg shadow-2xl">
+            {/* Botón Cerrar Modal */}
+            <button 
+              className="absolute right-4 top-4 z-10 rounded-full bg-black/50 p-2 text-white hover:bg-black/70 backdrop-blur-md"
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsMapModalOpen(false);
+              }}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+            
+            {/* Imagen Grande */}
             <Image
-              src={section.iconPath}
-              alt={section.label}
-              // Ajustando width/height para optimización al nuevo tamaño (56px)
-              width={56} 
-              height={56}
+              src="/assets/plano.png"
+              alt="Plano Master Plan Grande"
+              width={1600}
+              height={1200}
               className="h-full w-full object-contain"
             />
-          </button>
-        ))}
-      </div>
-
-      <div
-        ref={cardRef}
-        className={`pointer-events-auto ml-6 max-w-2xl flex-1 rounded-2xl bg-white/95 p-6 shadow-2xl transition-all duration-300 backdrop-blur-md ${
-          activeSection ? 'translate-y-0 opacity-100' : 'pointer-events-none -translate-y-2 opacity-0'
-        }`}
-      >
-        {activeSection ? (
-          <div className="space-y-3">
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <p className="text-xs uppercase tracking-[0.3em] text-[#385C7A]">{activeSection.highlight}</p>
-                <h3 className="text-2xl font-semibold text-slate-900">{activeSection.title}</h3>
-              </div>
-              <button
-                type="button"
-                aria-label="Cerrar"
-                onClick={() => setActiveId(null)}
-                className="rounded-full bg-slate-100 p-2 text-slate-500 transition hover:bg-slate-200 hover:text-slate-700"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  strokeWidth={1.5}
-                  stroke="currentColor"
-                  className="h-5 w-5"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-
-            {activeSection.content}
           </div>
-        ) : null}
-      </div>
-    </div>
+        </div>
+      )}
+    </>
   );
 };
 
