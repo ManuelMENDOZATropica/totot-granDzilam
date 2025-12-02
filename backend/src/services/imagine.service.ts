@@ -2,6 +2,8 @@ import { loadEnv } from '../config/env';
 import { logger } from '../utils/logger';
 import { buildCacheKey } from '../utils/prompt';
 import { requestOpenAI } from './openai.request';
+import fs from 'fs';
+import path from 'path';
 
 export type ImagineImageSize = '1024x1024' | '1024x1536' | '1536x1024';
 
@@ -31,27 +33,54 @@ interface ImagineServiceDependencies {
 
 const DEFAULT_SIZE: ImagineImageSize = '1024x1024';
 const CACHE_TTL_MS = 10 * 60 * 1000;
-const TEXT_MODEL = 'gpt-4o-mini';
 const IMAGE_MODEL = 'gpt-image-1';
-const CHAT_URL = 'https://api.openai.com/v1/chat/completions';
 const IMAGE_URL = 'https://api.openai.com/v1/images/generations';
 
-const parseImagineResponse = (payload: string): { textoInspirador: string; promptVisual: string } => {
-  try {
-    const parsed = JSON.parse(payload) as Partial<ImagineResult>;
+const resolveAssetPath = (fileName: string) => {
+  const candidates = [
+    path.join(process.cwd(), 'src', 'IA', fileName),
+    path.join(__dirname, '..', 'IA', fileName),
+    path.join(__dirname, 'IA', fileName),
+  ];
 
-    const textoInspirador = typeof parsed.textoInspirador === 'string' ? parsed.textoInspirador.trim() : '';
-    const promptVisual = typeof parsed.promptVisual === 'string' ? parsed.promptVisual.trim() : '';
-
-    if (!textoInspirador || !promptVisual) {
-      throw new Error('Invalid response format');
-    }
-
-    return { textoInspirador, promptVisual };
-  } catch (error) {
-    logger.error('Failed to parse imagine response', error);
-    throw new Error('INVALID_IMAGINE_RESPONSE');
+  const found = candidates.find((candidate) => fs.existsSync(candidate));
+  if (!found) {
+    throw new Error(`Unable to locate IA asset: ${fileName}`);
   }
+
+  return found;
+};
+
+const MASTER_PROMPT_PATH = resolveAssetPath('masterPrompt.txt');
+
+let cachedMasterPrompt: string | null = null;
+
+const loadMasterPrompt = () => {
+  if (cachedMasterPrompt) return cachedMasterPrompt;
+
+  const buffer = fs.readFileSync(MASTER_PROMPT_PATH);
+  cachedMasterPrompt = buffer.toString();
+  return cachedMasterPrompt;
+};
+
+const buildObjective = (idea: string) => {
+  const cleanIdea = idea.trim();
+  if (!cleanIdea) {
+    return 'un mega proyecto urbano costero de uso mixto con énfasis en vivienda y recreación';
+  }
+
+  const ideaLower = cleanIdea.toLowerCase();
+  if (ideaLower.includes('casa') || ideaLower.split(' ').length <= 3) {
+    return `un complejo habitacional a gran escala inspirado en ${cleanIdea}, con múltiples torres residenciales, amenidades y vialidades internas`;
+  }
+
+  return `un master plan amplio que expande la idea de ${cleanIdea} hacia un desarrollo metropolitano con zonas residenciales, comerciales y corredores verdes`;
+};
+
+const buildImagePrompt = (idea: string) => {
+  const template = loadMasterPrompt();
+  const objective = buildObjective(idea);
+  return template.replace(/\[\[objetive\]\]/gi, objective);
 };
 
 const resolveImageUrl = (data: any): string | null => {
@@ -121,43 +150,8 @@ export const createImagineService = (deps: ImagineServiceDependencies = {}) => {
     }
 
     try {
-      const chatResponse = await requestOpenAI<any>({
-        fetchImpl,
-        url: CHAT_URL,
-        apiKey,
-        timeoutMs: 30000,
-        body: {
-          model: TEXT_MODEL,
-          messages: [
-            {
-              role: 'system',
-              content:
-                'You are a creative real-estate assistant. Return ONLY valid json (json) with keys: textoInspirador (≤40 words, Spanish) and promptVisual (English, minimal realistic style). No extra text.',
-            },
-            { role: 'user', content: `${payload.prompt}\n\nOutput: json` },
-          ],
-          temperature: 0.8,
-          max_tokens: 220,
-          response_format: {
-            type: 'json_schema',
-            json_schema: {
-              name: 'gran_dzilam_imagine',
-              schema: {
-                type: 'object',
-                additionalProperties: false,
-                required: ['textoInspirador', 'promptVisual'],
-                properties: {
-                  textoInspirador: { type: 'string', maxLength: 320 },
-                  promptVisual: { type: 'string', maxLength: 600 },
-                },
-              },
-            },
-          },
-        },
-      });
-
-      const content = chatResponse?.choices?.[0]?.message?.content ?? '';
-      const parsed = parseImagineResponse(content);
+      const promptForImage = buildImagePrompt(payload.prompt);
+      const textoInspirador = `Visualiza ${buildObjective(payload.prompt)} en Gran Dzilam, con vialidades internas, autos diminutos y arquitectura adaptada a la franja de terreno.`;
 
       const imageResponse = await requestOpenAI<any>({
         fetchImpl,
@@ -166,7 +160,7 @@ export const createImagineService = (deps: ImagineServiceDependencies = {}) => {
         timeoutMs: 30000,
         body: {
           model: IMAGE_MODEL,
-          prompt: parsed.promptVisual,
+          prompt: promptForImage,
           size,
         },
       });
@@ -174,8 +168,8 @@ export const createImagineService = (deps: ImagineServiceDependencies = {}) => {
       const imageUrl = resolveImageUrl(imageResponse);
 
       const result: ImagineResult = {
-        textoInspirador: parsed.textoInspirador,
-        promptVisual: parsed.promptVisual,
+        textoInspirador,
+        promptVisual: promptForImage,
         imageUrl,
       };
 

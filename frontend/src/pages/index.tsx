@@ -47,7 +47,7 @@ export default function Home() {
     actualizarMeses,
   } = useCotizacion();
     
-  const { status, error: imagineError, generate, lastPrompt } = useImagine();
+  const { status, error: imagineError, generate, lastPrompt, result } = useImagine();
   const { user } = useAuth();
    
   const [mounted, setMounted] = useState(false);
@@ -80,6 +80,18 @@ export default function Home() {
       promptLoaded.current = true;
     }
   }, [lastPrompt]);
+
+  useEffect(() => {
+    if (status !== 'success' || !result?.imageUrl) return;
+
+    setFading(true);
+    const timer = setTimeout(() => {
+      setFondoActual(result.imageUrl);
+      setFading(false);
+    }, 200);
+
+    return () => clearTimeout(timer);
+  }, [result, status]);
 
   const handleImagineSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
