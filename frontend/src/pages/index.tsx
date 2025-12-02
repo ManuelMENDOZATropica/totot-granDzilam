@@ -47,7 +47,7 @@ export default function Home() {
     actualizarMeses,
   } = useCotizacion();
     
-  const { status, error: imagineError, generate, lastPrompt } = useImagine();
+  const { status, error: imagineError, generate, lastPrompt, result: imagineResult } = useImagine();
   const { user } = useAuth();
    
   const [mounted, setMounted] = useState(false);
@@ -57,7 +57,7 @@ export default function Home() {
 
   // Inicialización
   const [fondoActual, setFondoActual] = useState('/assets/vistas/1.png');
-  const [vistaActiva, setVistaActiva] = useState<number | null>(0); 
+  const [vistaActiva, setVistaActiva] = useState<number | null>(0);
   const [fading, setFading] = useState(false);
   const [infoPanelReset, setInfoPanelReset] = useState(0);
 
@@ -80,6 +80,17 @@ export default function Home() {
       promptLoaded.current = true;
     }
   }, [lastPrompt]);
+
+  useEffect(() => {
+    if (imagineResult?.imageUrl) {
+      setFading(true);
+      setVistaActiva(null);
+      setTimeout(() => {
+        setFondoActual(imagineResult.imageUrl as string);
+        setFading(false);
+      }, 200);
+    }
+  }, [imagineResult]);
 
   const handleImagineSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();

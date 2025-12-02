@@ -1,3 +1,5 @@
+import fs from 'fs';
+import path from 'path';
 import { loadEnv } from '../config/env';
 import { logger } from '../utils/logger';
 import { buildCacheKey } from '../utils/prompt';
@@ -31,26 +33,50 @@ interface ImagineServiceDependencies {
 
 const DEFAULT_SIZE: ImagineImageSize = '1024x1024';
 const CACHE_TTL_MS = 10 * 60 * 1000;
-const TEXT_MODEL = 'gpt-4o-mini';
 const IMAGE_MODEL = 'gpt-image-1';
-const CHAT_URL = 'https://api.openai.com/v1/chat/completions';
 const IMAGE_URL = 'https://api.openai.com/v1/images/generations';
+const IA_ASSETS_PATH = path.resolve(process.cwd(), '..', 'frontend', 'public', 'IA');
+const MASTER_PROMPT_PATH = path.join(IA_ASSETS_PATH, 'masterPrompt.txt');
+const MASTER_IMAGE_PATH = path.join(IA_ASSETS_PATH, '1.png');
 
-const parseImagineResponse = (payload: string): { textoInspirador: string; promptVisual: string } => {
+const replaceObjective = (template: string, objective: string) =>
+  template.replace(/\[\[(?:objetivo|objetive)\]\]/gi, objective);
+
+const enhanceObjective = (idea: string) => {
+  const normalized = idea.trim();
+  if (!normalized) return 'un complejo habitacional visionario';
+
+  const scaleKeywords = ['complejo', 'desarrollo', 'master plan', 'macro', 'habitacional'];
+  const containsScale = scaleKeywords.some((keyword) => normalized.toLowerCase().includes(keyword));
+
+  if (containsScale) {
+    return normalized;
+  }
+
+  if (normalized.length < 20) {
+    return `un complejo habitacional inspirado en ${normalized}, con torres, amenidades y urbanización completa`;
+  }
+
+  return `${normalized} evolucionado a un gran desarrollo tipo master plan con múltiples etapas y amenidades a escala urbana`;
+};
+
+const loadMasterPrompt = () => {
   try {
-    const parsed = JSON.parse(payload) as Partial<ImagineResult>;
-
-    const textoInspirador = typeof parsed.textoInspirador === 'string' ? parsed.textoInspirador.trim() : '';
-    const promptVisual = typeof parsed.promptVisual === 'string' ? parsed.promptVisual.trim() : '';
-
-    if (!textoInspirador || !promptVisual) {
-      throw new Error('Invalid response format');
-    }
-
-    return { textoInspirador, promptVisual };
+    const content = fs.readFileSync(MASTER_PROMPT_PATH, 'utf8');
+    return content.trim();
   } catch (error) {
-    logger.error('Failed to parse imagine response', error);
-    throw new Error('INVALID_IMAGINE_RESPONSE');
+    logger.error('Failed to load master prompt template', error);
+    return 'Genera una vista aérea de [[Objetivo]] con estilo fotorrealista.';
+  }
+};
+
+const loadBaseImage = () => {
+  try {
+    const buffer = fs.readFileSync(MASTER_IMAGE_PATH);
+    return buffer.toString('base64');
+  } catch (error) {
+    logger.error('Failed to load base imagine image', error);
+    return null;
   }
 };
 
@@ -94,8 +120,12 @@ export const createImagineService = (deps: ImagineServiceDependencies = {}) => {
 
   const generateImaginedDesign = async (payload: ImagineRequestPayload): Promise<ImagineResult> => {
     const size = payload.size ?? DEFAULT_SIZE;
-    const cacheKey = buildCacheKey(payload.prompt, size);
     const currentTime = now();
+
+    const enhancedObjective = enhanceObjective(payload.prompt);
+    const template = loadMasterPrompt();
+    const promptVisual = replaceObjective(template, enhancedObjective);
+    const cacheKey = buildCacheKey(promptVisual, size);
     const cached = cache.get(cacheKey);
 
     if (cached && cached.expiresAt > currentTime) {
@@ -103,11 +133,11 @@ export const createImagineService = (deps: ImagineServiceDependencies = {}) => {
       return cached.value;
     }
 
+    const baseImage = loadBaseImage();
+
     if (useMock) {
-      const textoInspirador = `Imagina ${payload.prompt} con espacios abiertos y detalles que invitan a disfrutar cada momento.`;
-      const promptVisual = `Minimal realistic rendering of ${payload.prompt} at a coastal eco retreat, soft morning light, natural materials, lush vegetation, calm atmosphere, eye-level wide composition.`;
       const mockResult: ImagineResult = {
-        textoInspirador,
+        textoInspirador: `Plan maestro para ${enhancedObjective}`,
         promptVisual,
         imageUrl: 'https://placehold.co/1024x1024?text=Gran+Dzilam',
       };
@@ -121,44 +151,6 @@ export const createImagineService = (deps: ImagineServiceDependencies = {}) => {
     }
 
     try {
-      const chatResponse = await requestOpenAI<any>({
-        fetchImpl,
-        url: CHAT_URL,
-        apiKey,
-        timeoutMs: 30000,
-        body: {
-          model: TEXT_MODEL,
-          messages: [
-            {
-              role: 'system',
-              content:
-                'You are a creative real-estate assistant. Return ONLY valid json (json) with keys: textoInspirador (≤40 words, Spanish) and promptVisual (English, minimal realistic style). No extra text.',
-            },
-            { role: 'user', content: `${payload.prompt}\n\nOutput: json` },
-          ],
-          temperature: 0.8,
-          max_tokens: 220,
-          response_format: {
-            type: 'json_schema',
-            json_schema: {
-              name: 'gran_dzilam_imagine',
-              schema: {
-                type: 'object',
-                additionalProperties: false,
-                required: ['textoInspirador', 'promptVisual'],
-                properties: {
-                  textoInspirador: { type: 'string', maxLength: 320 },
-                  promptVisual: { type: 'string', maxLength: 600 },
-                },
-              },
-            },
-          },
-        },
-      });
-
-      const content = chatResponse?.choices?.[0]?.message?.content ?? '';
-      const parsed = parseImagineResponse(content);
-
       const imageResponse = await requestOpenAI<any>({
         fetchImpl,
         url: IMAGE_URL,
@@ -166,16 +158,17 @@ export const createImagineService = (deps: ImagineServiceDependencies = {}) => {
         timeoutMs: 30000,
         body: {
           model: IMAGE_MODEL,
-          prompt: parsed.promptVisual,
+          prompt: promptVisual,
           size,
+          image: baseImage ?? undefined,
         },
       });
 
       const imageUrl = resolveImageUrl(imageResponse);
 
       const result: ImagineResult = {
-        textoInspirador: parsed.textoInspirador,
-        promptVisual: parsed.promptVisual,
+        textoInspirador: `Plan maestro: ${enhancedObjective}`,
+        promptVisual,
         imageUrl,
       };
 
