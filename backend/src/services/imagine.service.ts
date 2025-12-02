@@ -52,10 +52,8 @@ const resolveAssetPath = (fileName: string) => {
 };
 
 const MASTER_PROMPT_PATH = resolveAssetPath('masterPrompt.txt');
-const MASTER_IMAGE_PATH = resolveAssetPath('1.png');
 
 let cachedMasterPrompt: string | null = null;
-let cachedBaseImage: string | null = null;
 
 const loadMasterPrompt = () => {
   if (cachedMasterPrompt) return cachedMasterPrompt;
@@ -63,14 +61,6 @@ const loadMasterPrompt = () => {
   const buffer = fs.readFileSync(MASTER_PROMPT_PATH);
   cachedMasterPrompt = buffer.toString();
   return cachedMasterPrompt;
-};
-
-const loadBaseImage = () => {
-  if (cachedBaseImage) return cachedBaseImage;
-
-  const buffer = fs.readFileSync(MASTER_IMAGE_PATH);
-  cachedBaseImage = buffer.toString('base64');
-  return cachedBaseImage;
 };
 
 const buildObjective = (idea: string) => {
@@ -171,7 +161,6 @@ export const createImagineService = (deps: ImagineServiceDependencies = {}) => {
         body: {
           model: IMAGE_MODEL,
           prompt: promptForImage,
-          image: loadBaseImage(),
           size,
         },
       });
