@@ -26,13 +26,10 @@ const createId = () => {
 };
 
 export const useChatbot = () => {
-  const [messages, setMessages] = useState<ChatMessage[]>(() => [
-    {
-      id: createId(),
-      role: 'assistant',
-      content: 'Hola, soy tu asistente virtual de Gran Dzilam. ¿En qué puedo ayudarte con la compra de tu lote?',
-    },
-  ]);
+  // CAMBIO IMPORTANTE: Iniciamos con array vacío para que el Widget
+  // muestre la UI de bienvenida con las sugerencias.
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  
   const [status, setStatus] = useState<ChatbotStatus>('idle');
   const [error, setError] = useState<string | null>(null);
 
@@ -114,13 +111,8 @@ export const useChatbot = () => {
   );
 
   const reset = useCallback(() => {
-    setMessages([
-      {
-        id: createId(),
-        role: 'assistant',
-        content: 'Hola, soy tu asistente virtual de Gran Dzilam. ¿En qué puedo ayudarte con la compra de tu lote?',
-      },
-    ]);
+    // Reseteamos a vacío para volver a mostrar las sugerencias
+    setMessages([]);
     setError(null);
     setStatus('idle');
   }, []);
