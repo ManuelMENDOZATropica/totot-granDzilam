@@ -29,6 +29,7 @@ interface ImagineServiceDependencies {
   useMock?: boolean;
   apiKey?: string | null;
   fetchImpl?: typeof fetch;
+  resultsDir?: string;
 }
 
 const DEFAULT_SIZE: ImagineImageSize = '1024x1024';
@@ -52,8 +53,10 @@ const resolveAssetPath = (fileName: string) => {
 };
 
 const MASTER_PROMPT_PATH = resolveAssetPath('masterPrompt.txt');
+const BASE_IMAGE_PATH = resolveAssetPath('1.png');
 
 let cachedMasterPrompt: string | null = null;
+let cachedBaseImage: string | null = null;
 
 const loadMasterPrompt = () => {
   if (cachedMasterPrompt) return cachedMasterPrompt;
@@ -61,6 +64,14 @@ const loadMasterPrompt = () => {
   const buffer = fs.readFileSync(MASTER_PROMPT_PATH);
   cachedMasterPrompt = buffer.toString();
   return cachedMasterPrompt;
+};
+
+const loadBaseImage = () => {
+  if (cachedBaseImage) return cachedBaseImage;
+
+  const buffer = fs.readFileSync(BASE_IMAGE_PATH);
+  cachedBaseImage = buffer.toString('base64');
+  return cachedBaseImage;
 };
 
 const buildObjective = (idea: string) => {
@@ -83,18 +94,38 @@ const buildImagePrompt = (idea: string) => {
   return template.replace(/\[\[objetive\]\]/gi, objective);
 };
 
-const resolveImageUrl = (data: any): string | null => {
+const cleanBase64 = (value: string) => (value.includes(',') ? value.split(',', 2)[1] ?? value : value);
+
+const ensureResultsDir = (resultsDir: string) => {
+  if (!fs.existsSync(resultsDir)) {
+    fs.mkdirSync(resultsDir, { recursive: true });
+  }
+};
+
+const saveImageToResults = (resultsDir: string, base64Image: string) => {
+  ensureResultsDir(resultsDir);
+  const fileName = `imagine-${Date.now()}-${Math.round(Math.random() * 1_000_000)}.png`;
+  const filePath = path.join(resultsDir, fileName);
+  const buffer = Buffer.from(cleanBase64(base64Image), 'base64');
+  fs.writeFileSync(filePath, buffer);
+  return `/IA/resultados/${fileName}`;
+};
+
+const resolveImageUrl = (data: any, resultsDir: string): string | null => {
   const asset = Array.isArray(data?.data) ? data.data[0] : undefined;
   if (!asset) {
     return null;
   }
 
-  if (typeof asset.url === 'string' && asset.url.length > 0) {
-    return asset.url;
+  if (typeof asset.b64_json === 'string' && asset.b64_json.length > 0) {
+    return saveImageToResults(resultsDir, asset.b64_json);
   }
 
-  if (typeof asset.b64_json === 'string' && asset.b64_json.length > 0) {
-    return `data:image/png;base64,${asset.b64_json}`;
+  if (typeof asset.url === 'string' && asset.url.length > 0) {
+    if (asset.url.startsWith('data:image')) {
+      return saveImageToResults(resultsDir, asset.url);
+    }
+    return asset.url;
   }
 
   return null;
@@ -107,6 +138,8 @@ export const createImagineService = (deps: ImagineServiceDependencies = {}) => {
   const now = deps.now ?? Date.now;
   const env = loadEnv();
   const fetchImpl = deps.fetchImpl ?? globalThis.fetch;
+  const resultsDir =
+    deps.resultsDir ?? path.join(process.cwd(), '..', 'frontend', 'public', 'IA', 'resultados');
 
   if (!fetchImpl) {
     throw new Error('Fetch implementation is required');
@@ -152,6 +185,7 @@ export const createImagineService = (deps: ImagineServiceDependencies = {}) => {
     try {
       const promptForImage = buildImagePrompt(payload.prompt);
       const textoInspirador = `Visualiza ${buildObjective(payload.prompt)} en Gran Dzilam, con vialidades internas, autos diminutos y arquitectura adaptada a la franja de terreno.`;
+      const baseImage = loadBaseImage();
 
       const imageResponse = await requestOpenAI<any>({
         fetchImpl,
@@ -162,10 +196,12 @@ export const createImagineService = (deps: ImagineServiceDependencies = {}) => {
           model: IMAGE_MODEL,
           prompt: promptForImage,
           size,
+          response_format: 'b64_json',
+          image: baseImage,
         },
       });
 
-      const imageUrl = resolveImageUrl(imageResponse);
+      const imageUrl = resolveImageUrl(imageResponse, resultsDir);
 
       const result: ImagineResult = {
         textoInspirador,

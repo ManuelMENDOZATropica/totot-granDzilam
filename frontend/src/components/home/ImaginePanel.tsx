@@ -58,7 +58,9 @@ export const ImaginePanel = ({
         </div>
 
         <div className="flex flex-wrap gap-4 text-[11px] uppercase tracking-[0.3em] text-white/70 drop-shadow">
-          <span>{status === 'loading' ? 'Generando idea…' : 'Inspiración lista'}</span>
+          <span className={status === 'loading' ? 'animate-pulse' : ''}>
+            {status === 'loading' ? 'Generando idea…' : 'Inspiración lista'}
+          </span>
           {imagineError ? <span className="text-rose-300 normal-case tracking-normal">{imagineError}</span> : null}
         </div>
       </form>
