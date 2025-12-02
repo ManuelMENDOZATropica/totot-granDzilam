@@ -42,49 +42,94 @@ export const MacroCotizadorPanel = ({
 }: MacroCotizadorPanelProps) => (
   <div
     className={`
-      absolute bottom-0 left-[150px] right-0 pr-6 z-40
-      transform transition-transform duration-500 ease-in-out
-      ${panelMacroAbierto ? 'translate-y-0' : 'translate-y-[calc(100%-72px)]'}
+      absolute bottom-8 left-[150px] right-8 z-40
+      flex flex-col-reverse items-stretch
+      transition-all duration-500 ease-in-out
+      pointer-events-none 
     `}
   >
-    <div className="flex w-full flex-col rounded-t-[20px] bg-[#F3F1EC] border border-[#E2E0DB] font-sans text-[#1C2533]">
-      <button
-        type="button"
-        onClick={onToggle}
-        className="group relative flex w-full items-center justify-between rounded-t-[20px] bg-white px-6 py-5 text-left outline-none transition-colors hover:bg-[#F8F7F4] lg:px-8"
+    {/* CAMBIO REALIZADO: 'fixed' -> 'absolute'
+       Ahora se posicionará en el bottom-8 del contenedor padre (que debe ser 'relative'),
+       no de la pantalla del navegador.
+    */}
+
+    {/* pointer-events-none en el padre permite hacer clic "a través" del área vacía 
+      alrededor del botón flotante. Reactivamos pointer-events-auto en los hijos.
+    */}
+
+    {/* --- BOTÓN FLOTANTE (HEADER) --- */}
+    <button
+      type="button"
+      onClick={onToggle}
+      className={`
+        pointer-events-auto
+        group relative flex w-full items-center gap-4 
+        bg-[#F3F1EC] px-6 py-4 text-left outline-none 
+        transition-all duration-300 hover:bg-[#EBE9E4]
+        border border-[#E2E0DB] shadow-lg
+        ${panelMacroAbierto 
+          ? 'rounded-b-[20px] rounded-t-none border-t-0' 
+          : 'rounded-[100px]' // Píldora completa cuando está cerrado
+        }
+      `}
+    >
+      {/* Icono Círculo con + / - */}
+      <span
+        className={`
+          flex h-8 w-8 items-center justify-center rounded-full border border-[#1C2E3D] 
+          text-[#1C2E3D] transition-transform duration-300
+          ${panelMacroAbierto ? 'rotate-0' : 'rotate-0'}
+        `}
       >
-        <div className="flex items-center gap-5">
-          <span
-            className={`flex h-10 w-10 items-center justify-center rounded-full border transition-all duration-500 ${
-              panelMacroAbierto
-                ? 'bg-[#1C2533] border-[#1C2533] text-white rotate-180'
-                : 'bg-white border-[#E2E0DB] text-[#1C2533] group-hover:border-[#1C2533]'
-            }`}
-          >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M6 9L12 15L18 9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          </span>
+        {panelMacroAbierto ? (
+          // Icono Menos (-)
+          <svg width="14" height="2" viewBox="0 0 14 2" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M1 1H13" stroke="currentColor" strokeWidth="1" strokeLinecap="round"/>
+          </svg>
+        ) : (
+          // Icono Más (+)
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M7 1V13M1 7H13" stroke="currentColor" strokeWidth="1" strokeLinecap="round"/>
+          </svg>
+        )}
+      </span>
 
-          <span className="font-serif text-2xl font-medium text-[#1C2533]">Cotizar macro terreno</span>
-        </div>
-      </button>
+      <span className="font-serif text-[28px] font-normal text-[#1C2E3D] leading-none pb-1">
+        Cotizar macro terreno
+      </span>
+    </button>
 
-      <p className="px-6 pt-3 text-xs text-[#1C2533] lg:px-8">
-        Esta herramienta es una representación ilustrativa y no constituye una oferta oficial ni legal.
-      </p>
+    {/* --- CONTENIDO DESPLEGABLE (SE EXPANDE HACIA ARRIBA) --- */}
+    <div
+      className={`
+        pointer-events-auto
+        overflow-hidden bg-[#F3F1EC] 
+        transition-all duration-500 ease-in-out
+        border-x border-t border-[#E2E0DB]
+        shadow-xl
+        ${panelMacroAbierto 
+          ? 'max-h-[85vh] opacity-100 rounded-t-[20px]' 
+          : 'max-h-0 opacity-0 border-none'
+        }
+      `}
+    >
+      <div className="flex flex-col h-full max-h-[85vh]">
+        <p className="px-6 pt-4 pb-2 text-xs text-[#1C2533] lg:px-8 bg-[#F3F1EC]">
+          Esta herramienta es una representación ilustrativa y no constituye una oferta oficial ni legal.
+        </p>
 
-      <div
-        className={`h-[85vh] overflow-hidden border-t border-[#E2E0DB] bg-[#F3F1EC] transition-opacity duration-500 ${
-          panelMacroAbierto ? 'opacity-100' : 'opacity-0 pointer-events-none'
-        }`}
-      >
-        <div className="grid h-full lg:grid-cols-[1fr_460px] bg-[#F3F1EC]">
-          <div className="relative flex flex-col p-4 lg:p-6 overflow-hidden">
-            <div className="flex h-full flex-col overflow-hidden rounded-xl border border-[#E2E0DB] bg-[#F3F1EC]">
+        {/* GRID PRINCIPAL 
+            - h-full w-full: Asegura que ocupe todo el espacio disponible.
+            - overflow-hidden: Evita scrollbars en el contenedor principal.
+        */}
+        <div className="grid h-full w-full lg:grid-cols-[1fr_460px] bg-[#F3F1EC] overflow-hidden">
+          
+          {/* COLUMNA IZQUIERDA: MAPA */}
+          <div className="relative h-full w-full p-4 lg:p-6">
+              <div className="relative h-full w-[80%] pl-[10%] overflow-hidden bg-[#F3F1EC]">
               {loading ? (
                 <div className="flex h-full flex-col items-center justify-center gap-4 text-[#64748B]">
-                  <div className="h-10 w-10 animate-spin rounded-full border-4 border-[#E2E0DB] border-t-[#1C2533]" />
+                  <div className="h-10 w-10 animate-spin rounded-full ]" />
                   <p className="text-sm font-medium tracking-wide">Cargando disponibilidad...</p>
                 </div>
               ) : error ? (
@@ -111,18 +156,19 @@ export const MacroCotizadorPanel = ({
                   </div>
                 </div>
               ) : (
-                <div className="flex h-full flex-col">
-                  <div className="relative flex-1 bg-[#F3F1EC]/30">
-                    <div className="absolute inset-0 overflow-y-auto">
-                      <MapaLotes lotes={lotes} seleccionados={selectedIds} onToggle={toggleLote} />
-                    </div>
-                  </div>
+                /* CONTENEDOR DEL MAPA FINAL
+                   - absolute inset-0: Fuerza al mapa a ocupar exactamente el espacio del padre.
+                   - overflow-hidden: Importante para mapas interactivos (drag/zoom) para que no scrollee la página.
+                */
+                <div className="absolute inset-0 h-full w-full overflow-hidden bg-[#F3F1EC]/30">
+                  <MapaLotes lotes={lotes} seleccionados={selectedIds} onToggle={toggleLote} />
                 </div>
               )}
             </div>
           </div>
 
-          <div className="h-full border-l border-[#E2E0DB] bg-[#F3F1EC]">
+          {/* COLUMNA DERECHA: PANEL DE COTIZACIÓN */}
+          <div className="h-full border-l border-[#E2E0DB] bg-[#F3F1EC] overflow-y-auto">
             <PanelCotizacion
               lotesSeleccionados={selectedLots}
               porcentajeEnganche={porcentajeEnganche}
