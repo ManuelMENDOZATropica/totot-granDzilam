@@ -13,30 +13,15 @@ const { createImagineService } = require('./imagine.service') as typeof import('
 test('createImagineService caches results for repeated prompts', async () => {
   let fetchCalls = 0;
 
-  const chatResponse = {
-    choices: [
-      {
-        message: {
-          content: JSON.stringify({
-            textoInspirador: 'Texto de prueba cálido y breve.',
-            promptVisual: 'Minimal realistic prompt in English with lighting.',
-          }),
-        },
-      },
-    ],
-  };
-
   const imageResponse = { data: [{ url: 'https://example.com/generated.png' }] };
 
-  const fetchImpl: typeof fetch = (async (url: string | URL) => {
+  const fetchImpl: typeof fetch = (async () => {
     fetchCalls += 1;
-    const isChat = `${url}`.includes('/chat/completions');
-    const payload = isChat ? chatResponse : imageResponse;
     return {
       ok: true,
       status: 200,
-      json: async () => payload,
-      text: async () => JSON.stringify(payload),
+      json: async () => imageResponse,
+      text: async () => JSON.stringify(imageResponse),
     } as any;
   }) as typeof fetch;
 
@@ -55,6 +40,6 @@ test('createImagineService caches results for repeated prompts', async () => {
   currentTime += 1000;
   const second = await service.generateImaginedDesign(payload);
 
-  assert.equal(fetchCalls, 2);
+  assert.equal(fetchCalls, 1);
   assert.deepEqual(first, second);
 });
