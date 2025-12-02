@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import type { Lote, TotalesCotizacion } from '@/hooks/useCotizacion';
 import type { FinanceSettingsDTO } from '@/lib/financeSettings';
 import { formatearMoneda } from '@/lib/formatoMoneda';
+import ContactForm from '@/components/common/ContactForm';
 
 interface PanelCotizacionProps {
   lotesSeleccionados: Lote[];
@@ -28,6 +29,7 @@ export const PanelCotizacion = ({
   onLimpiar,
   onCerrar
 }: PanelCotizacionProps) => {
+  const [mostrarContacto, setMostrarContacto] = useState(false);
   const totalMetros = lotesSeleccionados.reduce(
     (acum, lote) => acum + lote.superficieM2,
     0
@@ -212,10 +214,17 @@ export const PanelCotizacion = ({
           <button
             type="button"
             className="flex-1 rounded-full border border-[#1C2533] px-4 py-3 text-sm font-medium text-[#1C2533] hover:bg-[#1C2533] hover:text-white"
+            onClick={() => setMostrarContacto((valorActual) => !valorActual)}
           >
             Contáctanos
           </button>
         </div>
+
+        {mostrarContacto && (
+          <div className="mb-12">
+            <ContactForm />
+          </div>
+        )}
       </div>
 
       {/* FOOTER FIJO */}
