@@ -97,9 +97,9 @@ export const MacroCotizadorPanel = ({
     <div
       id="macro-cotizador-panel"
       className={`
-        absolute bottom-8 left-[5%] right-[5%] z-40 sm:left-[150px] sm:right-8
+        absolute bottom-8 left-[5%] right-[5%] sm:left-[150px] sm:right-8
         flex flex-col-reverse items-stretch
-        pointer-events-none z-9999
+        pointer-events-none z-[50]
       `}
     >
       {/* 1. BOTÓN FLOTANTE */}
