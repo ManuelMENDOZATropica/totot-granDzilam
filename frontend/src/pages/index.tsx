@@ -491,6 +491,8 @@ export default function Home() {
 
             onChange={handleCambioVista}
 
+            className="mt-[60vh] px-4 pb-12"
+
           />
 
 
