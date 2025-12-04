@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { MapaLotes } from '@/components/mapa/MapaLotes';
 import { PanelCotizacion } from '@/components/panel/PanelCotizacion';
-import { ContactForm } from '@/components/common/ContactForm'; 
+import { ContactForm } from '@/components/common/ContactForm';
 
 import type { Lote, TotalesCotizacion } from '@/hooks/useCotizacion';
 import type { FinanceSettingsDTO } from '@/lib/financeSettings';
@@ -44,16 +44,55 @@ export const MacroCotizadorPanel = ({
   onLimpiar,
 }: MacroCotizadorPanelProps) => {
   const [isContactOpen, setIsContactOpen] = useState(false);
+  const [downloadRequested, setDownloadRequested] = useState(false);
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
 
   const handleToggleMain = () => {
     if (panelMacroAbierto) {
       setIsContactOpen(false);
+      setDownloadRequested(false);
     }
     onToggle();
   };
 
+  const handleCloseOverlay = () => {
+    setIsContactOpen(false);
+    setDownloadRequested(false);
+  };
+
+  const handleContactRequest = () => {
+    setDownloadRequested(false);
+    setIsContactOpen(true);
+  };
+
+  const handleDownloadRequest = () => {
+    setDownloadRequested(true);
+    setIsContactOpen(true);
+  };
+
+  const generatePdf = async () => {
+    setIsGeneratingPdf(true);
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 150));
+      window.print();
+    } finally {
+      setIsGeneratingPdf(false);
+    }
+  };
+
+  const handleFormSubmit = async () => {
+    setIsContactOpen(false);
+
+    if (!downloadRequested) return;
+
+    await new Promise((resolve) => setTimeout(resolve, 300));
+    await generatePdf();
+    setDownloadRequested(false);
+  };
+
   return (
     <div
+      id="macro-cotizador-panel"
       className={`
         absolute bottom-8 left-[150px] right-8 z-40
         flex flex-col-reverse items-stretch
@@ -149,7 +188,9 @@ export const MacroCotizadorPanel = ({
                 onLimpiar={onLimpiar}
                 onCerrar={onToggle}
                 // Conectamos el botón del hijo con el estado del padre
-                onContactar={() => setIsContactOpen(true)}
+                onContactar={handleContactRequest}
+                onDescargar={handleDownloadRequest}
+                descargaEnProgreso={isGeneratingPdf}
               />
             </div>
           </div>
@@ -161,8 +202,8 @@ export const MacroCotizadorPanel = ({
             absolute inset-0 z-[100]
             flex flex-col bg-[#F3F1EC]
             transition-all duration-300 ease-in-out
-            ${isContactOpen 
-              ? 'opacity-100 visible pointer-events-auto' 
+            ${isContactOpen
+              ? 'opacity-100 visible pointer-events-auto'
               : 'opacity-0 invisible pointer-events-none'
             }
           `}
@@ -170,7 +211,7 @@ export const MacroCotizadorPanel = ({
           <div className="flex items-center justify-end bg-[#efeeeb] px-4 py-2 shrink-0 border-b border-[#E2E0DB]">
             <button
               type="button"
-              onClick={() => setIsContactOpen(false)}
+              onClick={handleCloseOverlay}
               className="rounded-full bg-slate-200 p-2 text-slate-600 hover:bg-slate-300 transition-colors"
             >
               <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 18L18 6M6 6l12 12" /></svg>
@@ -178,12 +219,37 @@ export const MacroCotizadorPanel = ({
           </div>
           <div className="flex-1 overflow-y-auto py-6">
             <div className="mx-auto max-w-3xl">
-              <h2 className="mb-6 px-4 md:px-[80px] font-serif text-3xl text-[#1C2E3D]">Contáctanos</h2>
-              <ContactForm />
+              <h2 className="mb-6 px-4 md:px-[80px] font-serif text-3xl text-[#1C2E3D]">
+                {downloadRequested ? 'Completa tus datos para descargar tu cotización' : 'Contáctanos'}
+              </h2>
+              <ContactForm
+                onSubmit={handleFormSubmit}
+                submitLabel={downloadRequested ? 'Enviar y descargar' : 'Enviar información'}
+              />
             </div>
           </div>
         </div>
       </div>
+
+      <style jsx global>{`
+        @media print {
+          body * {
+            visibility: hidden;
+          }
+
+          #macro-cotizador-panel,
+          #macro-cotizador-panel * {
+            visibility: visible;
+          }
+
+          #macro-cotizador-panel {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+          }
+        }
+      `}</style>
     </div>
   );
 };

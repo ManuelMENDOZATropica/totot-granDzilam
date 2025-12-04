@@ -16,6 +16,8 @@ interface PanelCotizacionProps {
   onCerrar?: () => void;
   // Agregamos esta prop para que el padre sepa cuándo abrir el overlay
   onContactar?: () => void;
+  onDescargar?: () => void;
+  descargaEnProgreso?: boolean;
 }
 
 export const PanelCotizacion = ({
@@ -29,7 +31,10 @@ export const PanelCotizacion = ({
   onMesesChange,
   onLimpiar,
   onCerrar,
-  onContactar // Recibimos la función
+  // Recibimos la función
+  onContactar,
+  onDescargar,
+  descargaEnProgreso = false,
 }: PanelCotizacionProps) => {
 
   const totalMetros = lotesSeleccionados.reduce(
@@ -157,11 +162,13 @@ export const PanelCotizacion = ({
         <div className="mb-12 flex gap-4">
           <button
             type="button"
-            className="flex-1 rounded-full bg-[#1C2533] px-4 py-3 text-sm font-medium text-white hover:bg-[#2d3b50] transition-colors"
+            onClick={onDescargar}
+            disabled={descargaEnProgreso}
+            className="flex-1 rounded-full bg-[#1C2533] px-4 py-3 text-sm font-medium text-white hover:bg-[#2d3b50] transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
           >
-            Descargar cotización
+            {descargaEnProgreso ? 'Generando...' : 'Descargar cotización'}
           </button>
-          
+
           {/* BOTÓN RESTAURADO: Ejecuta la función del padre */}
           <button
             type="button"
