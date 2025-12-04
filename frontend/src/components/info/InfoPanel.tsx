@@ -21,6 +21,8 @@ interface InfoPanelProps {
 
 export const InfoPanel = ({ closeSignal }: InfoPanelProps) => {
   const [activeId, setActiveId] = useState<string | null>(null);
+  const [isMobile, setIsMobile] = useState(false);
+  const [isMobilePanelOpen, setIsMobilePanelOpen] = useState(false);
   // 1. ESTADO PARA EL MODAL DEL MAPA
   const [isMapModalOpen, setIsMapModalOpen] = useState(false);
   const cardRef = useRef<HTMLDivElement | null>(null);
@@ -34,7 +36,7 @@ export const InfoPanel = ({ closeSignal }: InfoPanelProps) => {
         title: 'Sobre Gran Dzilam',
         highlight: 'Macroterrenos de inversión',
         content: (
-          <div className="space-y-4 text-slate-800 pl-[80px] pr-[80px] text-justify">
+          <div className="space-y-4 text-slate-800 px-4 text-justify sm:px-8 lg:px-[80px]">
             <p>Gran Dzilam es un conjunto de macroterrenos ubicado en Dzilam de Bravo, Yucatán.</p>
             <p>
               Son terrenos de propiedad privada listos para escriturar, ubicados sobre carretera con terreno plano y suelo
@@ -64,7 +66,7 @@ export const InfoPanel = ({ closeSignal }: InfoPanelProps) => {
         title: 'Ubicación',
         highlight: 'Entorno de alta plusvalía',
         content: (
-          <div className="space-y-6 text-slate-800 pl-[80px] pr-[80px] text-justify">
+          <div className="space-y-6 text-slate-800 px-4 text-justify sm:px-8 lg:px-[80px]">
             <div className="space-y-4">
               <p>
                 Se encuentra en la <b>costa norte del estado de Yucatán</b>, es una de las pocas zonas vírgenes que quedan
@@ -106,12 +108,12 @@ export const InfoPanel = ({ closeSignal }: InfoPanelProps) => {
         highlight: 'Vistas del master plan',
         content: (
   // Mantenemos el contenedor padre
-  <div className="w-[600px] space-y-4 text-justify text-slate-800 pl-[20px] pr-[40px]">
+  <div className="w-full max-w-4xl space-y-4 px-4 text-justify text-slate-800 sm:px-6 lg:px-10">
 
     {/* Contenedor con scroll y estilo unificado */}
     <div className="max-h-[60vh] overflow-x-hidden overflow-y-auto pr-4 overlay-scrollbar">
       
-      <div className="grid grid-cols-1 gap-4">
+    <div className="grid grid-cols-1 gap-4">
         {imagenesRealesList.map((src, index) => (
           <div
             key={src + index}
@@ -144,7 +146,7 @@ export const InfoPanel = ({ closeSignal }: InfoPanelProps) => {
         title: 'Especificaciones',
         highlight: 'Listo para desarrollar',
         content: (
-          <div className="space-y-4 text-slate-800 pl-[80px] pr-[80px]">
+          <div className="space-y-4 text-slate-800 px-4 sm:px-8 lg:px-[80px]">
             {/* GRID DE CARACTERÍSTICAS */}
     <div className="grid grid-cols-1 gap-y-8 gap-x-6 sm:grid-cols-2">
       
@@ -269,86 +271,164 @@ export const InfoPanel = ({ closeSignal }: InfoPanelProps) => {
     setActiveId(null);
   }, [closeSignal]);
 
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    handleResize();
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  useEffect(() => {
+    setIsMobilePanelOpen(!isMobile);
+  }, [isMobile]);
+
   const activeSection = sections.find((section) => section.id === activeId);
+  const shouldShowPanel = !isMobile || isMobilePanelOpen;
 
   return (
     <>
-      <div className="pointer-events-none absolute inset-0 z-30 flex items-center justify-start pl-[50px] pr-4 sm:pr-6 lg:pr-12">
-        <div className="pointer-events-auto flex items-center">
-          
-          {/* COLUMNA DE BOTONES */}
-          <div className="relative z-20 flex flex-col gap-4 py-8">
-            {sections.map((section) => (
-              <button
-                key={section.id}
-                type="button"
-                onClick={() => setActiveId((current) => (current === section.id ? null : section.id))}
-                className={`group relative h-14 w-14 overflow-hidden rounded-full p-3 shadow-lg backdrop-blur transition-all duration-300 hover:scale-110 hover:shadow-xl ${
-                  activeId === section.id ? 'bg-[#1C2E3D]' : 'bg-[#dbd8d3]'
-                }`}
-                aria-label={section.label}
-              >
-                <div
-                  className={`h-full w-full transition-colors duration-300 ${
-                    activeId === section.id ? 'bg-[#dbd8d3]' : 'bg-[#1C2E3D]'
+      {isMobile && (
+        <button
+          type="button"
+          aria-label={isMobilePanelOpen ? 'Cerrar panel' : 'Abrir panel'}
+          onClick={() => {
+            setIsMobilePanelOpen((open) => {
+              if (open) {
+                setActiveId(null);
+              }
+              return !open;
+            });
+          }}
+          className="fixed left-4 top-4 z-40 rounded-full bg-white/90 p-3 shadow-lg transition hover:scale-105 hover:bg-white"
+        >
+          {isMobilePanelOpen ? (
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth={2}
+              stroke="currentColor"
+              className="h-6 w-6 text-slate-800"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          ) : (
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              className="h-6 w-6 text-slate-800"
+            >
+              <line x1="3" y1="6" x2="21" y2="6" />
+              <line x1="3" y1="12" x2="21" y2="12" />
+              <line x1="3" y1="18" x2="21" y2="18" />
+            </svg>
+          )}
+        </button>
+      )}
+
+      {shouldShowPanel && (
+        <div
+          className={`pointer-events-none absolute inset-0 z-30 flex bg-white/80 backdrop-blur-sm ${
+            isMobile
+              ? 'items-start justify-center px-4 py-4'
+              : 'items-center justify-start pl-[50px] pr-4 sm:pr-6 lg:pr-12'
+          }`}
+        >
+          <div className={`pointer-events-auto flex w-full ${isMobile ? 'flex-col' : 'items-center'}`}>
+            {/* COLUMNA DE BOTONES */}
+            <div
+              className={`relative z-20 flex ${
+                isMobile ? 'w-full justify-end gap-3 pb-4' : 'flex-col gap-4 py-8'
+              }`}
+            >
+              {sections.map((section) => (
+                <button
+                  key={section.id}
+                  type="button"
+                  onClick={() => setActiveId((current) => (current === section.id ? null : section.id))}
+                  className={`group relative overflow-hidden rounded-full p-3 shadow-lg backdrop-blur transition-all duration-300 hover:scale-110 hover:shadow-xl ${
+                    isMobile ? 'h-11 w-11' : 'h-14 w-14'
+                  } ${
+                    activeId === section.id ? 'bg-[#1C2E3D]' : 'bg-[#dbd8d3]'
                   }`}
-                  style={{
-                    maskImage: `url("${section.iconPath}")`,
-                    WebkitMaskImage: `url("${section.iconPath}")`,
-                    maskSize: 'contain',
-                    WebkitMaskSize: 'contain',
-                    maskRepeat: 'no-repeat',
-                    WebkitMaskRepeat: 'no-repeat',
-                    maskPosition: 'center',
-                    WebkitMaskPosition: 'center',
-                  }}
-                />
-              </button>
-            ))}
-          </div>
+                  aria-label={section.label}
+                >
+                  <div
+                    className={`h-full w-full transition-colors duration-300 ${
+                      activeId === section.id ? 'bg-[#dbd8d3]' : 'bg-[#1C2E3D]'
+                    }`}
+                    style={{
+                      maskImage: `url("${section.iconPath}")`,
+                      WebkitMaskImage: `url("${section.iconPath}")`,
+                      maskSize: 'contain',
+                      WebkitMaskSize: 'contain',
+                      maskRepeat: 'no-repeat',
+                      WebkitMaskRepeat: 'no-repeat',
+                      maskPosition: 'center',
+                      WebkitMaskPosition: 'center',
+                    }}
+                  />
+                </button>
+              ))}
+            </div>
 
-          {/* TARJETA DE CONTENIDO */}
-          <div
-            ref={cardRef}
-            className={`z-10 -ml-[88px] min-h-[80vh] min-w-2xl max-w-2xl flex-1 rounded-2xl bg-white/95 p-6 shadow-2xl transition-all duration-300 backdrop-blur-md bg-[#D2CEC6] pl-[110px] ${
-              activeSection ? 'translate-x-0 opacity-100' : 'pointer-events-none -translate-x-10 opacity-0'
-            }`}
-          >
-            {activeSection ? (
-              <div className="space-y-3">
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <h3 className="ml-[88px] text-[50px] font-semibold text-slate-900 text-center">
-                      {activeSection.title}
-                    </h3>
-                  </div>
-                  <button
-                    type="button"
-                    aria-label="Cerrar"
-                    onClick={() => setActiveId(null)}
-                    className="rounded-full bg-slate-100 p-2 text-slate-500 transition hover:bg-slate-200 hover:text-slate-700"
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      strokeWidth={1.5}
-                      stroke="currentColor"
-                      className="h-5 w-5"
+            {/* TARJETA DE CONTENIDO */}
+            <div
+              ref={cardRef}
+              className={`z-10 flex-1 rounded-2xl bg-white/95 shadow-2xl transition-all duration-300 backdrop-blur-md bg-[#D2CEC6] ${
+                isMobile
+                  ? 'mt-2 w-full min-h-[70vh] max-h-[80vh] translate-x-0 opacity-100 overflow-y-auto p-4 sm:p-6'
+                  : '-ml-[88px] min-h-[80vh] min-w-2xl max-w-2xl p-6 pl-[110px]'
+              } ${
+                activeSection ? 'translate-x-0 opacity-100' : 'pointer-events-none -translate-x-10 opacity-0'
+              }`}
+            >
+              {activeSection ? (
+                <div className="space-y-3">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <h3
+                        className={`${
+                          isMobile
+                            ? 'ml-0 text-2xl text-left sm:text-3xl'
+                            : 'ml-[88px] text-[50px] text-center'
+                        } font-semibold text-slate-900`}
+                      >
+                        {activeSection.title}
+                      </h3>
+                    </div>
+                    <button
+                      type="button"
+                      aria-label="Cerrar"
+                      onClick={() => setActiveId(null)}
+                      className="rounded-full bg-slate-100 p-2 text-slate-500 transition hover:bg-slate-200 hover:text-slate-700"
                     >
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
-                </div>
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        strokeWidth={1.5}
+                        stroke="currentColor"
+                        className="h-5 w-5"
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
 
-                {activeSection.content}
-              </div>
-            ) : (
-              <div className="h-64 w-full opacity-0"></div>
-            )}
+                  {activeSection.content}
+                </div>
+              ) : (
+                <div className="h-64 w-full opacity-0"></div>
+              )}
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* 4. MODAL A PANTALLA COMPLETA */}
       {isMapModalOpen && (
