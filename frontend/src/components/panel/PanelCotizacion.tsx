@@ -1,8 +1,7 @@
-import React, { useState } from 'react';
+import React from 'react';
 import type { Lote, TotalesCotizacion } from '@/hooks/useCotizacion';
 import type { FinanceSettingsDTO } from '@/lib/financeSettings';
 import { formatearMoneda } from '@/lib/formatoMoneda';
-import ContactForm from '@/components/common/ContactForm';
 
 interface PanelCotizacionProps {
   lotesSeleccionados: Lote[];
@@ -15,6 +14,8 @@ interface PanelCotizacionProps {
   onMesesChange: (valor: number) => void;
   onLimpiar: () => void;
   onCerrar?: () => void;
+  // Agregamos esta prop para que el padre sepa cuándo abrir el overlay
+  onContactar?: () => void;
 }
 
 export const PanelCotizacion = ({
@@ -27,9 +28,10 @@ export const PanelCotizacion = ({
   onPorcentajeChange,
   onMesesChange,
   onLimpiar,
-  onCerrar
+  onCerrar,
+  onContactar // Recibimos la función
 }: PanelCotizacionProps) => {
-  const [mostrarContacto, setMostrarContacto] = useState(false);
+
   const totalMetros = lotesSeleccionados.reduce(
     (acum, lote) => acum + lote.superficieM2,
     0
@@ -47,10 +49,8 @@ export const PanelCotizacion = ({
       className="flex w-full flex-col lg:max-w-[480px] max-h-screen border-l border-[#E2E0DB]"
       style={{ backgroundColor: colors.bg }}
     >
-      {/* CONTENIDO SCROLLEABLE */}
       <div className="flex-1 overflow-y-auto px-8 py-10 lg:px-12">
         
-        {/* --- Título --- */}
         <h2 className="mb-10 font-serif text-3xl font-medium text-[#1C2533]">
           Genera tu estimación
         </h2>
@@ -59,71 +59,32 @@ export const PanelCotizacion = ({
         <div className="mb-8">
           <div className="mb-3 flex items-center gap-3">
             <span className="text-sm font-bold text-[#1C2533]">Medidas</span>
-            <span
-              className="flex items-center gap-1 rounded px-2 py-0.5 text-[10px] font-medium text-[#1C2533]"
-              style={{ backgroundColor: colors.badge }}
-            >
+            <span className="flex items-center gap-1 rounded px-2 py-0.5 text-[10px] font-medium text-[#1C2533]" style={{ backgroundColor: colors.badge }}>
               m²
-              <svg width="8" height="6" viewBox="0 0 10 6" fill="none">
-                <path
-                  d="M1 1L5 5L9 1"
-                  stroke="#1C2533"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
             </span>
           </div>
-
           <div className="space-y-2 text-sm text-[#1C2533]">
             {lotesSeleccionados.map((lote, index) => (
               <div key={lote.id || index} className="flex justify-between">
                 <span>{lote.nombre || `Lote ${index + 1}`}</span>
-                <span>
-                  {lote.superficieM2.toLocaleString('es-MX', {
-                    minimumFractionDigits: 2
-                  })}{' '}
-                  m²
-                </span>
+                <span>{lote.superficieM2.toLocaleString('es-MX', { minimumFractionDigits: 2 })} m²</span>
               </div>
             ))}
-
             <div className="flex justify-between pt-2 font-bold">
               <span>TOTAL</span>
-              <span>
-                {totalMetros.toLocaleString('es-MX', {
-                  minimumFractionDigits: 2
-                })}{' '}
-                m²
-              </span>
+              <span>{totalMetros.toLocaleString('es-MX', { minimumFractionDigits: 2 })} m²</span>
             </div>
           </div>
         </div>
 
-        {/* --- Estimación de costo --- */}
+        {/* --- Estimación --- */}
         <div className="mb-10">
           <div className="mb-3 flex items-center gap-3">
-            <span className="text-sm font-bold text-[#1C2533]">
-              Estimación de costo
-            </span>
-            <span
-              className="flex items-center gap-1 rounded px-2 py-0.5 text-[10px] font-medium text-[#1C2533]"
-              style={{ backgroundColor: colors.badge }}
-            >
+            <span className="text-sm font-bold text-[#1C2533]">Estimación de costo</span>
+            <span className="flex items-center gap-1 rounded px-2 py-0.5 text-[10px] font-medium text-[#1C2533]" style={{ backgroundColor: colors.badge }}>
               mxn
-              <svg width="8" height="6" viewBox="0 0 10 6" fill="none">
-                <path
-                  d="M1 1L5 5L9 1"
-                  stroke="#1C2533"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
             </span>
           </div>
-
           <div className="space-y-3 text-sm text-[#1C2533]">
             {lotesSeleccionados.map((lote, index) => (
               <div key={lote.id || index} className="flex justify-between">
@@ -131,12 +92,10 @@ export const PanelCotizacion = ({
                 <span>{formatearMoneda(lote.precioTotal || 0)} mxn</span>
               </div>
             ))}
-
             <div className="flex justify-between pb-4 font-bold">
               <span>TOTAL</span>
               <span>{formatearMoneda(totales.totalSeleccionado)} mxn</span>
             </div>
-
             <div className="space-y-2">
               <div className="flex justify-between">
                 <span>Enganche</span>
@@ -154,14 +113,10 @@ export const PanelCotizacion = ({
           </div>
         </div>
 
-        {/* --- Personaliza tu cotización --- */}
+        {/* --- Sliders --- */}
         <div className="mb-10">
-          <h3 className="mb-6 text-sm font-bold text-[#1C2533]">
-            Personaliza tu cotización
-          </h3>
-
+          <h3 className="mb-6 text-sm font-bold text-[#1C2533]">Personaliza tu cotización</h3>
           <div className="flex flex-col gap-8">
-            {/* Enganche */}
             <div className="flex flex-col gap-3">
               <div className="flex justify-between text-xs uppercase tracking-wider text-[#64748B]">
                 <span>Enganche</span>
@@ -176,12 +131,9 @@ export const PanelCotizacion = ({
                 disabled={configuracionCargando}
                 className="h-1 w-full cursor-pointer appearance-none rounded-full bg-[#E2E0DB] accent-[#1C2533]"
               />
-              <div className="text-right text-sm font-semibold text-[#1C2533]">
-                {porcentajeEnganche}%
-              </div>
+              <div className="text-right text-sm font-semibold text-[#1C2533]">{porcentajeEnganche}%</div>
             </div>
 
-            {/* Plazo */}
             <div className="flex flex-col gap-3">
               <div className="flex justify-between text-xs uppercase tracking-wider text-[#64748B]">
                 <span>Plazo</span>
@@ -196,38 +148,32 @@ export const PanelCotizacion = ({
                 disabled={configuracionCargando}
                 className="h-1 w-full cursor-pointer appearance-none rounded-full bg-[#E2E0DB] accent-[#1C2533]"
               />
-              <div className="text-right text-sm font-semibold text-[#1C2533]">
-                {meses} meses
-              </div>
+              <div className="text-right text-sm font-semibold text-[#1C2533]">{meses} meses</div>
             </div>
           </div>
         </div>
 
-        {/* --- Botones principales --- */}
+        {/* --- BOTONES DE ACCIÓN --- */}
         <div className="mb-12 flex gap-4">
           <button
             type="button"
-            className="flex-1 rounded-full bg-[#1C2533] px-4 py-3 text-sm font-medium text-white hover:bg-[#2d3b50]"
+            className="flex-1 rounded-full bg-[#1C2533] px-4 py-3 text-sm font-medium text-white hover:bg-[#2d3b50] transition-colors"
           >
             Descargar cotización
           </button>
+          
+          {/* BOTÓN RESTAURADO: Ejecuta la función del padre */}
           <button
             type="button"
-            className="flex-1 rounded-full border border-[#1C2533] px-4 py-3 text-sm font-medium text-[#1C2533] hover:bg-[#1C2533] hover:text-white"
-            onClick={() => setMostrarContacto((valorActual) => !valorActual)}
+            onClick={onContactar}
+            className="flex-1 rounded-full border border-[#1C2533] px-4 py-3 text-sm font-medium text-[#1C2533] hover:bg-[#1C2533] hover:text-white transition-colors"
           >
             Contáctanos
           </button>
         </div>
 
-        {mostrarContacto && (
-          <div className="mb-12">
-            <ContactForm />
-          </div>
-        )}
       </div>
 
-      {/* FOOTER FIJO */}
       <div className="border-t border-slate-300 bg-[#F3F1EC] px-8 py-6 lg:px-12">
         <button
           onClick={onCerrar || onLimpiar}
