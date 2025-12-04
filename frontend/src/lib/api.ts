@@ -8,6 +8,8 @@ export interface LoteDTO {
   superficieM2: number;
   precio: number;
   estado: EstadoLote;
+  nombre?: string;
+  precioTotal?: number;
 }
 
 export type Lot = LoteDTO;
