@@ -84,9 +84,10 @@ export default function Home() {
   useEffect(() => {
     if (status !== 'success' || !result?.imageUrl) return;
 
+    const imageUrl = result.imageUrl;
     setFading(true);
     const timer = setTimeout(() => {
-      setFondoActual(result.imageUrl);
+      setFondoActual(imageUrl);
       setFading(false);
     }, 200);
 
