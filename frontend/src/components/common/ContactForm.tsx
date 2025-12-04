@@ -10,7 +10,7 @@ interface ContactFormData {
 interface ContactFormProps {
   className?: string;
   submitLabel?: string;
-  onSubmit?: (data: ContactFormData) => void;
+  onSubmit?: (data: ContactFormData) => Promise<void> | void;
 }
 
 export const ContactForm = ({
@@ -27,6 +27,8 @@ export const ContactForm = ({
 
   const [errors, setErrors] = useState<Partial<Record<keyof ContactFormData, string>>>({});
   const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [submissionError, setSubmissionError] = useState<string | null>(null);
 
   const isValidEmail = (correo: string) => /\S+@\S+\.\S+/.test(correo);
 
@@ -59,11 +61,21 @@ export const ContactForm = ({
     setFormData({ ...formData, [field]: event.target.value });
   };
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!validate()) return;
-    setSubmitted(true);
-    onSubmit?.(formData);
+    setSubmissionError(null);
+    setSubmitting(true);
+    try {
+      if (onSubmit) {
+        await onSubmit(formData);
+      }
+      setSubmitted(true);
+    } catch (error) {
+      setSubmissionError((error as Error).message ?? 'No se pudo enviar tu información');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const helperText = useMemo(
@@ -116,6 +128,7 @@ export const ContactForm = ({
         </h4>
 
         <form className="space-y-4" onSubmit={handleSubmit} noValidate>
+          {submissionError ? <p className="text-sm text-red-600">{submissionError}</p> : null}
           {/* Campo Nombre */}
           <div>
             <label htmlFor="nombre" className="block text-slate-700 font-medium mb-1">Nombre:</label>
@@ -171,9 +184,10 @@ export const ContactForm = ({
           <div className="pt-2">
             <button
               type="submit"
+              disabled={submitting}
               className="rounded-full bg-[#385C7A] px-8 py-2 font-semibold text-white shadow-lg hover:bg-[#2a455c] transition-colors w-full sm:w-auto"
             >
-              {submitLabel}
+              {submitting ? 'Enviando…' : submitLabel}
             </button>
           </div>
         </form>

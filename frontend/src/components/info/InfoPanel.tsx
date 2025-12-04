@@ -1,6 +1,7 @@
 import Image from 'next/image';
 import { ReactNode, useEffect, useMemo, useRef, useState } from 'react';
 import ContactForm from '@/components/common/ContactForm';
+import { createContactSubmission } from '@/lib/contactSubmissions';
 
 // LISTA MANUAL DE TUS IMÁGENES REALES (Renombradas 1-24)
 const imagenesRealesList = Array.from({ length: 24 }, (_, i) => `/assets/imagenesReales/${i + 1}.png`);
@@ -241,7 +242,7 @@ export const InfoPanel = ({ closeSignal }: InfoPanelProps) => {
         iconPath: '/assets/iconos/contacto.png',
         title: 'Contacto',
         highlight: 'Comercialización Exclusiva',
-        content: <ContactForm />,
+        content: <ContactForm onSubmit={createContactSubmission} />,
       },
     ],
     [],
