@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { MapaLotes } from '@/components/mapa/MapaLotes';
 import { PanelCotizacion } from '@/components/panel/PanelCotizacion';
 import { ContactForm } from '@/components/common/ContactForm';
+import { createContactSubmission } from '@/lib/contactSubmissions';
 
 import type { Lote, TotalesCotizacion } from '@/hooks/useCotizacion';
 import type { FinanceSettingsDTO } from '@/lib/financeSettings';
@@ -80,7 +81,9 @@ export const MacroCotizadorPanel = ({
     }
   };
 
-  const handleFormSubmit = async () => {
+  const handleFormSubmit = async (formData: { nombre: string; correo: string; telefono: string; interes: string }) => {
+    await createContactSubmission(formData);
+
     setIsContactOpen(false);
 
     if (!downloadRequested) return;

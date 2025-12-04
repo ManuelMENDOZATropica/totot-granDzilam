@@ -21,8 +21,14 @@ import {
 } from '@/lib/admin';
 import type { EstadoLote } from '@/lib/api';
 import type { UserRole } from '@/lib/auth';
+import {
+  ContactSubmission,
+  assignContactSubmission,
+  fetchAdminContactSubmissions,
+  fetchMyContactSubmissions,
+} from '@/lib/contactSubmissions';
 
-type AdminTab = 'lots' | 'users';
+type AdminTab = 'lots' | 'users' | 'contacts';
 
 interface LotFormState {
   identifier: string;
@@ -68,12 +74,16 @@ export default function CrmPage() {
 
   const [lots, setLots] = useState<AdminLot[]>([]);
   const [users, setUsers] = useState<AdminUser[]>([]);
+  const [contactSubmissions, setContactSubmissions] = useState<ContactSubmission[]>([]);
   const [lotsLoading, setLotsLoading] = useState(false);
   const [usersLoading, setUsersLoading] = useState(false);
+  const [contactsLoading, setContactsLoading] = useState(false);
   const [lotsError, setLotsError] = useState<string | null>(null);
   const [usersError, setUsersError] = useState<string | null>(null);
+  const [contactsError, setContactsError] = useState<string | null>(null);
   const [lotFormError, setLotFormError] = useState<string | null>(null);
   const [userFormError, setUserFormError] = useState<string | null>(null);
+  const [contactAssigningId, setContactAssigningId] = useState<string | null>(null);
 
   const [lotForm, setLotForm] = useState<LotFormState>(lotFormInitialState);
   const [editingLotId, setEditingLotId] = useState<string | null>(null);
@@ -83,17 +93,33 @@ export default function CrmPage() {
   const [editingUserId, setEditingUserId] = useState<string | null>(null);
   const [userSaving, setUserSaving] = useState(false);
 
+  const availableTabs = useMemo<AdminTab[]>(() => (user?.role === 'admin' ? ['lots', 'users', 'contacts'] : ['contacts']), [
+    user?.role,
+  ]);
+
   useEffect(() => {
     if (!router.isReady) {
       return;
     }
+
     const queryTab = router.query.tab;
-    if (typeof queryTab === 'string' && (queryTab === 'lots' || queryTab === 'users')) {
-      setActiveTab(queryTab);
+    const requestedTab =
+      typeof queryTab === 'string' && ['lots', 'users', 'contacts'].includes(queryTab)
+        ? (queryTab as AdminTab)
+        : null;
+    const nextTab = requestedTab && availableTabs.includes(requestedTab) ? requestedTab : availableTabs[0];
+
+    setActiveTab(nextTab);
+
+    if (nextTab !== requestedTab) {
+      void router.replace({ pathname: '/crm', query: { tab: nextTab } }, undefined, { shallow: true });
     }
-  }, [router.isReady, router.query.tab]);
+  }, [router.isReady, router.query.tab, availableTabs, router]);
 
   const handleTabChange = (tab: AdminTab) => {
+    if (!availableTabs.includes(tab)) {
+      return;
+    }
     setActiveTab(tab);
     void router.replace({ pathname: '/crm', query: { tab } }, undefined, { shallow: true });
   };
@@ -130,13 +156,41 @@ export default function CrmPage() {
     }
   }, [token]);
 
-  useEffect(() => {
+  const loadContactSubmissions = useCallback(async () => {
     if (!token || !user) {
+      return;
+    }
+
+    setContactsLoading(true);
+    setContactsError(null);
+
+    try {
+      const items =
+        user.role === 'admin'
+          ? await fetchAdminContactSubmissions(token)
+          : await fetchMyContactSubmissions(token);
+      setContactSubmissions(items);
+    } catch (error) {
+      setContactsError((error as Error).message);
+    } finally {
+      setContactsLoading(false);
+    }
+  }, [token, user]);
+
+  useEffect(() => {
+    if (!token || !user || user.role !== 'admin') {
       return;
     }
     void loadLots();
     void loadUsers();
   }, [token, user, loadLots, loadUsers]);
+
+  useEffect(() => {
+    if (!token || !user) {
+      return;
+    }
+    void loadContactSubmissions();
+  }, [token, user, loadContactSubmissions]);
 
   const handleLogin = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -324,8 +378,43 @@ export default function CrmPage() {
     }
   };
 
+  const handleAssignContact = async (submissionId: string, assignedTo: string | null) => {
+    if (!token || user?.role !== 'admin') {
+      return;
+    }
+
+    setContactAssigningId(submissionId);
+    setContactsError(null);
+
+    try {
+      const updated = await assignContactSubmission(token, submissionId, assignedTo);
+      setContactSubmissions((previous) => previous.map((item) => (item.id === submissionId ? updated : item)));
+    } catch (error) {
+      setContactsError((error as Error).message);
+    } finally {
+      setContactAssigningId(null);
+    }
+  };
+
   const lotsEmpty = useMemo(() => !lotsLoading && lots.length === 0, [lotsLoading, lots.length]);
   const usersEmpty = useMemo(() => !usersLoading && users.length === 0, [usersLoading, users.length]);
+  const contactsEmpty = useMemo(
+    () => !contactsLoading && contactSubmissions.length === 0,
+    [contactsLoading, contactSubmissions.length],
+  );
+  const isAdmin = user?.role === 'admin';
+
+  const formatDateTime = (value: string) =>
+    new Intl.DateTimeFormat('es-MX', {
+      dateStyle: 'short',
+      timeStyle: 'short',
+    }).format(new Date(value));
+
+  const tabLabels: Record<AdminTab, string> = {
+    lots: 'Lotes',
+    users: 'Usuarios',
+    contacts: 'Contactos',
+  };
 
   if (!user && isLoading) {
     return (
@@ -437,7 +526,7 @@ export default function CrmPage() {
             <div>
               <p className="text-sm text-slate-500">Panel administrativo</p>
               <h1 className="text-2xl font-semibold text-slate-900">Hola, {user.name}</h1>
-              <p className="text-sm text-slate-500">Gestiona los lotes y usuarios del CRM</p>
+              <p className="text-sm text-slate-500">Gestiona los lotes, usuarios y mensajes de contacto</p>
             </div>
             <div className="flex items-center gap-3">
               <span className="rounded-full bg-slate-200 px-4 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-slate-600">
@@ -454,28 +543,20 @@ export default function CrmPage() {
           </div>
 
           <div className="mb-8 flex flex-wrap gap-2">
-            <button
-              type="button"
-              onClick={() => handleTabChange('lots')}
-              className={`rounded-full px-5 py-2 text-sm font-semibold transition ${
-                activeTab === 'lots'
-                  ? 'bg-slate-900 text-white shadow'
-                  : 'bg-white text-slate-600 shadow-sm hover:bg-slate-100'
-              }`}
-            >
-              Lotes
-            </button>
-            <button
-              type="button"
-              onClick={() => handleTabChange('users')}
-              className={`rounded-full px-5 py-2 text-sm font-semibold transition ${
-                activeTab === 'users'
-                  ? 'bg-slate-900 text-white shadow'
-                  : 'bg-white text-slate-600 shadow-sm hover:bg-slate-100'
-              }`}
-            >
-              Usuarios
-            </button>
+            {availableTabs.map((tab) => (
+              <button
+                key={tab}
+                type="button"
+                onClick={() => handleTabChange(tab)}
+                className={`rounded-full px-5 py-2 text-sm font-semibold transition ${
+                  activeTab === tab
+                    ? 'bg-slate-900 text-white shadow'
+                    : 'bg-white text-slate-600 shadow-sm hover:bg-slate-100'
+                }`}
+              >
+                {tabLabels[tab]}
+              </button>
+            ))}
           </div>
 
           {activeTab === 'lots' ? (
@@ -631,7 +712,9 @@ export default function CrmPage() {
                 )}
               </div>
             </section>
-          ) : (
+          ) : null}
+
+          {activeTab === 'users' ? (
             <section className="space-y-6">
               <div className="rounded-3xl bg-white p-6 shadow-sm">
                 <div className="mb-6">
@@ -769,7 +852,110 @@ export default function CrmPage() {
                 )}
               </div>
             </section>
-          )}
+          ) : null}
+
+          {activeTab === 'contacts' ? (
+            <section className="space-y-6">
+              <div className="rounded-3xl bg-white p-6 shadow-sm">
+                <div className="mb-4 flex items-center justify-between">
+                  <div>
+                    <h3 className="text-base font-semibold text-slate-900">
+                      {isAdmin ? 'Mensajes recibidos' : 'Contactos asignados para ti'}
+                    </h3>
+                    <p className="text-sm text-slate-500">
+                      {isAdmin
+                        ? 'Asigna a un miembro del equipo los mensajes de los formularios de contacto.'
+                        : 'Consulta los mensajes que te asignaron desde los formularios de contacto.'}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => void loadContactSubmissions()}
+                    className="rounded-full border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 transition hover:border-slate-900 hover:text-slate-900"
+                  >
+                    Actualizar
+                  </button>
+                </div>
+                {contactsError ? <p className="mb-4 text-sm text-red-600">{contactsError}</p> : null}
+                {contactsLoading ? (
+                  <p className="text-sm text-slate-500">Cargando contactos…</p>
+                ) : contactsEmpty ? (
+                  <p className="text-sm text-slate-500">
+                    {isAdmin ? 'Aún no hay registros de formularios de contacto.' : 'Aún no tienes mensajes asignados.'}
+                  </p>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full divide-y divide-slate-200 text-left text-sm text-slate-600">
+                      <thead>
+                        <tr>
+                          <th className="py-2 pr-4 font-semibold text-slate-500">Nombre</th>
+                          <th className="py-2 pr-4 font-semibold text-slate-500">Correo</th>
+                          <th className="py-2 pr-4 font-semibold text-slate-500">Teléfono</th>
+                          <th className="py-2 pr-4 font-semibold text-slate-500">Interés</th>
+                          <th className="py-2 pr-4 font-semibold text-slate-500">Recibido</th>
+                          {isAdmin ? (
+                            <th className="py-2 pr-4 font-semibold text-slate-500">Asignado a</th>
+                          ) : null}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {contactSubmissions.map((submission) => (
+                          <tr key={submission.id} className="border-t border-slate-100 align-top">
+                            <td className="py-2 pr-4 font-medium text-slate-900">{submission.nombre}</td>
+                            <td className="py-2 pr-4">
+                              <a
+                                className="text-slate-700 underline-offset-4 hover:text-slate-900 hover:underline"
+                                href={`mailto:${submission.correo}`}
+                              >
+                                {submission.correo}
+                              </a>
+                            </td>
+                            <td className="py-2 pr-4">
+                              <a
+                                className="text-slate-700 underline-offset-4 hover:text-slate-900 hover:underline"
+                                href={`tel:${submission.telefono}`}
+                              >
+                                {submission.telefono}
+                              </a>
+                            </td>
+                            <td className="py-2 pr-4 max-w-[280px] whitespace-pre-wrap text-slate-700">{submission.interes}</td>
+                            <td className="py-2 pr-4 text-slate-500">{formatDateTime(submission.createdAt)}</td>
+                            {isAdmin ? (
+                              <td className="py-2 pr-4">
+                                <div className="flex items-center gap-2">
+                                  <select
+                                    value={submission.assignedTo?.id ?? ''}
+                                    onChange={(event) =>
+                                      void handleAssignContact(
+                                        submission.id,
+                                        event.target.value === '' ? null : event.target.value,
+                                      )
+                                    }
+                                    className="rounded-2xl border border-slate-200 bg-white px-3 py-1 text-sm text-slate-900 focus:border-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900/20"
+                                    disabled={contactAssigningId === submission.id}
+                                  >
+                                    <option value="">Sin asignar</option>
+                                    {users.map((adminUser) => (
+                                      <option key={adminUser.id} value={adminUser.id}>
+                                        {adminUser.name} ({adminUser.email})
+                                      </option>
+                                    ))}
+                                  </select>
+                                  {contactAssigningId === submission.id ? (
+                                    <span className="text-xs text-slate-500">Guardando…</span>
+                                  ) : null}
+                                </div>
+                              </td>
+                            ) : null}
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            </section>
+          ) : null}
         </div>
       </main>
     </>
