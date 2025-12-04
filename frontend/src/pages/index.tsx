@@ -37,7 +37,7 @@ import { CookieBanner } from '@/components/home/CookieBanner';
 
 // 1. DEFINIMOS LAS 6 VISTAS
 
-const vistas = [
+const vistasDesktop = [
 
   { nombre: '1', src: '/assets/vistas/1.png' },
 
@@ -50,6 +50,22 @@ const vistas = [
   { nombre: '5', src: '/assets/vistas/5.png' },
 
   { nombre: '6', src: '/assets/vistas/6.png' },
+
+];
+
+const vistasMobile = [
+
+  { nombre: '1', src: '/assets/vistas/mobile1.png' },
+
+  { nombre: '2', src: '/assets/vistas/mobile2.png' },
+
+  { nombre: '3', src: '/assets/vistas/mobile3.png' },
+
+  { nombre: '4', src: '/assets/vistas/mobile4.png' },
+
+  { nombre: '5', src: '/assets/vistas/mobile5.png' },
+
+  { nombre: '6', src: '/assets/vistas/mobile6.png' },
 
 ];
 
@@ -115,13 +131,15 @@ export default function Home() {
 
   // Inicialización
 
-  const [fondoActual, setFondoActual] = useState('/assets/vistas/1.png');
+  const [fondoActual, setFondoActual] = useState(vistasDesktop[0].src);
 
   const [vistaActiva, setVistaActiva] = useState<number | null>(0);
 
   const [fading, setFading] = useState(false);
 
   const [infoPanelReset, setInfoPanelReset] = useState(0);
+
+  const [vistas, setVistas] = useState(vistasDesktop);
 
 
 
@@ -162,6 +180,68 @@ export default function Home() {
     }
 
   }, [lastPrompt]);
+
+
+
+  useEffect(() => {
+
+    if (typeof window === 'undefined') return;
+
+
+
+    const mediaQuery = window.matchMedia('(max-width: 768px)');
+
+
+
+    const updateVistas = (matches: boolean) => {
+
+      const vistasObjetivo = matches ? vistasMobile : vistasDesktop;
+
+
+
+      setVistas(vistasObjetivo);
+
+
+
+      setVistaActiva((prev) => {
+
+        if (prev !== null && prev < vistasObjetivo.length) return prev;
+
+        return 0;
+
+      });
+
+
+
+      setFondoActual((actual) => {
+
+        const sigueDisponible = vistasObjetivo.some((vista) => vista.src === actual);
+
+        if (sigueDisponible) return actual;
+
+        return vistasObjetivo[0]?.src ?? actual;
+
+      });
+
+    };
+
+
+
+    updateVistas(mediaQuery.matches);
+
+
+
+    const handleChange = (event: MediaQueryListEvent) => updateVistas(event.matches);
+
+
+
+    mediaQuery.addEventListener('change', handleChange);
+
+
+
+    return () => mediaQuery.removeEventListener('change', handleChange);
+
+  }, []);
 
 
 
@@ -373,11 +453,11 @@ export default function Home() {
 
               alt="Logo Gran Dzilam"
 
-              width={160}
+              width={140}
 
-              height={160}
+              height={140}
 
-              className="object-contain"
+              className="h-20 w-20 object-contain sm:h-28 sm:w-28"
 
               priority
 

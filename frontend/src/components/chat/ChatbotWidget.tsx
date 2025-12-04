@@ -32,9 +32,9 @@ export const ChatbotWidget = () => {
   };
 
   return (
-    <div className="fixed bottom-6 left-6 z-40 flex flex-col items-start gap-3 font-sans">
+    <div className="fixed bottom-6 right-6 z-40 flex flex-col items-end gap-3 font-sans">
       {isOpen && (
-        <div className="flex w-[540px] flex-col overflow-hidden rounded-[20px] border border-slate-200 bg-[#efeeeb] shadow-2xl ring-1 ring-black/5">
+        <div className="flex w-[90vw] max-w-[540px] flex-col overflow-hidden rounded-[20px] border border-slate-200 bg-[#efeeeb] shadow-2xl ring-1 ring-black/5 sm:w-[540px]">
           
           {/* HEADER: Minimalista para cerrar */}
           <div className="flex items-center justify-end bg-[#efeeeb] px-1 py-1">
@@ -60,7 +60,7 @@ export const ChatbotWidget = () => {
           {/* CUERPO DEL CHAT */}
           <div
             ref={scrollRef}
-            className="flex h-[400px] flex-col overflow-y-auto bg-[#efeeeb] px-4 py-6 overlay-scrollbar"
+            className="flex h-[400px] max-h-[60vh] flex-col overflow-y-auto bg-[#efeeeb] px-4 py-6 overlay-scrollbar"
           >
             {/* ESTADO INICIAL (VACÍO) */}
             {messages.length === 0 ? (
