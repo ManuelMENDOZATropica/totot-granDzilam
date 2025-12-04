@@ -10,7 +10,7 @@ interface ContactFormData {
 interface ContactFormProps {
   className?: string;
   submitLabel?: string;
-  onSubmit?: (data: ContactFormData) => Promise<void> | void;
+  onSubmit?: (data: ContactFormData) => Promise<unknown> | void;
 }
 
 export const ContactForm = ({
