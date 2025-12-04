@@ -12,6 +12,7 @@ import { authRouter } from './routes/auth.route';
 import { financeSettingsRouter } from './routes/finance-settings.route';
 import { adminRouter } from './routes/admin';
 import { requireAuth, requireRole } from './middleware/auth';
+import { contactSubmissionsRouter } from './routes/contact-submissions.route';
 
 export const createApp = () => {
   const { CORS_ORIGIN } = loadEnv();
@@ -28,6 +29,7 @@ export const createApp = () => {
   app.use('/api/lots', lotsRouter);
   app.use('/api/finance', financeRouter);
   app.use('/api/finance-settings', financeSettingsRouter);
+  app.use('/api/contact-submissions', contactSubmissionsRouter);
   app.use('/api/admin', requireAuth, requireRole('admin'), adminRouter);
   app.use('/api', imagineRouter);
 
