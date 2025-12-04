@@ -61,7 +61,7 @@ export const ContactForm = ({
     setFormData({ ...formData, [field]: event.target.value });
   };
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!validate()) return;
     setSubmissionError(null);
