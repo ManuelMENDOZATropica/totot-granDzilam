@@ -1,12 +1,14 @@
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 
 export const HeaderBar = () => {
   const { user, logout } = useAuth();
   const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
+
+  const userInitial = useMemo(() => user?.name?.charAt(0).toUpperCase() ?? '·', [user?.name]);
 
   const handleLogout = () => {
     logout();
@@ -27,13 +29,14 @@ export const HeaderBar = () => {
           <button
             type="button"
             onClick={() => setMenuOpen((open) => !open)}
-            className="flex items-center gap-2 rounded-full border border-slate-300 px-4 py-2 text-sm font-medium text-slate-600 transition hover:border-slate-900 hover:text-slate-900"
+            className="flex h-12 w-12 items-center justify-center rounded-full border border-slate-300 text-sm font-semibold text-slate-600 transition hover:border-slate-900 hover:text-slate-900 sm:h-auto sm:w-auto sm:gap-2 sm:px-4 sm:py-2 sm:font-medium"
           >
+            <span className="sm:hidden">{userInitial}</span>
             <span className="hidden text-xs uppercase tracking-[0.3em] text-slate-400 sm:inline">{user.role}</span>
-            <span>{user.name}</span>
+            <span className="hidden sm:inline">{user.name}</span>
           </button>
           {menuOpen ? (
-            <div className="absolute right-0 z-10 mt-2 w-48 rounded-lg border border-slate-200 bg-white py-1 shadow-lg">
+            <div className="absolute left-0 top-full z-10 mt-2 w-full min-w-[180px] rounded-lg border border-slate-200 bg-white py-1 shadow-lg sm:left-auto sm:right-0 sm:w-48">
               {user.role === 'admin' ? (
                 <Link
                   href="/crm"
