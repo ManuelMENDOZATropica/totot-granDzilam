@@ -54,7 +54,7 @@ export const PanelCotizacion = ({
       className="flex w-full flex-col lg:max-w-[480px] max-h-screen border-l border-[#E2E0DB]"
       style={{ backgroundColor: colors.bg }}
     >
-      <div className="flex-1 overflow-y-auto px-8 py-10 lg:px-12">
+      <div className="flex-1 overflow-y-auto px-8 py-10 lg:px-12 overlay-scrollbar">
         
         <h2 className="mb-10 font-serif text-3xl font-medium text-[#1C2533]">
           Genera tu estimación

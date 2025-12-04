@@ -60,16 +60,7 @@ export const ChatbotWidget = () => {
           {/* CUERPO DEL CHAT */}
           <div
             ref={scrollRef}
-            className="
-              flex h-[400px] flex-col overflow-y-auto bg-[#efeeeb] px-4 py-6
-              
-              /* ESTILOS DE SCROLLBAR PERSONALIZADOS (Tipo Píldora) */
-              [&::-webkit-scrollbar]:w-[5px]
-              [&::-webkit-scrollbar-track]:bg-transparent
-              [&::-webkit-scrollbar-thumb]:bg-[#dbd9d6]
-              [&::-webkit-scrollbar-thumb]:rounded-full
-              hover:[&::-webkit-scrollbar-thumb]:bg-[#c8c6c3]
-            "
+            className="flex h-[400px] flex-col overflow-y-auto bg-[#efeeeb] px-4 py-6 overlay-scrollbar"
           >
             {/* ESTADO INICIAL (VACÍO) */}
             {messages.length === 0 ? (
