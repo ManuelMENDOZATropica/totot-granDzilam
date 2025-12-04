@@ -332,6 +332,7 @@ export const InfoPanel = ({ closeSignal }: InfoPanelProps) => {
   }, []);
 
   const activeSection = sections.find((section) => section.id === activeId);
+  const containerPosition = isMobile ? 'fixed' : 'absolute';
 
   // Botón principal (Hamburguesa / X)
   const handleMainButtonClick = () => {
@@ -352,7 +353,7 @@ export const InfoPanel = ({ closeSignal }: InfoPanelProps) => {
       type="button"
       aria-label={activeId || isMenuOpen ? 'Cerrar' : 'Abrir menú'}
       onClick={handleMainButtonClick}
-      className="rounded-full bg-white/80 p-2 shadow-lg transition hover:scale-105 hover:bg-white pointer-events-auto z-[9998]"
+      className="rounded-full bg-white/80 p-2 shadow-lg transition hover:scale-105 hover:bg-white pointer-events-auto z-[42]"
     >
       {activeId || isMenuOpen ? (
         <svg
@@ -385,7 +386,7 @@ export const InfoPanel = ({ closeSignal }: InfoPanelProps) => {
   return (
     <>
       {/* CONTENEDOR GLOBAL ENCIMA DE TODO */}
-      <div className="fixed inset-0 z-[9990] pointer-events-none">
+      <div className={`${containerPosition} inset-0 z-[40] pointer-events-none`}>
         <div
           className={`absolute inset-0 flex pointer-events-none ${
             isMobile
@@ -404,7 +405,7 @@ export const InfoPanel = ({ closeSignal }: InfoPanelProps) => {
           >
             {/* Botón hamburguesa en móvil */}
             {isMobile && (
-              <div className="pb-2 z-[9998] pointer-events-auto">
+              <div className="pb-2 z-[42] pointer-events-auto">
                 {MobileMenuButton}
               </div>
             )}
@@ -416,12 +417,12 @@ export const InfoPanel = ({ closeSignal }: InfoPanelProps) => {
                   ? [
                       'absolute top-[10px] left-[80px]',
                       'flex flex-row gap-3 p-2 ',
-                      'transition-all duration-500 z-[9999]',
+                      'transition-all duration-500 z-[42]',
                       isMenuOpen
                         ? 'translate-x-0 opacity-100 pointer-events-auto'
                         : 'translate-x-[-150%] opacity-0 pointer-events-none',
                     ].join(' ')
-                  : 'flex flex-col gap-4 py-8 z-[9997] pointer-events-auto'
+                  : 'flex flex-col gap-4 py-8 z-[41] pointer-events-auto'
               }
             >
               {sections.map((section) => (
@@ -464,7 +465,7 @@ export const InfoPanel = ({ closeSignal }: InfoPanelProps) => {
               ref={cardRef}
               className={[
                 'rounded-2xl bg-[#D2CEC6] bg-white/95 shadow-2xl backdrop-blur-md',
-                'transition-all duration-500 z-[9996]',
+                'transition-all duration-500 z-[41]',
                 isMobile
                   ? 'absolute top-0 left-0 w-full h-full pt-[70px] p-4 sm:p-6'
                   : '-ml-[88px] min-h-[50vh] max-h-[80vh] min-w-2xl max-w-2xl p-6 pl-[110px] overflow-y-hidden xl:min-h-[70vh] xl:min-w-3xl xl:max-w-3xl',
@@ -494,7 +495,7 @@ export const InfoPanel = ({ closeSignal }: InfoPanelProps) => {
                         type="button"
                         aria-label="Cerrar"
                         onClick={() => setActiveId(null)}
-                        className="rounded-full bg-slate-100 p-2 text-slate-500 transition hover:bg-slate-200 hover:text-slate-700 z-[9999]"
+                        className="rounded-full bg-slate-100 p-2 text-slate-500 transition hover:bg-slate-200 hover:text-slate-700 z-[42]"
                       >
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
@@ -525,12 +526,12 @@ export const InfoPanel = ({ closeSignal }: InfoPanelProps) => {
       {/* MODAL DEL PLANO */}
       {isMapModalOpen && (
         <div
-          className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/90 p-4 backdrop-blur-sm transition-opacity"
+          className="fixed inset-0 z-[45] flex items-center justify-center bg-black/90 p-4 backdrop-blur-sm transition-opacity"
           onClick={() => setIsMapModalOpen(false)}
         >
           <div className="relative h-auto max-h-[90vh] w-auto max-w-[90vw] overflow-hidden rounded-lg shadow-2xl">
             <button
-              className="absolute right-4 top-4 z-[10010] rounded-full bg-black/50 p-2 text-white hover:bg-black/70 backdrop-blur-md"
+              className="absolute right-4 top-4 z-[46] rounded-full bg-black/50 p-2 text-white hover:bg-black/70 backdrop-blur-md"
               onClick={(e) => {
                 e.stopPropagation();
                 setIsMapModalOpen(false);

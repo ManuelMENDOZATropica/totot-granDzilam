@@ -21,7 +21,7 @@ export const ViewSelectorDesktop = ({
   const vistasDinamicas = vistas.slice(1);
 
   return (
-    <div className="absolute right-4 top-1/2 z-30 hidden -translate-y-1/2 flex-col gap-4 md:flex">
+    <div className="absolute right-4 top-1/2 z-[20] hidden -translate-y-1/2 flex-col gap-4 md:flex">
       <button
         type="button"
         onClick={() => onChange(0)}

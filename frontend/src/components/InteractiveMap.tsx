@@ -126,7 +126,7 @@ export const InteractiveMap = ({ src, className }: InteractiveMapProps) => {
         {/* 3. Tooltip */}
         {hoveredLot && isInteractiveView && (
           <div
-            className="absolute z-50 pointer-events-none bg-white/95 backdrop-blur-sm p-4 rounded-xl shadow-xl border border-slate-200 w-56 animate-in fade-in zoom-in duration-150"
+            className="absolute z-[10] pointer-events-none bg-white/95 backdrop-blur-sm p-4 rounded-xl shadow-xl border border-slate-200 w-56 animate-in fade-in zoom-in duration-150"
             style={{
               top: mousePos.y - 140,
               left: mousePos.x - 112

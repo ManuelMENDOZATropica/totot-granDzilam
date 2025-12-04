@@ -8,7 +8,7 @@ interface AdminAccessLinkProps {
 
 export const AdminAccessLink = ({ mounted, user }: AdminAccessLinkProps) => {
   return (
-    <div className="absolute top-6 right-6 z-30">
+    <div className="absolute top-6 right-6 z-[20]">
       {mounted && user ? (
         <Link
           href="/crm"

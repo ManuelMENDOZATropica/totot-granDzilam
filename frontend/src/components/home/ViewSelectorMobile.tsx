@@ -9,7 +9,7 @@ interface ViewSelectorMobileProps {
 }
 
 export const ViewSelectorMobile = ({ vistas, vistaActiva, onChange }: ViewSelectorMobileProps) => (
-  <div className="absolute inset-x-0 bottom-32 z-30 flex justify-center md:hidden">
+  <div className="absolute inset-x-0 bottom-32 z-[20] flex justify-center md:hidden">
     <div className="flex gap-2 rounded-2xl bg-white/85 p-2 shadow-lg backdrop-blur overflow-x-auto max-w-[90vw] snap-x">
       {vistas.map((vista, index) => (
         <button
