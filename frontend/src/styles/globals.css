@@ -102,3 +102,26 @@ h6 {
 * {
   @apply selection:bg-gran-sky selection:text-slate-900;
 }
+
+/* Barra de desplazamiento unificada para overlays y paneles */
+.overlay-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #dbd9d6 transparent;
+}
+
+.overlay-scrollbar::-webkit-scrollbar {
+  width: 5px;
+}
+
+.overlay-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.overlay-scrollbar::-webkit-scrollbar-thumb {
+  background: #dbd9d6;
+  border-radius: 9999px;
+}
+
+.overlay-scrollbar:hover::-webkit-scrollbar-thumb {
+  background: #c8c6c3;
+}

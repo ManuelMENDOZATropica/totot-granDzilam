@@ -107,9 +107,9 @@ export const InfoPanel = ({ closeSignal }: InfoPanelProps) => {
         content: (
   // Mantenemos el contenedor padre
   <div className="w-[600px] space-y-4 text-justify text-slate-800 pl-[20px] pr-[40px]">
-    
-    {/* AQUÍ AGREGAMOS LAS CLASES PARA OCULTAR LA BARRA */}
-    <div className="max-h-[60vh] overflow-x-hidden overflow-y-auto pr-4 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+
+    {/* Contenedor con scroll y estilo unificado */}
+    <div className="max-h-[60vh] overflow-x-hidden overflow-y-auto pr-4 overlay-scrollbar">
       
       <div className="grid grid-cols-1 gap-4">
         {imagenesRealesList.map((src, index) => (

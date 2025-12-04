@@ -178,7 +178,7 @@ export const MacroCotizadorPanel = ({
               </div>
             </div>
 
-            <div className="h-full border-l border-[#E2E0DB] bg-[#F3F1EC] overflow-y-auto">
+            <div className="h-full border-l border-[#E2E0DB] bg-[#F3F1EC] overflow-y-auto overlay-scrollbar">
               <PanelCotizacion
                 lotesSeleccionados={selectedLots}
                 porcentajeEnganche={porcentajeEnganche}
@@ -220,7 +220,7 @@ export const MacroCotizadorPanel = ({
               <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 18L18 6M6 6l12 12" /></svg>
             </button>
           </div>
-          <div className="flex-1 overflow-y-auto py-6">
+          <div className="flex-1 overflow-y-auto py-6 overlay-scrollbar">
             <div className="mx-auto max-w-3xl">
               <h2 className="mb-6 px-4 md:px-[80px] font-serif text-3xl text-[#1C2E3D]">
                 {downloadRequested ? 'Completa tus datos para descargar tu cotización' : 'Contáctanos'}
