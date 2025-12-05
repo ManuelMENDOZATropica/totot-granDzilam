@@ -332,7 +332,20 @@ export const InfoPanel = ({ closeSignal }: InfoPanelProps) => {
   }, []);
 
   const activeSection = sections.find((section) => section.id === activeId);
+  const isExpanded = Boolean(activeSection);
   const containerPosition = isMobile ? 'fixed' : 'absolute';
+  const horizontalPadding = isMobile
+    ? 'items-start justify-start px-4 py-4'
+    : `items-start pt-[35vh] xl:items-center xl:pt-0 justify-start pl-[50px] ${
+        isExpanded ? 'pr-4 sm:pr-6 lg:pr-12' : 'pr-2'
+      }`;
+  const contentWidth = isMobile
+    ? isExpanded
+      ? 'w-full'
+      : 'w-fit'
+    : isExpanded
+      ? 'w-full max-w-4xl'
+      : 'w-fit';
 
   // Botón principal (Hamburguesa / X)
   const handleMainButtonClick = () => {
@@ -386,23 +399,17 @@ export const InfoPanel = ({ closeSignal }: InfoPanelProps) => {
   return (
     <>
       {/* CONTENEDOR GLOBAL ENCIMA DE TODO */}
-      <div className={`${containerPosition} inset-0 z-[0] pointer-events-none`}>
-        <div
-          className={`absolute inset-0 flex pointer-events-none ${
-            isMobile
-              ? 'items-start justify-start px-4 py-4'
-              : 'items-start pt-[35vh] xl:items-center xl:pt-0 justify-start pl-[50px] pr-4 sm:pr-6 lg:pr-12'
-          }`}
-        >
-          <div
-            className={`flex w-full pointer-events-auto ${
-              isMobile
-                ? activeId
-                  ? 'flex-col min-h-full min-w-full'
-                  : 'flex-col'
-                : 'items-center'
-            }`}
-          >
+        <div className={`${containerPosition} inset-0 z-[0] pointer-events-none`}>
+          <div className={`absolute inset-0 flex pointer-events-none ${horizontalPadding}`}>
+            <div
+              className={`flex pointer-events-auto ${
+                isMobile
+                  ? activeId
+                    ? 'flex-col min-h-full min-w-full'
+                    : 'flex-col'
+                  : 'items-center'
+              } ${contentWidth}`}
+            >
             {/* Botón hamburguesa en móvil */}
             {isMobile && (
               <div className="pb-2 z-[42] pointer-events-auto">
