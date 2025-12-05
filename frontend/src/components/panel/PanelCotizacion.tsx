@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo, useState } from 'react';
 import type { Lote, TotalesCotizacion } from '@/hooks/useCotizacion';
 import type { FinanceSettingsDTO } from '@/lib/financeSettings';
 import { formatearMoneda } from '@/lib/formatoMoneda';
@@ -20,6 +20,12 @@ interface PanelCotizacionProps {
   descargaEnProgreso?: boolean;
 }
 
+type Moneda = 'mxn' | 'usd';
+type UnidadMedida = 'metric' | 'imperial';
+
+const USD_EXCHANGE_RATE = 17;
+const SQM_TO_SQFT = 10.7639;
+
 export const PanelCotizacion = ({
   lotesSeleccionados,
   porcentajeEnganche,
@@ -36,6 +42,23 @@ export const PanelCotizacion = ({
   onDescargar,
   descargaEnProgreso = false,
 }: PanelCotizacionProps) => {
+  const [moneda, setMoneda] = useState<Moneda>('mxn');
+  const [unidadMedida, setUnidadMedida] = useState<UnidadMedida>('metric');
+
+  const etiquetaMedida = unidadMedida === 'metric' ? 'm²' : 'ft²';
+  const etiquetaMoneda = moneda === 'mxn' ? 'mxn' : 'usd';
+
+  const formatCurrency = useMemo(() => {
+    const currencyCode = moneda === 'mxn' ? 'MXN' : 'USD';
+    const divisor = moneda === 'mxn' ? 1 : USD_EXCHANGE_RATE;
+    return (valor: number) => formatearMoneda(valor / divisor, currencyCode);
+  }, [moneda]);
+
+  const formatArea = useMemo(() => {
+    const factor = unidadMedida === 'metric' ? 1 : SQM_TO_SQFT;
+    return (valor: number) =>
+      `${(valor * factor).toLocaleString('es-MX', { minimumFractionDigits: 2 })} ${etiquetaMedida}`;
+  }, [etiquetaMedida, unidadMedida]);
 
   const totalMetros = lotesSeleccionados.reduce(
     (acum, lote) => acum + lote.superficieM2,
@@ -64,20 +87,33 @@ export const PanelCotizacion = ({
         <div className="mb-8">
           <div className="mb-3 flex items-center gap-3">
             <span className="text-sm font-bold text-[#1C2533]">Medidas</span>
-            <span className="flex items-center gap-1 rounded px-2 py-0.5 text-[10px] font-medium text-[#1C2533]" style={{ backgroundColor: colors.badge }}>
-              m²
-            </span>
+            <div className="flex items-center gap-1 rounded-full bg-[#E2E0DB] p-1 text-[10px] font-medium text-[#1C2533]">
+              <button
+                type="button"
+                onClick={() => setUnidadMedida('metric')}
+                className={`rounded-full px-2 py-0.5 transition-colors ${unidadMedida === 'metric' ? 'bg-white shadow text-[#1C2533]' : 'text-[#4b5563]'}`}
+              >
+                m²
+              </button>
+              <button
+                type="button"
+                onClick={() => setUnidadMedida('imperial')}
+                className={`rounded-full px-2 py-0.5 transition-colors ${unidadMedida === 'imperial' ? 'bg-white shadow text-[#1C2533]' : 'text-[#4b5563]'}`}
+              >
+                ft²
+              </button>
+            </div>
           </div>
           <div className="space-y-2 text-sm text-[#1C2533]">
             {lotesSeleccionados.map((lote, index) => (
               <div key={lote.id || index} className="flex justify-between">
                 <span>{lote.nombre || `Lote ${index + 1}`}</span>
-                <span>{lote.superficieM2.toLocaleString('es-MX', { minimumFractionDigits: 2 })} m²</span>
+                <span>{formatArea(lote.superficieM2)}</span>
               </div>
             ))}
             <div className="flex justify-between pt-2 font-bold">
               <span>TOTAL</span>
-              <span>{totalMetros.toLocaleString('es-MX', { minimumFractionDigits: 2 })} m²</span>
+              <span>{formatArea(totalMetros)}</span>
             </div>
           </div>
         </div>
@@ -86,33 +122,54 @@ export const PanelCotizacion = ({
         <div className="mb-10">
           <div className="mb-3 flex items-center gap-3">
             <span className="text-sm font-bold text-[#1C2533]">Estimación de costo</span>
-            <span className="flex items-center gap-1 rounded px-2 py-0.5 text-[10px] font-medium text-[#1C2533]" style={{ backgroundColor: colors.badge }}>
-              mxn
-            </span>
+            <div className="flex items-center gap-1 rounded-full bg-[#E2E0DB] p-1 text-[10px] font-medium text-[#1C2533]">
+              <button
+                type="button"
+                onClick={() => setMoneda('mxn')}
+                className={`rounded-full px-2 py-0.5 transition-colors ${moneda === 'mxn' ? 'bg-white shadow text-[#1C2533]' : 'text-[#4b5563]'}`}
+              >
+                mxn
+              </button>
+              <button
+                type="button"
+                onClick={() => setMoneda('usd')}
+                className={`rounded-full px-2 py-0.5 transition-colors ${moneda === 'usd' ? 'bg-white shadow text-[#1C2533]' : 'text-[#4b5563]'}`}
+              >
+                usd
+              </button>
+            </div>
           </div>
           <div className="space-y-3 text-sm text-[#1C2533]">
             {lotesSeleccionados.map((lote, index) => (
               <div key={lote.id || index} className="flex justify-between">
                 <span>{lote.nombre || `Lote ${index + 1}`}</span>
-                <span>{formatearMoneda(lote.precioTotal || 0)} mxn</span>
+                <span>{formatCurrency(lote.precioTotal ?? lote.precio)} {etiquetaMoneda}</span>
               </div>
             ))}
+            <div className="flex justify-between font-bold">
+              <span>Subtotal</span>
+              <span>{formatCurrency(totales.totalSeleccionado)} {etiquetaMoneda}</span>
+            </div>
+            <div className="flex justify-between text-[#16a34a]">
+              <span>Descuento ({Math.round(totales.descuentoPorcentaje * 100)}%)</span>
+              <span>-{formatCurrency(totales.descuentoAplicado)} {etiquetaMoneda}</span>
+            </div>
             <div className="flex justify-between pb-4 font-bold">
-              <span>TOTAL</span>
-              <span>{formatearMoneda(totales.totalSeleccionado)} mxn</span>
+              <span>Total con descuento</span>
+              <span>{formatCurrency(totales.totalConDescuento)} {etiquetaMoneda}</span>
             </div>
             <div className="space-y-2">
               <div className="flex justify-between">
                 <span>Enganche</span>
-                <span>{formatearMoneda(totales.enganche)} mxn</span>
+                <span>{formatCurrency(totales.enganche)} {etiquetaMoneda}</span>
               </div>
               <div className="flex justify-between">
                 <span>Saldo</span>
-                <span>{formatearMoneda(totales.saldoFinanciar)} mxn</span>
+                <span>{formatCurrency(totales.saldoFinanciar)} {etiquetaMoneda}</span>
               </div>
               <div className="flex justify-between">
                 <span>Mensualidad</span>
-                <span>{formatearMoneda(totales.mensualidad)} mxn</span>
+                <span>{formatCurrency(totales.mensualidad)} {etiquetaMoneda}</span>
               </div>
             </div>
           </div>
@@ -141,7 +198,7 @@ export const PanelCotizacion = ({
 
             <div className="flex flex-col gap-3">
               <div className="flex justify-between text-xs uppercase tracking-wider text-[#64748B]">
-                <span>Plazo</span>
+                <span>Pagos</span>
               </div>
               <input
                 type="range"
@@ -153,7 +210,7 @@ export const PanelCotizacion = ({
                 disabled={configuracionCargando}
                 className="h-1 w-full cursor-pointer appearance-none rounded-full bg-[#E2E0DB] accent-[#1C2533]"
               />
-              <div className="text-right text-sm font-semibold text-[#1C2533]">{meses} meses</div>
+              <div className="text-right text-sm font-semibold text-[#1C2533]">{meses} pagos</div>
             </div>
           </div>
         </div>
