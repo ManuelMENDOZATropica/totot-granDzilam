@@ -97,8 +97,8 @@ export const MacroCotizadorPanel = ({
     <div
       id="macro-cotizador-panel"
       className={`
-        absolute bottom-8 left-[5%] right-[5%] sm:left-[150px] sm:right-8
-        pr-[20%] sm:pr-0
+        absolute bottom-8 sm:pb-0 sm:left-[150px] sm:right-8
+        pb-[5%]  sm:pr-0
         flex flex-col-reverse items-stretch
         pointer-events-none z-[50]
       `}
@@ -113,7 +113,7 @@ export const MacroCotizadorPanel = ({
           bg-[#F3F1EC] px-6 py-4 text-left outline-none 
           transition-all duration-300 hover:bg-[#EBE9E4]
           border border-[#E2E0DB] shadow-lg
-          z-[60]
+          z-[60] ml-[20%] sm:ml-0
           ${panelMacroAbierto 
             ? 'rounded-b-[20px] rounded-t-none border-t-0' 
             : 'rounded-[100px]'
@@ -133,7 +133,7 @@ export const MacroCotizadorPanel = ({
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M7 1V13M1 7H13" stroke="currentColor" strokeWidth="1" strokeLinecap="round" /></svg>
           )}
         </span>
-        <span className="font-serif text-[28px] font-normal text-[#1C2E3D] leading-none pb-1">
+        <span className="font-serif  text-[22px] sm:text-[28px] font-normal text-[#1C2E3D] leading-none pb-1">
           Cotizar macro terreno
         </span>
       </button>
@@ -148,7 +148,7 @@ export const MacroCotizadorPanel = ({
           shadow-xl
           relative
           ${panelMacroAbierto 
-            ? 'max-h-[85vh] opacity-100 rounded-t-[20px]' 
+            ? 'max-h-[85vh] opacity-100 rounded-[20px] sm:rounded-t-[20px]' 
             : 'max-h-0 opacity-0 border-none'
           }
         `}
