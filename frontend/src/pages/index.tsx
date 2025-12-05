@@ -495,6 +495,8 @@ export default function Home() {
 
   const [selectedDestination, setSelectedDestination] = useState<Destination | null>(null);
 
+  const [showInterestModal, setShowInterestModal] = useState(false);
+
 
 
   // Inicialización
@@ -676,33 +678,82 @@ export default function Home() {
   };
 
   const directionalMarkers = useMemo<DirectionalMarker[]>(() => {
+    const determineSide = (bearing: number) => {
+      if (bearing >= 315 || bearing < 45) return 'top';
+      if (bearing >= 45 && bearing < 135) return 'right';
+      if (bearing >= 135 && bearing < 225) return 'bottom';
+      return 'left';
+    };
 
-    const radius = 46; // porcentaje del contenedor para llevar los iconos al contorno
+    const minMargin = 8;
+    const minGap = 7;
 
-    return DESTINATIONS.map((destination) => {
+    const applySpacing = (
+      markers: (DirectionalMarker & { side: 'top' | 'right' | 'bottom' | 'left' })[],
+      axisKey: 'left' | 'top',
+    ) => {
+      const sorted = [...markers].sort((a, b) => a[axisKey] - b[axisKey]);
+      let previous = minMargin;
 
+      return sorted.map((marker, index) => {
+        let axisValue = marker[axisKey];
+
+        if (index === 0) {
+          axisValue = Math.max(axisValue, minMargin);
+        } else if (axisValue - previous < minGap) {
+          axisValue = previous + minGap;
+        }
+
+        axisValue = Math.min(axisValue, 100 - minMargin);
+        previous = axisValue;
+
+        return {
+          ...marker,
+          [axisKey]: axisValue,
+        };
+      });
+    };
+
+    const rawMarkers = DESTINATIONS.map((destination) => {
       const bearing = calculateBearing(CENTER_COORDINATE, destination);
-
-      const angleRad = toRadians(bearing - 90);
-
-      const left = 50 + radius * Math.cos(angleRad);
-
-      const top = 50 + radius * Math.sin(angleRad);
+      const angleRad = toRadians(bearing);
+      const x = 50 + 46 * Math.sin(angleRad);
+      const y = 50 - 46 * Math.cos(angleRad);
+      const side = determineSide(bearing);
 
       return {
-
         ...destination,
-
         rotation: bearing + 180,
-
-        left,
-
-        top,
-
-      };
-
+        left: x,
+        top: y,
+        side,
+      } as DirectionalMarker & { side: 'top' | 'right' | 'bottom' | 'left' };
     });
 
+    const topMarkers = applySpacing(rawMarkers.filter((marker) => marker.side === 'top'), 'left').map((marker) => ({
+      ...marker,
+      top: minMargin,
+    }));
+
+    const bottomMarkers = applySpacing(
+      rawMarkers.filter((marker) => marker.side === 'bottom'),
+      'left',
+    ).map((marker) => ({
+      ...marker,
+      top: 100 - minMargin,
+    }));
+
+    const rightMarkers = applySpacing(rawMarkers.filter((marker) => marker.side === 'right'), 'top').map((marker) => ({
+      ...marker,
+      left: 100 - minMargin,
+    }));
+
+    const leftMarkers = applySpacing(rawMarkers.filter((marker) => marker.side === 'left'), 'top').map((marker) => ({
+      ...marker,
+      left: minMargin,
+    }));
+
+    return [...topMarkers, ...rightMarkers, ...bottomMarkers, ...leftMarkers];
   }, []);
 
 
@@ -758,6 +809,26 @@ export default function Home() {
   const handleOpenCookieBanner = () => {
 
     setShowCookieBanner(true);
+
+  };
+
+
+
+  const handleOpenInterestModal = () => {
+
+    setSelectedDestination(null);
+
+    setShowInterestModal(true);
+
+  };
+
+
+
+  const handleCloseInterestModal = () => {
+
+    setShowInterestModal(false);
+
+    setSelectedDestination(null);
 
   };
 
@@ -859,93 +930,25 @@ export default function Home() {
 
 
 
-          <div className="pointer-events-none absolute inset-0 z-30">
+          <div className="absolute top-6 right-6 z-30 flex items-center gap-3 sm:flex-col sm:items-end">
 
-            {directionalMarkers.map((marker) => (
+            <AdminAccessLink mounted={mounted} user={user} className="relative" />
 
-              <button
+            <button
 
-                key={`${marker.name}-${marker.state}`}
+              type="button"
 
-                type="button"
+              onClick={handleOpenInterestModal}
 
-                onClick={() => setSelectedDestination(marker)}
+              className="inline-flex items-center gap-2 rounded-full bg-white/85 px-4 py-2 text-sm font-semibold text-[#0F172A] shadow-lg ring-1 ring-white/40 transition hover:scale-[1.02] sm:hidden"
 
-                className="pointer-events-auto absolute -translate-x-1/2 -translate-y-1/2 focus:outline-none"
+            >
 
-                style={{ left: `${marker.left}%`, top: `${marker.top}%` }}
+              Sitios de interés
 
-                aria-label={`${marker.name}, ${marker.state}`}
-
-              >
-
-                <Image
-
-                  src="/assets/direction-pointer.svg"
-
-                  alt={`${marker.name} dirección`}
-
-                  width={48}
-
-                  height={48}
-
-                  className="drop-shadow-lg transition-transform duration-150 hover:scale-105"
-
-                  style={{ transform: `translate(-50%, -50%) rotate(${marker.rotation}deg)` }}
-
-                />
-
-              </button>
-
-            ))}
+            </button>
 
           </div>
-
-
-
-          {selectedDestination ? (
-
-            <div className="absolute bottom-6 left-1/2 z-30 w-[92vw] max-w-3xl -translate-x-1/2 rounded-2xl bg-white/90 p-5 text-slate-900 shadow-2xl backdrop-blur">
-
-              <div className="flex items-center justify-between gap-4">
-
-                <div>
-
-                  <p className="text-xs uppercase tracking-[0.08em] text-slate-500">Referencia cercana</p>
-
-                  <h3 className="text-xl font-bold text-slate-900">
-
-                    {selectedDestination.name} <span className="text-slate-500">· {selectedDestination.state}</span>
-
-                  </h3>
-
-                  <p className="mt-1 text-sm leading-relaxed text-slate-700">{selectedDestination.description}</p>
-
-                </div>
-
-                <button
-
-                  type="button"
-
-                  onClick={() => setSelectedDestination(null)}
-
-                  className="h-9 rounded-full border border-slate-200 px-3 text-xs font-semibold text-slate-600 transition hover:border-slate-300 hover:bg-slate-50"
-
-                >
-
-                  Cerrar
-
-                </button>
-
-              </div>
-
-            </div>
-
-          ) : null}
-
-
-
-          <AdminAccessLink mounted={mounted} user={user} />
 
 
 
@@ -1054,6 +1057,164 @@ export default function Home() {
             onLimpiar={limpiarSeleccion}
 
           />
+
+
+
+          {showInterestModal ? (
+
+            <div
+
+              className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-900/70 px-4 sm:hidden"
+
+              onClick={handleCloseInterestModal}
+
+              role="dialog"
+
+              aria-modal="true"
+
+            >
+
+              <div
+
+                className="relative w-full max-w-sm overflow-hidden rounded-3xl bg-slate-950/80 p-4 shadow-2xl backdrop-blur"
+
+                onClick={(event) => event.stopPropagation()}
+
+              >
+
+                <button
+
+                  type="button"
+
+                  onClick={handleCloseInterestModal}
+
+                  className="absolute right-3 top-3 rounded-full bg-white/15 px-3 py-1 text-[11px] font-semibold text-white shadow-sm transition hover:bg-white/25"
+
+                >
+
+                  Cerrar
+
+                </button>
+
+
+
+                <div className="relative mt-6 aspect-square w-full overflow-hidden rounded-2xl border border-white/10 bg-slate-900">
+
+                  <Image
+
+                    src={fondoActual}
+
+                    alt="Mapa Gran Dzilam"
+
+                    fill
+
+                    sizes="(max-width: 640px) 90vw, 360px"
+
+                    className="object-cover opacity-60"
+
+                    priority={false}
+
+                  />
+
+
+
+                  <div className="pointer-events-none absolute inset-0">
+
+                    {directionalMarkers.map((marker) => (
+
+                      <button
+
+                        key={`${marker.name}-${marker.state}`}
+
+                        type="button"
+
+                        onClick={() => setSelectedDestination(marker)}
+
+                        className="pointer-events-auto absolute -translate-x-1/2 -translate-y-1/2 focus:outline-none"
+
+                        style={{ left: `${marker.left}%`, top: `${marker.top}%` }}
+
+                        aria-label={`${marker.name}, ${marker.state}`}
+
+                      >
+
+                        <Image
+
+                          src="/assets/direction-pointer.svg"
+
+                          alt={`${marker.name} dirección`}
+
+                          width={38}
+
+                          height={38}
+
+                          className="drop-shadow-lg transition-transform duration-150 hover:scale-105"
+
+                          style={{ transform: `translate(-50%, -50%) rotate(${marker.rotation}deg)` }}
+
+                        />
+
+                      </button>
+
+                    ))}
+
+                  </div>
+
+                </div>
+
+
+
+                {selectedDestination ? (
+
+                  <div className="mt-3 flex justify-center">
+
+                    <div className="flex h-44 w-44 flex-col rounded-2xl bg-white/95 p-3 text-slate-900 shadow-xl">
+
+                      <p className="text-[11px] uppercase tracking-[0.14em] text-slate-500">Sitio cercano</p>
+
+                      <h3 className="mt-1 text-sm font-bold leading-tight text-slate-900">
+
+                        {selectedDestination.name}
+
+                        <span className="block text-xs font-semibold text-slate-500">{selectedDestination.state}</span>
+
+                      </h3>
+
+                      <p className="mt-1 text-[12px] leading-snug text-slate-700 line-clamp-5">{selectedDestination.description}</p>
+
+                      <div className="mt-auto flex justify-end">
+
+                        <button
+
+                          type="button"
+
+                          onClick={() => setSelectedDestination(null)}
+
+                          className="rounded-full bg-slate-900 px-3 py-1 text-[11px] font-semibold text-white shadow hover:bg-slate-800"
+
+                        >
+
+                          Cerrar ficha
+
+                        </button>
+
+                      </div>
+
+                    </div>
+
+                  </div>
+
+                ) : (
+
+                  <p className="mt-3 text-center text-xs text-white/80">Toca una flecha para ver detalles.</p>
+
+                )}
+
+              </div>
+
+            </div>
+
+          ) : null}
 
         </section>
 
