@@ -930,9 +930,7 @@ export default function Home() {
 
 
 
-          <div className="absolute top-6 right-6 z-30 flex items-center gap-3 sm:flex-col sm:items-end">
-
-            <AdminAccessLink mounted={mounted} user={user} className="relative" />
+          <div className="absolute top-6 left-6 z-30">
 
             <button
 
@@ -940,13 +938,21 @@ export default function Home() {
 
               onClick={handleOpenInterestModal}
 
-              className="inline-flex items-center gap-2 rounded-full bg-white/85 px-4 py-2 text-sm font-semibold text-[#0F172A] shadow-lg ring-1 ring-white/40 transition hover:scale-[1.02] sm:hidden"
+              className="hidden items-center gap-2 rounded-full bg-white/85 px-4 py-2 text-sm font-semibold text-[#0F172A] shadow-lg ring-1 ring-white/40 transition hover:scale-[1.02] sm:inline-flex"
 
             >
 
               Sitios de interés
 
             </button>
+
+          </div>
+
+
+
+          <div className="absolute top-6 right-6 z-30 flex items-center gap-3 sm:flex-col sm:items-end">
+
+            <AdminAccessLink mounted={mounted} user={user} className="relative" />
 
           </div>
 
@@ -1064,7 +1070,7 @@ export default function Home() {
 
             <div
 
-              className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-900/70 px-4 sm:hidden"
+              className="fixed inset-0 z-[60] hidden items-center justify-center bg-slate-900/70 px-4 sm:flex"
 
               onClick={handleCloseInterestModal}
 
