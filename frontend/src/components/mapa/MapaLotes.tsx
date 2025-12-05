@@ -116,7 +116,7 @@ export const MapaLotes = ({ lotes, seleccionados, onToggle }: MapaLotesProps) =>
   return (
     <div 
       ref={containerRef}
-      className="relative w-full overflow-hidden border border-[#F3F1EC] "
+      className="relative w-full overflow-hidden border border-[#F3F1EC] z-[99] "
       style={{ backgroundColor: '#F3F1EC' }} // Fondo crema
     >
       
