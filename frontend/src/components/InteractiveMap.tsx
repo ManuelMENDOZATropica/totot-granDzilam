@@ -74,7 +74,7 @@ export const InteractiveMap = ({ src, className }: InteractiveMapProps) => {
       case 'vendido': return 'rgba(239, 68, 68, 0.4)';
       default: return 'transparent';
     }
-  };
+  };  
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(price);
@@ -97,7 +97,7 @@ export const InteractiveMap = ({ src, className }: InteractiveMapProps) => {
         {/* 2. SVG Superpuesto (Solo en vista 1) */}
         {isInteractiveView && (
           <svg
-            className="absolute top-0 left-0 h-full w-full pointer-events-none z-[100]"
+            className="absolute top-0 left-0 h-full w-full pointer-events-none z-[44]"
             viewBox="0 0 850 680"
             preserveAspectRatio="none"
           >

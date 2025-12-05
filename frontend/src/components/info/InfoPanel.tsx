@@ -412,7 +412,7 @@ export const InfoPanel = ({ closeSignal }: InfoPanelProps) => {
             >
             {/* Botón hamburguesa en móvil */}
             {isMobile && (
-              <div className="pb-2 z-[42] pointer-events-auto">
+              <div className="pb-2 z-[44] pointer-events-auto">
                 {MobileMenuButton}
               </div>
             )}
