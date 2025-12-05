@@ -4,11 +4,14 @@ import type { AuthUser } from '@/lib/auth';
 interface AdminAccessLinkProps {
   mounted: boolean;
   user: AuthUser | null;
+  className?: string;
 }
 
-export const AdminAccessLink = ({ mounted, user }: AdminAccessLinkProps) => {
+export const AdminAccessLink = ({ mounted, user, className }: AdminAccessLinkProps) => {
+  const containerClassName = className ?? 'absolute top-6 right-6 z-[20]';
+
   return (
-    <div className="absolute top-6 right-6 z-[20]">
+    <div className={containerClassName}>
       {mounted && user ? (
         <Link
           href="/crm"
