@@ -137,7 +137,7 @@ export const InteractiveMap = ({ src, className }: InteractiveMapProps) => {
             style={{
               top: tooltipPos.y,
               left: tooltipPos.x,
-              transform: 'translate(-50%, -110%)'
+              transform: 'translate(-50%, 50%)'
             }}
           >
             <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-4 h-4 bg-white rotate-45 border-b border-r border-slate-200"></div>
