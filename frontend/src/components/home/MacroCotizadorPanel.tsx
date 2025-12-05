@@ -97,7 +97,7 @@ export const MacroCotizadorPanel = ({
     <div
       id="macro-cotizador-panel"
       className={`
-        absolute bottom-8 sm:pb-0 sm:left-[150px] sm:right-8
+        absolute bottom-8 left-0 right-0 sm:left-[150px] sm:right-8 sm:pb-0
         pb-[5%]  sm:pr-0
         flex flex-col-reverse items-stretch
         pointer-events-none z-[50]
@@ -110,12 +110,12 @@ export const MacroCotizadorPanel = ({
         className={`
           pointer-events-auto
           group relative flex w-full items-center gap-4 
-          bg-[#F3F1EC] px-6 py-4 text-left outline-none 
+          bg-[#F3F1EC] px-6 py-4 text-left outline-none
           transition-all duration-300 hover:bg-[#EBE9E4]
           border border-[#E2E0DB] shadow-lg
-          z-[60] ml-[20%] sm:ml-0
-          ${panelMacroAbierto 
-            ? 'rounded-b-[20px] rounded-t-none border-t-0' 
+          z-[60] mx-auto sm:mx-0
+          ${panelMacroAbierto
+            ? 'rounded-b-[20px] rounded-t-none border-t-0'
             : 'rounded-[100px]'
           }
         `}
