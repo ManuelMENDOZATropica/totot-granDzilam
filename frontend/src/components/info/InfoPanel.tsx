@@ -38,7 +38,7 @@ export const InfoPanel = ({ closeSignal }: InfoPanelProps) => {
         title: 'Sobre Gran Dzilam',
         highlight: 'Macroterrenos de inversión',
         content: (
-          <div className="space-y-4 text-slate-800 text-justify">
+          <div className="space-y-4 text-slate-800 text-justify w-full">
             <p>Gran Dzilam es un conjunto de macroterrenos ubicado en Dzilam de Bravo, Yucatán.</p>
             <p>
               Son terrenos de propiedad privada listos para escriturar, ubicados sobre carretera con
@@ -69,7 +69,7 @@ export const InfoPanel = ({ closeSignal }: InfoPanelProps) => {
         title: 'Ubicación',
         highlight: 'Entorno de alta plusvalía',
         content: (
-          <div className="space-y-6 text-slate-800 text-justify">
+          <div className="space-y-6 text-slate-800 text-justify w-full">
             <div className="space-y-4">
               <p>
                 Se encuentra en la <b>costa norte del estado de Yucatán</b>, es una de las pocas zonas
@@ -111,7 +111,7 @@ export const InfoPanel = ({ closeSignal }: InfoPanelProps) => {
         title: 'Fotografías',
         highlight: 'Vistas del master plan',
         content: (
-          <div className="w-full max-w-4xl space-y-4 text-justify text-slate-800">
+          <div className="space-y-4 text-justify text-slate-800 w-full">
             <div className="grid grid-cols-1 gap-4">
               {imagenesRealesList.map((src, index) => (
                 <div
@@ -144,7 +144,7 @@ export const InfoPanel = ({ closeSignal }: InfoPanelProps) => {
         title: 'Especificaciones',
         highlight: 'Listo para desarrollar',
         content: (
-          <div className="space-y-4 text-slate-800">
+          <div className="space-y-4 text-slate-800 w-full">
             <div className="grid grid-cols-1 gap-y-8 gap-x-6 sm:grid-cols-2">
               {/* 1. Propiedad Privada */}
               <div className="flex items-start gap-3">
@@ -282,7 +282,7 @@ export const InfoPanel = ({ closeSignal }: InfoPanelProps) => {
         title: 'Contacto',
         highlight: 'Comercialización Exclusiva',
         content: (
-          <div>
+          <div className="w-full">
             <ContactForm onSubmit={createContactSubmission} />
           </div>
         ),
@@ -422,7 +422,7 @@ export const InfoPanel = ({ closeSignal }: InfoPanelProps) => {
                         ? 'translate-x-0 opacity-100 pointer-events-auto'
                         : 'translate-x-[-150%] opacity-0 pointer-events-none',
                     ].join(' ')
-                  : 'flex flex-col gap-4 py-8 z-[41] pointer-events-auto'
+                  : 'flex flex-col gap-4 py-8 z-[42] pointer-events-auto'
               }
             >
               {sections.map((section) => (
@@ -467,16 +467,16 @@ export const InfoPanel = ({ closeSignal }: InfoPanelProps) => {
                 'rounded-2xl bg-[#D2CEC6] bg-white/95 shadow-2xl backdrop-blur-md',
                 'transition-all duration-500 z-[41]',
                 isMobile
-                  ? 'absolute top-0 left-0 w-full h-full pt-[70px] p-4 sm:p-6'
-                  : '-ml-[88px] min-h-[50vh] max-h-[80vh] min-w-2xl max-w-2xl p-6 pl-[110px] overflow-y-hidden xl:min-h-[70vh] xl:min-w-3xl xl:max-w-3xl',
+                  ? 'absolute top-0 left-0 w-full h-full pt-[70px] p-4 sm:p-6 flex flex-col'
+                  : '-ml-[88px] h-[70vh] w-full max-w-3xl p-6 pl-[110px] overflow-hidden xl:max-w-4xl flex flex-col',
                 activeSection
                   ? 'opacity-100 translate-y-0 pointer-events-auto'
                   : 'opacity-0 translate-y-4 pointer-events-none',
               ].join(' ')}
             >
               {activeSection ? (
-                <div className="space-y-3">
-                  <div className="flex items-start justify-between gap-3">
+                <div className="flex flex-col h-full min-h-0 space-y-3">
+                  <div className="flex items-start justify-between gap-3 shrink-0">
                     <div>
                       <h3
                         className={[
@@ -511,7 +511,8 @@ export const InfoPanel = ({ closeSignal }: InfoPanelProps) => {
                     )}
                   </div>
 
-                  <div className="max-h-[70vh] overflow-x-hidden overflow-y-auto pr-4 overlay-scrollbar px-4 sm:px-8 lg:px-[80px]">
+                  {/* Contenido con scroll interno */}
+                  <div className="flex-1 min-h-0 overflow-x-hidden overflow-y-auto pt-4 px-4 sm:px-8 lg:px-[80px] pb-8 overlay-scrollbar">
                     {activeSection.content}
                   </div>
                 </div>
