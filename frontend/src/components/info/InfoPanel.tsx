@@ -333,7 +333,7 @@ export const InfoPanel = ({ closeSignal }: InfoPanelProps) => {
 
   const activeSection = sections.find((section) => section.id === activeId);
   const isExpanded = Boolean(activeSection);
-  const containerPosition = isMobile ? 'fixed' : 'absolute';
+  const containerPosition = 'absolute';
   const horizontalPadding = isMobile
     ? 'items-start justify-start px-4 py-4'
     : `items-start pt-[35vh] xl:items-center xl:pt-0 justify-start pl-[50px] ${
