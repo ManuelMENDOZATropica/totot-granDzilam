@@ -6,6 +6,9 @@ export type Lote = LoteDTO;
 
 export interface TotalesCotizacion {
   totalSeleccionado: number;
+  totalConDescuento: number;
+  descuentoAplicado: number;
+  descuentoPorcentaje: number;
   enganche: number;
   saldoFinanciar: number;
   mensualidad: number;
@@ -19,18 +22,47 @@ interface ParametrosCotizacionStorage {
 const SELECCION_STORAGE_KEY = 'gran-dzilam:seleccion';
 const PARAMETROS_STORAGE_KEY = 'gran-dzilam:parametros';
 
-const DEFAULT_SETTINGS: FinanceSettingsDTO = {
-  minEnganche: 10,
-  maxEnganche: 80,
-  defaultEnganche: 30,
-  minMeses: 6,
-  maxMeses: 60,
-  defaultMeses: 36,
-  interes: 0,
+const MIN_ENGANCHE = 10;
+const MAX_ENGANCHE = 100;
+const MIN_MESES = 1;
+const MAX_MESES = 24;
+
+const calcularDescuento = (porcentajeEnganche: number) => {
+  if (porcentajeEnganche >= 100) return 0.15;
+  if (porcentajeEnganche >= 70) return 0.1;
+  if (porcentajeEnganche >= 50) return 0.05;
+  return 0;
 };
 
 const clamp = (valor: number, minimo: number, maximo: number) => {
   return Math.min(Math.max(valor, minimo), maximo);
+};
+
+const DEFAULT_SETTINGS: FinanceSettingsDTO = {
+  minEnganche: MIN_ENGANCHE,
+  maxEnganche: MAX_ENGANCHE,
+  defaultEnganche: 30,
+  minMeses: MIN_MESES,
+  maxMeses: MAX_MESES,
+  defaultMeses: 12,
+  interes: 0,
+};
+
+const normalizarConfiguracion = (settings: FinanceSettingsDTO): FinanceSettingsDTO => {
+  const minEnganche = Math.min(settings.minEnganche ?? MIN_ENGANCHE, MIN_ENGANCHE);
+  const maxEnganche = Math.max(settings.maxEnganche ?? MAX_ENGANCHE, MAX_ENGANCHE);
+  const minMeses = Math.max(settings.minMeses ?? MIN_MESES, MIN_MESES);
+  const maxMeses = Math.min(settings.maxMeses ?? MAX_MESES, MAX_MESES);
+
+  return {
+    ...settings,
+    minEnganche,
+    maxEnganche,
+    minMeses,
+    maxMeses,
+    defaultEnganche: clamp(settings.defaultEnganche ?? DEFAULT_SETTINGS.defaultEnganche, minEnganche, maxEnganche),
+    defaultMeses: clamp(settings.defaultMeses ?? DEFAULT_SETTINGS.defaultMeses, minMeses, maxMeses),
+  };
 };
 
 const sanitizePercentage = (valor: number, settings: FinanceSettingsDTO) => {
@@ -85,6 +117,9 @@ const calcularTotales = (
   if (!lotes.length) {
     return {
       totalSeleccionado: 0,
+      totalConDescuento: 0,
+      descuentoAplicado: 0,
+      descuentoPorcentaje: 0,
       enganche: 0,
       saldoFinanciar: 0,
       mensualidad: 0,
@@ -94,12 +129,23 @@ const calcularTotales = (
   const totalSeleccionado = lotes.reduce((acum, lote) => acum + lote.precio, 0);
   const porcentajeSanitizado = sanitizePercentage(porcentaje, settings) / 100;
   const mesesSanitizados = sanitizeMonths(meses, settings);
-  const enganche = Math.round(totalSeleccionado * porcentajeSanitizado);
-  const saldoFinanciar = Math.max(totalSeleccionado - enganche, 0);
+  const descuentoPorcentaje = calcularDescuento(porcentajeSanitizado * 100);
+  const totalConDescuento = Math.max(totalSeleccionado * (1 - descuentoPorcentaje), 0);
+  const descuentoAplicado = Math.max(totalSeleccionado - totalConDescuento, 0);
+  const enganche = Math.round(totalConDescuento * porcentajeSanitizado);
+  const saldoFinanciar = Math.max(totalConDescuento - enganche, 0);
   const interesAdicional = settings.interes > 0 ? Math.round(saldoFinanciar * (settings.interes / 100)) : 0;
   const mensualidad = mesesSanitizados > 0 ? Math.round((saldoFinanciar + interesAdicional) / mesesSanitizados) : 0;
 
-  return { totalSeleccionado, enganche, saldoFinanciar, mensualidad };
+  return {
+    totalSeleccionado,
+    totalConDescuento,
+    descuentoAplicado,
+    descuentoPorcentaje,
+    enganche,
+    saldoFinanciar,
+    mensualidad,
+  };
 };
 
 export const useCotizacion = () => {
@@ -158,7 +204,7 @@ export const useCotizacion = () => {
     const loadSettings = async () => {
       setLoadingSettings(true);
       try {
-        const settings = await fetchFinanceSettings();
+        const settings = normalizarConfiguracion(await fetchFinanceSettings());
         if (!cancelled) {
           setFinanceSettings(settings);
           setPorcentajeEnganche((prev) => sanitizePercentage(prev, settings));
