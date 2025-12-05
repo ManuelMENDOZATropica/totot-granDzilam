@@ -98,6 +98,7 @@ export const MacroCotizadorPanel = ({
       id="macro-cotizador-panel"
       className={`
         absolute bottom-8 left-[5%] right-[5%] sm:left-[150px] sm:right-8
+        pr-[20%] sm:pr-0
         flex flex-col-reverse items-stretch
         pointer-events-none z-[50]
       `}
