@@ -5,7 +5,7 @@ import Image from 'next/image';
 
 import Link from 'next/link';
 
-import { FormEvent, useEffect, useRef, useState } from 'react';
+import { FormEvent, useEffect, useMemo, useRef, useState } from 'react';
 
 import { useCotizacion } from '@/hooks/useCotizacion';
 
@@ -32,6 +32,372 @@ import { ImaginePanel } from '@/components/home/ImaginePanel';
 import { MacroCotizadorPanel } from '@/components/home/MacroCotizadorPanel';
 
 import { CookieBanner } from '@/components/home/CookieBanner';
+
+type Destination = {
+
+  name: string;
+
+  state: string;
+
+  lat: number;
+
+  lng: number;
+
+  description: string;
+
+};
+
+const CENTER_COORDINATE = { lat: 21.347166, lng: -88.766944 };
+
+type DirectionalMarker = Destination & {
+
+  top: number;
+
+  left: number;
+
+  rotation: number;
+
+};
+
+const DESTINATIONS: Destination[] = [
+
+  {
+
+    name: 'Mérida',
+
+    state: 'Yucatán',
+
+    lat: 20.9753,
+
+    lng: -89.6167,
+
+    description: 'Capital de Yucatán, reconocida por su arquitectura colonial y vida cultural vibrante.',
+
+  },
+
+  {
+
+    name: 'Progreso',
+
+    state: 'Yucatán',
+
+    lat: 21.2833,
+
+    lng: -89.6667,
+
+    description: 'Puerto turístico famoso por su malecón y playas tranquilas frente al golfo.',
+
+  },
+
+  {
+
+    name: 'Dzilam de Bravo',
+
+    state: 'Yucatán',
+
+    lat: 21.4,
+
+    lng: -88.92,
+
+    description: 'Comunidad costera cercana a reservas naturales y experiencias ecoturísticas.',
+
+  },
+
+  {
+
+    name: 'Telchac Puerto',
+
+    state: 'Yucatán',
+
+    lat: 21.3239,
+
+    lng: -89.2631,
+
+    description: 'Playa yucateca de ambiente relajado y gastronomía marina.',
+
+  },
+
+  {
+
+    name: 'Xcambo (Zona Arqueológica)',
+
+    state: 'Yucatán',
+
+    lat: 21.3167,
+
+    lng: -89.3333,
+
+    description: 'Antiguo puerto salinero maya con templos y vistas hacia los manglares.',
+
+  },
+
+  {
+
+    name: 'Celestún',
+
+    state: 'Yucatán',
+
+    lat: 20.85,
+
+    lng: -90.4,
+
+    description: 'Reserva de la biósfera conocida por sus flamencos rosados y manglares.',
+
+  },
+
+  {
+
+    name: 'Ticul',
+
+    state: 'Yucatán',
+
+    lat: 20.4008,
+
+    lng: -89.5339,
+
+    description: 'Ciudad artesanal famosa por su alfarería y producción de calzado.',
+
+  },
+
+  {
+
+    name: 'Izamal',
+
+    state: 'Yucatán',
+
+    lat: 20.9306,
+
+    lng: -89.0189,
+
+    description: 'El “Pueblo Amarillo”, mezcla de historia colonial y vestigios mayas.',
+
+  },
+
+  {
+
+    name: 'Cenote Yokdzonot',
+
+    state: 'Yucatán',
+
+    lat: 20.5367,
+
+    lng: -88.4411,
+
+    description: 'Cenote comunitario rodeado de naturaleza y actividades de aventura.',
+
+  },
+
+  {
+
+    name: 'Yaxcabá',
+
+    state: 'Yucatán',
+
+    lat: 20.6667,
+
+    lng: -88.75,
+
+    description: 'Municipio yucateco cercano a cenotes y zonas arqueológicas menos exploradas.',
+
+  },
+
+  {
+
+    name: 'Chichén Itzá (Zona Arqueológica)',
+
+    state: 'Yucatán',
+
+    lat: 20.6843,
+
+    lng: -88.5678,
+
+    description: 'Una de las nuevas maravillas del mundo, hogar de la Pirámide de Kukulkán.',
+
+  },
+
+  {
+
+    name: 'Valladolid',
+
+    state: 'Yucatán',
+
+    lat: 20.6861,
+
+    lng: -88.2017,
+
+    description: 'Pueblo Mágico con arquitectura colonial y acceso a cenotes cristalinos.',
+
+  },
+
+  {
+
+    name: 'Tizimín',
+
+    state: 'Yucatán',
+
+    lat: 21.15,
+
+    lng: -88.15,
+
+    description: 'Centro ganadero de Yucatán con festividades tradicionales muy concurridas.',
+
+  },
+
+  {
+
+    name: 'El Cuyo',
+
+    state: 'Yucatán',
+
+    lat: 21.5147,
+
+    lng: -87.6628,
+
+    description: 'Pueblo pesquero de ambiente relajado y playas de arena blanca.',
+
+  },
+
+  {
+
+    name: 'San Felipe',
+
+    state: 'Yucatán',
+
+    lat: 21.5667,
+
+    lng: -88.25,
+
+    description: 'Localidad costera con casas de colores brillantes y paseos por ría.',
+
+  },
+
+  {
+
+    name: 'Río Lagartos',
+
+    state: 'Yucatán',
+
+    lat: 21.5833,
+
+    lng: -88.1833,
+
+    description: 'Paraje natural para observar flamencos y recorrer manglares en lancha.',
+
+  },
+
+  {
+
+    name: 'Las Coloradas',
+
+    state: 'Yucatán',
+
+    lat: 21.6083,
+
+    lng: -87.9897,
+
+    description: 'Lagunas rosadas icónicas gracias a su alta concentración de sal.',
+
+  },
+
+  {
+
+    name: 'Holbox (Isla)',
+
+    state: 'Quintana Roo',
+
+    lat: 21.52,
+
+    lng: -87.38,
+
+    description: 'Isla de arenas blancas y avistamiento de tiburón ballena en temporada.',
+
+  },
+
+  {
+
+    name: 'Cancún',
+
+    state: 'Quintana Roo',
+
+    lat: 21.1743,
+
+    lng: -86.8466,
+
+    description: 'Destino caribeño con playas turquesa, hotelería de lujo y vida nocturna.',
+
+  },
+
+  {
+
+    name: 'Isla Mujeres',
+
+    state: 'Quintana Roo',
+
+    lat: 21.2333,
+
+    lng: -86.7333,
+
+    description: 'Isla cercana a Cancún famosa por sus arrecifes y el parque Garrafón.',
+
+  },
+
+  {
+
+    name: 'Playa del Carmen',
+
+    state: 'Quintana Roo',
+
+    lat: 20.62,
+
+    lng: -87.07,
+
+    description: 'Ciudad costera con la famosa Quinta Avenida y acceso a ferris hacia Cozumel.',
+
+  },
+
+  {
+
+    name: 'Cenote Azul',
+
+    state: 'Quintana Roo',
+
+    lat: 18.6472,
+
+    lng: -88.4133,
+
+    description: 'Cenote cercano a Bacalar con aguas profundas y saltos desde plataformas.',
+
+  },
+
+  {
+
+    name: 'Tulum',
+
+    state: 'Quintana Roo',
+
+    lat: 20.2118,
+
+    lng: -87.4646,
+
+    description: 'Playas caribeñas combinadas con ruinas mayas frente al mar.',
+
+  },
+
+  {
+
+    name: 'Gran Cenote',
+
+    state: 'Quintana Roo',
+
+    lat: 20.2639,
+
+    lng: -87.4,
+
+    description: 'Famoso cenote de aguas cristalinas y cavernas ideales para snorkel.',
+
+  },
+
+];
 
 
 
@@ -126,6 +492,10 @@ export default function Home() {
   const promptLoaded = useRef(false);
 
   const [panelMacroAbierto, setPanelMacroAbierto] = useState(false);
+
+  const [selectedDestination, setSelectedDestination] = useState<Destination | null>(null);
+
+  const [showInterestModal, setShowInterestModal] = useState(false);
 
 
 
@@ -287,6 +657,105 @@ export default function Home() {
 
   };
 
+  const toRadians = (degrees: number) => degrees * (Math.PI / 180);
+
+  const calculateBearing = (from: { lat: number; lng: number }, to: { lat: number; lng: number }) => {
+
+    const lat1 = toRadians(from.lat);
+
+    const lat2 = toRadians(to.lat);
+
+    const deltaLng = toRadians(to.lng - from.lng);
+
+    const y = Math.sin(deltaLng) * Math.cos(lat2);
+
+    const x = Math.cos(lat1) * Math.sin(lat2) - Math.sin(lat1) * Math.cos(lat2) * Math.cos(deltaLng);
+
+    const bearing = Math.atan2(y, x) * (180 / Math.PI);
+
+    return (bearing + 360) % 360;
+
+  };
+
+  const directionalMarkers = useMemo<DirectionalMarker[]>(() => {
+    const determineSide = (bearing: number) => {
+      if (bearing >= 315 || bearing < 45) return 'top';
+      if (bearing >= 45 && bearing < 135) return 'right';
+      if (bearing >= 135 && bearing < 225) return 'bottom';
+      return 'left';
+    };
+
+    const minMargin = 8;
+    const minGap = 7;
+
+    const applySpacing = (
+      markers: (DirectionalMarker & { side: 'top' | 'right' | 'bottom' | 'left' })[],
+      axisKey: 'left' | 'top',
+    ) => {
+      const sorted = [...markers].sort((a, b) => a[axisKey] - b[axisKey]);
+      let previous = minMargin;
+
+      return sorted.map((marker, index) => {
+        let axisValue = marker[axisKey];
+
+        if (index === 0) {
+          axisValue = Math.max(axisValue, minMargin);
+        } else if (axisValue - previous < minGap) {
+          axisValue = previous + minGap;
+        }
+
+        axisValue = Math.min(axisValue, 100 - minMargin);
+        previous = axisValue;
+
+        return {
+          ...marker,
+          [axisKey]: axisValue,
+        };
+      });
+    };
+
+    const rawMarkers = DESTINATIONS.map((destination) => {
+      const bearing = calculateBearing(CENTER_COORDINATE, destination);
+      const angleRad = toRadians(bearing);
+      const x = 50 + 46 * Math.sin(angleRad);
+      const y = 50 - 46 * Math.cos(angleRad);
+      const side = determineSide(bearing);
+
+      return {
+        ...destination,
+        rotation: bearing + 180,
+        left: x,
+        top: y,
+        side,
+      } as DirectionalMarker & { side: 'top' | 'right' | 'bottom' | 'left' };
+    });
+
+    const topMarkers = applySpacing(rawMarkers.filter((marker) => marker.side === 'top'), 'left').map((marker) => ({
+      ...marker,
+      top: minMargin,
+    }));
+
+    const bottomMarkers = applySpacing(
+      rawMarkers.filter((marker) => marker.side === 'bottom'),
+      'left',
+    ).map((marker) => ({
+      ...marker,
+      top: 100 - minMargin,
+    }));
+
+    const rightMarkers = applySpacing(rawMarkers.filter((marker) => marker.side === 'right'), 'top').map((marker) => ({
+      ...marker,
+      left: 100 - minMargin,
+    }));
+
+    const leftMarkers = applySpacing(rawMarkers.filter((marker) => marker.side === 'left'), 'top').map((marker) => ({
+      ...marker,
+      left: minMargin,
+    }));
+
+    return [...topMarkers, ...rightMarkers, ...bottomMarkers, ...leftMarkers];
+  }, []);
+
 
 
   const handleCambioVista = (index: number) => {
@@ -340,6 +809,26 @@ export default function Home() {
   const handleOpenCookieBanner = () => {
 
     setShowCookieBanner(true);
+
+  };
+
+
+
+  const handleOpenInterestModal = () => {
+
+    setSelectedDestination(null);
+
+    setShowInterestModal(true);
+
+  };
+
+
+
+  const handleCloseInterestModal = () => {
+
+    setShowInterestModal(false);
+
+    setSelectedDestination(null);
 
   };
 
@@ -441,7 +930,31 @@ export default function Home() {
 
 
 
-          <AdminAccessLink mounted={mounted} user={user} />
+          <div className="absolute top-6 left-6 z-30">
+
+            <button
+
+              type="button"
+
+              onClick={handleOpenInterestModal}
+
+              className="hidden items-center gap-2 rounded-full bg-white/85 px-4 py-2 text-sm font-semibold text-[#0F172A] shadow-lg ring-1 ring-white/40 transition hover:scale-[1.02] sm:inline-flex"
+
+            >
+
+              Sitios de interés
+
+            </button>
+
+          </div>
+
+
+
+          <div className="absolute top-6 right-6 z-30 flex items-center gap-3 sm:flex-col sm:items-end">
+
+            <AdminAccessLink mounted={mounted} user={user} className="relative" />
+
+          </div>
 
 
 
@@ -550,6 +1063,87 @@ export default function Home() {
             onLimpiar={limpiarSeleccion}
 
           />
+
+
+
+
+          {showInterestModal ? (
+            <div
+              className="fixed inset-0 z-[60] hidden bg-slate-950/80 sm:flex"
+              onClick={handleCloseInterestModal}
+              role="dialog"
+              aria-modal="true"
+            >
+              <div
+                className="relative h-full w-full overflow-hidden"
+                onClick={(event) => event.stopPropagation()}
+              >
+                <Image
+                  src={fondoActual}
+                  alt="Mapa Gran Dzilam"
+                  fill
+                  sizes="100vw"
+                  className="object-cover opacity-60"
+                  priority={false}
+                />
+
+                <button
+                  type="button"
+                  onClick={handleCloseInterestModal}
+                  className="absolute right-4 top-4 z-10 rounded-full bg-white/15 px-3 py-1 text-[11px] font-semibold text-white shadow-sm transition hover:bg-white/25"
+                >
+                  Cerrar
+                </button>
+
+                <div className="pointer-events-none absolute inset-0">
+                  {directionalMarkers.map((marker) => (
+                    <button
+                      key={`${marker.name}-${marker.state}`}
+                      type="button"
+                      onClick={() => setSelectedDestination(marker)}
+                      className="pointer-events-auto absolute -translate-x-1/2 -translate-y-1/2 focus:outline-none"
+                      style={{ left: `${marker.left}%`, top: `${marker.top}%` }}
+                      aria-label={`${marker.name}, ${marker.state}`}
+                    >
+                      <Image
+                        src="/assets/direction-pointer.svg"
+                        alt={`${marker.name} dirección`}
+                        width={38}
+                        height={38}
+                        className="drop-shadow-lg transition-transform duration-150 hover:scale-105"
+                        style={{ transform: `translate(-50%, -50%) rotate(${marker.rotation}deg)` }}
+                      />
+                    </button>
+                  ))}
+                </div>
+
+                <div className="pointer-events-none absolute inset-0 flex items-center justify-center p-6">
+                  {selectedDestination ? (
+                    <div className="pointer-events-auto flex h-44 w-44 flex-col rounded-2xl bg-white/95 p-3 text-slate-900 shadow-xl">
+                      <p className="text-[11px] uppercase tracking-[0.14em] text-slate-500">Sitio cercano</p>
+                      <h3 className="mt-1 text-sm font-bold leading-tight text-slate-900">
+                        {selectedDestination.name}
+                        <span className="block text-xs font-semibold text-slate-500">{selectedDestination.state}</span>
+                      </h3>
+                      <p className="mt-1 text-[12px] leading-snug text-slate-700 line-clamp-5">{selectedDestination.description}</p>
+                      <div className="mt-auto flex justify-end">
+                        <button
+                          type="button"
+                          onClick={() => setSelectedDestination(null)}
+                          className="rounded-full bg-slate-900 px-3 py-1 text-[11px] font-semibold text-white shadow hover:bg-slate-800"
+                        >
+                          Cerrar ficha
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <p className="pointer-events-auto rounded-full bg-white/15 px-4 py-2 text-center text-xs font-semibold text-white/90 shadow">Toca una flecha para ver detalles.</p>
+                  )}
+                </div>
+              </div>
+            </div>
+          ) : null}
+
 
         </section>
 
