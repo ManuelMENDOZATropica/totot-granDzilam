@@ -32,7 +32,7 @@ export const ChatbotWidget = () => {
   };
 
   return (
-    <div className="flex flex-col items-start gap-3 font-sans">
+    <div className="flex flex-col items-start gap-3 font-sans ">
 
       {isOpen && (
         <div className="flex w-[90vw] max-w-[540px] flex-col overflow-hidden rounded-[20px] border border-slate-200 bg-[#efeeeb] shadow-2xl ring-1 ring-black/5 sm:w-[540px] ">

@@ -554,7 +554,7 @@ export default function Home() {
         </section>
 
 
-
+<ChatbotWidget />
         <footer className="bg-[#0F172A] text-white">
 
           <div className="mx-auto flex max-w-6xl flex-col gap-4 px-6 py-8 sm:flex-row sm:items-center sm:justify-between">
@@ -627,7 +627,7 @@ export default function Home() {
 
 
 
-      <ChatbotWidget />
+      
 
     </>
 
