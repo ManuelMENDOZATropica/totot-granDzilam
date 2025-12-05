@@ -1066,161 +1066,84 @@ export default function Home() {
 
 
 
+
           {showInterestModal ? (
-
             <div
-
-              className="fixed inset-0 z-[60] hidden items-center justify-center bg-slate-900/70 px-4 sm:flex"
-
+              className="fixed inset-0 z-[60] hidden bg-slate-950/80 sm:flex"
               onClick={handleCloseInterestModal}
-
               role="dialog"
-
               aria-modal="true"
-
             >
-
               <div
-
-                className="relative w-full max-w-sm overflow-hidden rounded-3xl bg-slate-950/80 p-4 shadow-2xl backdrop-blur"
-
+                className="relative h-full w-full overflow-hidden"
                 onClick={(event) => event.stopPropagation()}
-
               >
+                <Image
+                  src={fondoActual}
+                  alt="Mapa Gran Dzilam"
+                  fill
+                  sizes="100vw"
+                  className="object-cover opacity-60"
+                  priority={false}
+                />
 
                 <button
-
                   type="button"
-
                   onClick={handleCloseInterestModal}
-
-                  className="absolute right-3 top-3 rounded-full bg-white/15 px-3 py-1 text-[11px] font-semibold text-white shadow-sm transition hover:bg-white/25"
-
+                  className="absolute right-4 top-4 z-10 rounded-full bg-white/15 px-3 py-1 text-[11px] font-semibold text-white shadow-sm transition hover:bg-white/25"
                 >
-
                   Cerrar
-
                 </button>
 
-
-
-                <div className="relative mt-6 aspect-square w-full overflow-hidden rounded-2xl border border-white/10 bg-slate-900">
-
-                  <Image
-
-                    src={fondoActual}
-
-                    alt="Mapa Gran Dzilam"
-
-                    fill
-
-                    sizes="(max-width: 640px) 90vw, 360px"
-
-                    className="object-cover opacity-60"
-
-                    priority={false}
-
-                  />
-
-
-
-                  <div className="pointer-events-none absolute inset-0">
-
-                    {directionalMarkers.map((marker) => (
-
-                      <button
-
-                        key={`${marker.name}-${marker.state}`}
-
-                        type="button"
-
-                        onClick={() => setSelectedDestination(marker)}
-
-                        className="pointer-events-auto absolute -translate-x-1/2 -translate-y-1/2 focus:outline-none"
-
-                        style={{ left: `${marker.left}%`, top: `${marker.top}%` }}
-
-                        aria-label={`${marker.name}, ${marker.state}`}
-
-                      >
-
-                        <Image
-
-                          src="/assets/direction-pointer.svg"
-
-                          alt={`${marker.name} dirección`}
-
-                          width={38}
-
-                          height={38}
-
-                          className="drop-shadow-lg transition-transform duration-150 hover:scale-105"
-
-                          style={{ transform: `translate(-50%, -50%) rotate(${marker.rotation}deg)` }}
-
-                        />
-
-                      </button>
-
-                    ))}
-
-                  </div>
-
+                <div className="pointer-events-none absolute inset-0">
+                  {directionalMarkers.map((marker) => (
+                    <button
+                      key={`${marker.name}-${marker.state}`}
+                      type="button"
+                      onClick={() => setSelectedDestination(marker)}
+                      className="pointer-events-auto absolute -translate-x-1/2 -translate-y-1/2 focus:outline-none"
+                      style={{ left: `${marker.left}%`, top: `${marker.top}%` }}
+                      aria-label={`${marker.name}, ${marker.state}`}
+                    >
+                      <Image
+                        src="/assets/direction-pointer.svg"
+                        alt={`${marker.name} dirección`}
+                        width={38}
+                        height={38}
+                        className="drop-shadow-lg transition-transform duration-150 hover:scale-105"
+                        style={{ transform: `translate(-50%, -50%) rotate(${marker.rotation}deg)` }}
+                      />
+                    </button>
+                  ))}
                 </div>
 
-
-
-                {selectedDestination ? (
-
-                  <div className="mt-3 flex justify-center">
-
-                    <div className="flex h-44 w-44 flex-col rounded-2xl bg-white/95 p-3 text-slate-900 shadow-xl">
-
+                <div className="pointer-events-none absolute inset-0 flex items-center justify-center p-6">
+                  {selectedDestination ? (
+                    <div className="pointer-events-auto flex h-44 w-44 flex-col rounded-2xl bg-white/95 p-3 text-slate-900 shadow-xl">
                       <p className="text-[11px] uppercase tracking-[0.14em] text-slate-500">Sitio cercano</p>
-
                       <h3 className="mt-1 text-sm font-bold leading-tight text-slate-900">
-
                         {selectedDestination.name}
-
                         <span className="block text-xs font-semibold text-slate-500">{selectedDestination.state}</span>
-
                       </h3>
-
                       <p className="mt-1 text-[12px] leading-snug text-slate-700 line-clamp-5">{selectedDestination.description}</p>
-
                       <div className="mt-auto flex justify-end">
-
                         <button
-
                           type="button"
-
                           onClick={() => setSelectedDestination(null)}
-
                           className="rounded-full bg-slate-900 px-3 py-1 text-[11px] font-semibold text-white shadow hover:bg-slate-800"
-
                         >
-
                           Cerrar ficha
-
                         </button>
-
                       </div>
-
                     </div>
-
-                  </div>
-
-                ) : (
-
-                  <p className="mt-3 text-center text-xs text-white/80">Toca una flecha para ver detalles.</p>
-
-                )}
-
+                  ) : (
+                    <p className="pointer-events-auto rounded-full bg-white/15 px-4 py-2 text-center text-xs font-semibold text-white/90 shadow">Toca una flecha para ver detalles.</p>
+                  )}
+                </div>
               </div>
-
             </div>
-
           ) : null}
+
 
         </section>
 
