@@ -386,7 +386,7 @@ export const InfoPanel = ({ closeSignal }: InfoPanelProps) => {
   return (
     <>
       {/* CONTENEDOR GLOBAL ENCIMA DE TODO */}
-      <div className={`${containerPosition} inset-0 z-[40] pointer-events-none`}>
+      <div className={`${containerPosition} inset-0 z-[0] pointer-events-none`}>
         <div
           className={`absolute inset-0 flex pointer-events-none ${
             isMobile
@@ -468,7 +468,7 @@ export const InfoPanel = ({ closeSignal }: InfoPanelProps) => {
                 'transition-all duration-500 z-[41]',
                 isMobile
                   ? 'absolute top-0 left-0 w-full h-full pt-[70px] p-4 sm:p-6 flex flex-col'
-                  : '-ml-[88px] h-[70vh] w-full max-w-3xl p-6 pl-[110px] overflow-hidden xl:max-w-4xl flex flex-col',
+                  : '-ml-[88px] h-[70vh] w-full max-w-3xl p-6 pl-[110px] overflow-hidden flex flex-col',
                 activeSection
                   ? 'opacity-100 translate-y-0 pointer-events-auto'
                   : 'opacity-0 translate-y-4 pointer-events-none',

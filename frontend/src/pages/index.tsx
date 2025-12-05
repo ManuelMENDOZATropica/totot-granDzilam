@@ -431,7 +431,7 @@ export default function Home() {
 
             src={fondoActual}
 
-            className={`absolute inset-0 z-0 object-cover transition-opacity duration-500 ${fading ? 'opacity-0' : 'opacity-100'}`}
+            className={`absolute inset-0 z-1 object-cover transition-opacity duration-500 ${fading ? 'opacity-0' : 'opacity-100'}`}
 
           />
 

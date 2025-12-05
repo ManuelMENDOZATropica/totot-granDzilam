@@ -97,7 +97,7 @@ export const InteractiveMap = ({ src, className }: InteractiveMapProps) => {
         {/* 2. SVG Superpuesto (Solo en vista 1) */}
         {isInteractiveView && (
           <svg
-            className="absolute top-0 left-0 h-full w-full pointer-events-none z-[999]"
+            className="absolute top-0 left-0 h-full w-full pointer-events-none z-[100]"
             viewBox="0 0 850 680"
             preserveAspectRatio="none"
           >
