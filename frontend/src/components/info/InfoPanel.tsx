@@ -399,7 +399,7 @@ export const InfoPanel = ({ closeSignal }: InfoPanelProps) => {
   return (
     <>
       {/* CONTENEDOR GLOBAL ENCIMA DE TODO */}
-        <div className={`${containerPosition} inset-0 z-[0] pointer-events-none`}>
+        <div className={`${containerPosition} inset-0 z-[55] pointer-events-none`}>
           <div className={`absolute inset-0 flex pointer-events-none ${horizontalPadding}`}>
             <div
               className={`flex pointer-events-auto ${

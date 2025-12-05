@@ -1,4 +1,4 @@
-import { useState, useEffect, MouseEvent } from 'react';
+import { useEffect, MouseEvent, useRef, useState } from 'react';
 import Image from 'next/image';
 
 interface PublicLot {
@@ -35,7 +35,8 @@ interface InteractiveMapProps {
 export const InteractiveMap = ({ src, className }: InteractiveMapProps) => {
   const [lots, setLots] = useState<PublicLot[]>([]);
   const [hoveredLot, setHoveredLot] = useState<PublicLot | null>(null);
-  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+  const [tooltipPos, setTooltipPos] = useState({ x: 0, y: 0 });
+  const containerRef = useRef<HTMLDivElement | null>(null);
 
   // Solo mostramos los polígonos si estamos en la vista 1
   const isInteractiveView = src.includes('1.png') || src.includes('1.jpg');
@@ -58,15 +59,6 @@ export const InteractiveMap = ({ src, className }: InteractiveMapProps) => {
       .catch((err) => console.error("Error cargando lotes:", err));
   }, [isInteractiveView]);
 
-  const handleMouseMove = (e: MouseEvent) => {
-    if (!isInteractiveView) return;
-    const rect = e.currentTarget.getBoundingClientRect();
-    setMousePos({
-      x: e.clientX - rect.left,
-      y: e.clientY - rect.top,
-    });
-  };
-
   const getFillColor = (estado: string) => {
     switch (estado) {
       case 'disponible': return 'rgba(16, 185, 129, 0.4)';
@@ -80,9 +72,24 @@ export const InteractiveMap = ({ src, className }: InteractiveMapProps) => {
     return new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(price);
   };
 
+  const handlePolygonEnter = (event: MouseEvent<SVGPolygonElement>, lot: PublicLot) => {
+    if (!isInteractiveView) return;
+    const polygonRect = event.currentTarget.getBoundingClientRect();
+    const containerRect = containerRef.current?.getBoundingClientRect();
+
+    if (containerRect) {
+      setTooltipPos({
+        x: polygonRect.left - containerRect.left + polygonRect.width / 2,
+        y: polygonRect.top - containerRect.top,
+      });
+    }
+
+    setHoveredLot(lot);
+  };
+
   return (
     <div className={className}>
-      <div className="relative h-full w-full" onMouseMove={handleMouseMove}>
+      <div ref={containerRef} className="relative h-full w-full">
 
         {/* 1. Imagen de Fondo Dinámica */}
         <Image
@@ -114,7 +121,7 @@ export const InteractiveMap = ({ src, className }: InteractiveMapProps) => {
                     stroke={hoveredLot?.id === lot.id ? "white" : "transparent)"}
                     strokeWidth={hoveredLot?.id === lot.id ? "3" : "0"}
                     className="cursor-pointer transition-all duration-300 ease-in-out"
-                    onMouseEnter={() => setHoveredLot(lot)}
+                    onMouseEnter={(event) => handlePolygonEnter(event, lot)}
                     onMouseLeave={() => setHoveredLot(null)}
                   />
                 );
@@ -126,10 +133,11 @@ export const InteractiveMap = ({ src, className }: InteractiveMapProps) => {
         {/* 3. Tooltip */}
         {hoveredLot && isInteractiveView && (
           <div
-            className="absolute z-[10] pointer-events-none bg-white/95 backdrop-blur-sm p-4 rounded-xl shadow-xl border border-slate-200 w-56 animate-in fade-in zoom-in duration-150"
+            className="absolute z-[60] pointer-events-none bg-white/95 backdrop-blur-sm p-4 rounded-xl shadow-xl border border-slate-200 w-56 animate-in fade-in zoom-in duration-150"
             style={{
-              top: mousePos.y - 140,
-              left: mousePos.x - 112
+              top: tooltipPos.y,
+              left: tooltipPos.x,
+              transform: 'translate(-50%, -110%)'
             }}
           >
             <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-4 h-4 bg-white rotate-45 border-b border-r border-slate-200"></div>
