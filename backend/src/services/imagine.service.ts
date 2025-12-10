@@ -77,21 +77,30 @@ const loadBaseImage = () => {
 const buildObjective = (idea: string) => {
   const cleanIdea = idea.trim();
   if (!cleanIdea) {
-    return 'un mega proyecto urbano costero de uso mixto con énfasis en vivienda y recreación';
+    return 'un master plan de 8 hectáreas con usos mixtos, plazas activas, vialidades y parques arbolados que conectan todo el predio';
   }
 
   const ideaLower = cleanIdea.toLowerCase();
-  if (ideaLower.includes('casa') || ideaLower.split(' ').length <= 3) {
-    return `un complejo habitacional a gran escala inspirado en ${cleanIdea}, con múltiples torres residenciales, amenidades y vialidades internas`;
+  const isCompactIdea = ideaLower.split(/\s+/).length <= 4;
+  const mentionsSports = /(fútbol|futbol|soccer|cancha|estadio|deporte)/i.test(cleanIdea);
+
+  if (mentionsSports) {
+    return `un distrito deportivo de 8 hectáreas inspirado en ${cleanIdea}, con múltiples canchas, complejos de entrenamiento, graderíos, plazas públicas, vivienda y áreas verdes interconectadas`;
   }
 
-  return `un master plan amplio que expande la idea de ${cleanIdea} hacia un desarrollo metropolitano con zonas residenciales, comerciales y corredores verdes`;
+  if (isCompactIdea || ideaLower.includes('casa') || ideaLower.includes('cabaña') || ideaLower.includes('kiosco')) {
+    return `un mega proyecto de 8 hectáreas inspirado en ${cleanIdea}, ampliado con torres residenciales, zonas comerciales, parques lineales, estacionamientos y vialidades para que la idea se sienta como un desarrollo integral`;
+  }
+
+  return `un master plan de 8 hectáreas que lleva ${cleanIdea} a escala urbana con barrios, equipamiento comunitario, movilidad peatonal, plazas y franjas arboladas`;
 };
 
 const buildImagePrompt = (idea: string) => {
   const template = loadMasterPrompt();
   const objective = buildObjective(idea);
-  return template.replace(/\[\[objetive\]\]/gi, objective);
+  return template
+    .replace(/\[\[objective\]\]/gi, objective)
+    .replace(/\[\[objetive\]\]/gi, objective);
 };
 
 const cleanBase64 = (value: string) => (value.includes(',') ? value.split(',', 2)[1] ?? value : value);
@@ -183,8 +192,9 @@ export const createImagineService = (deps: ImagineServiceDependencies = {}) => {
     }
 
     try {
+      const objective = buildObjective(payload.prompt);
       const promptForImage = buildImagePrompt(payload.prompt);
-      const textoInspirador = `Visualiza ${buildObjective(payload.prompt)} en Gran Dzilam, con vialidades internas, autos diminutos y arquitectura adaptada a la franja de terreno.`;
+      const textoInspirador = `Visualiza ${objective} en Gran Dzilam como un trazo visto desde dron, con vialidades internas, autos diminutos, arquitectura compacta y el resto del terreno intacto fuera de la zona transparente.`;
       const baseImage = loadBaseImage();
 
       const imageResponse = await requestOpenAI<any>({
@@ -196,7 +206,6 @@ export const createImagineService = (deps: ImagineServiceDependencies = {}) => {
           model: IMAGE_MODEL,
           prompt: promptForImage,
           size,
-          response_format: 'b64_json',
           image: baseImage,
         },
       });
