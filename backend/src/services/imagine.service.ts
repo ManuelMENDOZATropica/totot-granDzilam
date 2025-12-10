@@ -206,7 +206,6 @@ export const createImagineService = (deps: ImagineServiceDependencies = {}) => {
           model: IMAGE_MODEL,
           prompt: promptForImage,
           size,
-          response_format: 'b64_json',
           image: baseImage,
         },
       });

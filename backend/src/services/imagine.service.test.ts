@@ -55,7 +55,6 @@ test('createImagineService caches results for repeated prompts', async () => {
   assert.deepEqual(first, second);
 
   const expectedBaseImage = fs.readFileSync(path.join(process.cwd(), 'src', 'IA', '1.png')).toString('base64');
-  assert.equal(receivedBody?.response_format, 'b64_json');
   assert.equal(receivedBody?.image, expectedBaseImage);
 
   const savedFile = first.imageUrl ? path.join(tempResultsDir, path.basename(first.imageUrl)) : '';
