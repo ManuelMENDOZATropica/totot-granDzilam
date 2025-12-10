@@ -54,8 +54,11 @@ test('createImagineService caches results for repeated prompts', async () => {
   assert.equal(fetchCalls, 1);
   assert.deepEqual(first, second);
 
-  const expectedBaseImage = fs.readFileSync(path.join(process.cwd(), 'src', 'IA', '1.png')).toString('base64');
-  assert.equal(receivedBody?.image, expectedBaseImage);
+  assert.equal(receivedBody?.model, 'gpt-image-1');
+  assert.equal(receivedBody?.size, payload.size);
+  assert.equal(receivedBody?.image, undefined);
+  assert.ok(typeof receivedBody?.prompt === 'string');
+  assert.ok(receivedBody?.prompt.includes(payload.prompt));
 
   const savedFile = first.imageUrl ? path.join(tempResultsDir, path.basename(first.imageUrl)) : '';
   assert.ok(savedFile && fs.existsSync(savedFile));
