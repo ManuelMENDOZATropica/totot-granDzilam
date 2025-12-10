@@ -53,10 +53,8 @@ const resolveAssetPath = (fileName: string) => {
 };
 
 const MASTER_PROMPT_PATH = resolveAssetPath('masterPrompt.txt');
-const BASE_IMAGE_PATH = resolveAssetPath('1.png');
 
 let cachedMasterPrompt: string | null = null;
-let cachedBaseImage: string | null = null;
 
 const loadMasterPrompt = () => {
   if (cachedMasterPrompt) return cachedMasterPrompt;
@@ -64,14 +62,6 @@ const loadMasterPrompt = () => {
   const buffer = fs.readFileSync(MASTER_PROMPT_PATH);
   cachedMasterPrompt = buffer.toString();
   return cachedMasterPrompt;
-};
-
-const loadBaseImage = () => {
-  if (cachedBaseImage) return cachedBaseImage;
-
-  const buffer = fs.readFileSync(BASE_IMAGE_PATH);
-  cachedBaseImage = buffer.toString('base64');
-  return cachedBaseImage;
 };
 
 const buildObjective = (idea: string) => {
@@ -195,7 +185,6 @@ export const createImagineService = (deps: ImagineServiceDependencies = {}) => {
       const objective = buildObjective(payload.prompt);
       const promptForImage = buildImagePrompt(payload.prompt);
       const textoInspirador = `Visualiza ${objective} en Gran Dzilam como un trazo visto desde dron, con vialidades internas, autos diminutos, arquitectura compacta y el resto del terreno intacto fuera de la zona transparente.`;
-      const baseImage = loadBaseImage();
 
       const imageResponse = await requestOpenAI<any>({
         fetchImpl,
@@ -206,7 +195,6 @@ export const createImagineService = (deps: ImagineServiceDependencies = {}) => {
           model: IMAGE_MODEL,
           prompt: promptForImage,
           size,
-          image: baseImage,
         },
       });
 
