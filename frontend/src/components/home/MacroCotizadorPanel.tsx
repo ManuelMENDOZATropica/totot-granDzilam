@@ -1,4 +1,6 @@
+import Image from 'next/image';
 import { useState } from 'react';
+import { formatearMoneda } from '@/lib/formatoMoneda';
 import { MapaLotes } from '@/components/mapa/MapaLotes';
 import { PanelCotizacion } from '@/components/panel/PanelCotizacion';
 import { ContactForm } from '@/components/common/ContactForm';
@@ -47,6 +49,12 @@ export const MacroCotizadorPanel = ({
   const [isContactOpen, setIsContactOpen] = useState(false);
   const [downloadRequested, setDownloadRequested] = useState(false);
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+
+  const formatCurrency = (valor: number) => formatearMoneda(valor, 'MXN');
+  const formatArea = (valor: number) =>
+    `${valor.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} m²`;
+  const fechaCotizacion = new Date().toLocaleDateString('es-MX');
+  const totalArea = selectedLots.reduce((acum, lote) => acum + (lote.superficieM2 || 0), 0);
 
   const handleToggleMain = () => {
     if (panelMacroAbierto) {
@@ -235,22 +243,131 @@ export const MacroCotizadorPanel = ({
         </div>
       </div>
 
+      {/* Plantilla imprimible con fondo personalizado */}
+      <div id="cotizacion-print" className="hidden print:block">
+        <div className="relative mx-auto h-[297mm] w-[210mm] overflow-hidden">
+          <Image
+            src="/assets/HOJA MEMBRETADA.png"
+            alt="Hoja membretada Gran Dzilam"
+            fill
+            priority
+            sizes="100vw"
+            className="object-cover"
+          />
+
+          <div className="relative z-10 flex h-full flex-col justify-between px-12 py-14 text-[#1C2533]">
+            <header className="flex items-start justify-between text-sm font-semibold">
+              <span>Gran Dzilam</span>
+              <span>Fecha: {fechaCotizacion}</span>
+            </header>
+
+            <main className="flex flex-col gap-4 text-sm leading-6">
+              <div>
+                <h2 className="font-serif text-2xl">Cotización de lotes</h2>
+                <p className="text-[#475569]">Estimación en MXN generada automáticamente.</p>
+              </div>
+
+              <div className="space-y-2">
+                {selectedLots.length === 0 ? (
+                  <p className="text-[#475569]">No se seleccionaron lotes para esta cotización.</p>
+                ) : (
+                  selectedLots.map((lote, index) => {
+                    const precioLote = lote.precioTotal ?? lote.precio ?? 0;
+                    return (
+                      <div key={lote.id || index} className="flex items-baseline justify-between gap-3">
+                        <div className="flex flex-col">
+                          <span className="font-semibold">{lote.nombre || `Lote ${index + 1}`}</span>
+                          <span className="text-xs text-[#475569]">{formatArea(lote.superficieM2 || 0)}</span>
+                        </div>
+                        <div className="text-right">
+                          <span className="block text-sm font-semibold">{formatCurrency(precioLote)}</span>
+                          <span className="text-[11px] text-[#16a34a]">Incluye descuento aplicado</span>
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <div className="flex justify-between">
+                    <span className="text-[#475569]">Subtotal</span>
+                    <span className="font-semibold">{formatCurrency(totales.totalSeleccionado)}</span>
+                  </div>
+                  <div className="flex justify-between text-[#16a34a]">
+                    <span>Descuento ({Math.round(totales.descuentoPorcentaje * 100)}%)</span>
+                    <span>-{formatCurrency(totales.descuentoAplicado)}</span>
+                  </div>
+                  <div className="flex justify-between font-semibold">
+                    <span>Total con descuento</span>
+                    <span>{formatCurrency(totales.totalConDescuento)}</span>
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <div className="flex justify-between">
+                    <span className="text-[#475569]">Enganche</span>
+                    <span className="font-semibold">{formatCurrency(totales.enganche)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-[#475569]">Saldo a financiar</span>
+                    <span className="font-semibold">{formatCurrency(totales.saldoFinanciar)}</span>
+                  </div>
+                  <div className="flex justify-between font-semibold">
+                    <span>Mensualidad estimada</span>
+                    <span>{formatCurrency(totales.mensualidad)}</span>
+                  </div>
+                  <div className="flex justify-between text-xs text-[#475569]">
+                    <span>Plazo</span>
+                    <span>{meses} pagos</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="text-[12px] leading-relaxed text-[#475569]">
+                <p className="font-semibold text-[#1C2533]">Notas importantes</p>
+                <ul className="mt-1 list-disc space-y-0.5 pl-5">
+                  <li>Los montos son informativos y pueden variar según disponibilidad y condiciones comerciales.</li>
+                  <li>La superficie total seleccionada es de {formatArea(totalArea)}.</li>
+                  <li>Comunícate con nuestro equipo para confirmar precios y disponibilidad.</li>
+                </ul>
+              </div>
+            </main>
+          </div>
+        </div>
+      </div>
+
       <style jsx global>{`
         @media print {
+          @page {
+            size: 210mm 297mm;
+            margin: 0;
+          }
+
+          html,
+          body {
+            width: 100%;
+            height: 100%;
+            padding: 0;
+            margin: 0;
+          }
+
           body * {
             visibility: hidden;
           }
 
-          #macro-cotizador-panel,
-          #macro-cotizador-panel * {
+          #cotizacion-print,
+          #cotizacion-print * {
             visibility: visible;
           }
 
-          #macro-cotizador-panel {
+          #cotizacion-print {
             position: absolute;
-            left: 0;
-            top: 0;
-            width: 100%;
+            inset: 0;
+            display: block !important;
+            page-break-before: avoid;
+            page-break-after: avoid;
           }
         }
       `}</style>
