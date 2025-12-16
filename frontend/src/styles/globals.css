@@ -2,6 +2,10 @@
 @tailwind components;
 @tailwind utilities;
 
+/* =========================================
+   1. FUENTES TIPOGRÁFICAS
+   ========================================= */
+
 @font-face {
   font-family: 'Source Sans Pro';
   src: url('/tipografias/SourceSansPro-Light.ttf') format('truetype');
@@ -82,6 +86,10 @@
   font-display: swap;
 }
 
+/* =========================================
+   2. ESTILOS GENERALES
+   ========================================= */
+
 html {
   @apply scroll-smooth;
 }
@@ -103,7 +111,10 @@ h6 {
   @apply selection:bg-gran-sky selection:text-slate-900;
 }
 
-/* Barra de desplazamiento unificada para overlays y paneles */
+/* =========================================
+   3. SCROLLBAR PERSONALIZADO
+   ========================================= */
+
 .overlay-scrollbar {
   scrollbar-width: thin;
   scrollbar-color: #dbd9d6 transparent;
@@ -124,4 +135,62 @@ h6 {
 
 .overlay-scrollbar:hover::-webkit-scrollbar-thumb {
   background: #c8c6c3;
+}
+
+/* =========================================
+   4. ESTILOS DE IMPRESIÓN (SOLUCIÓN PDF)
+   ========================================= */
+
+@media print {
+  /* Configuración de la página física */
+  @page {
+    size: 210mm 297mm; /* Tamaño A4 */
+    margin: 0;         /* Eliminamos margen de impresora */
+  }
+
+  /* Forzamos al navegador a no usar márgenes ni scroll */
+  html,
+  body {
+    width: 100%;
+    height: 100%;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important; /* CLAVE: evita la página en blanco final */
+    background: white;
+  }
+
+  /* 1. Ocultar todo el contenido de la web */
+  body * {
+    visibility: hidden;
+  }
+
+  /* 2. Mostrar SOLO el contenedor del PDF y sus hijos */
+  #cotizacion-print,
+  #cotizacion-print * {
+    visibility: visible;
+  }
+
+  /* 3. Posicionar el contenedor fijo en la pantalla para ignorar 
+        la posición original en el HTML (Evita la página en blanco inicial) */
+  #cotizacion-print {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 9999;
+    margin: 0;
+    padding: 0;
+    
+    /* Aseguramos que se muestre (overrides 'hidden' de Tailwind) */
+    display: block !important; 
+    background-color: white;
+
+    /* Evitar cortes de página */
+    page-break-before: avoid;
+    page-break-after: avoid;
+    page-break-inside: avoid;
+  }
 }

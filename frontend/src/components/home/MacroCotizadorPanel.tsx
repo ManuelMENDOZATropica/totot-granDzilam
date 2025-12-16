@@ -199,7 +199,6 @@ export const MacroCotizadorPanel = ({
                 onMesesChange={onMesesChange}
                 onLimpiar={onLimpiar}
                 onCerrar={onToggle}
-                // Conectamos el botón del hijo con el estado del padre
                 onContactar={handleContactRequest}
                 onDescargar={handleDownloadRequest}
                 descargaEnProgreso={isGeneratingPdf}
@@ -208,7 +207,7 @@ export const MacroCotizadorPanel = ({
           </div>
         </div>
 
-        {/* OVERLAY DEL FORMULARIO (Encima de todo) */}
+        {/* OVERLAY DEL FORMULARIO */}
         <div
           className={`
             absolute inset-0 z-[100]
@@ -243,9 +242,17 @@ export const MacroCotizadorPanel = ({
         </div>
       </div>
 
-      {/* Plantilla imprimible con fondo personalizado */}
-      <div id="cotizacion-print" className="hidden print:block">
-        <div className="relative mx-auto h-[297mm] w-[210mm] overflow-hidden">
+      {/* === ÁREA DE IMPRESIÓN === */}
+      <div id="cotizacion-print" className="hidden">
+        <div 
+          className="relative mx-auto h-full w-full overflow-hidden bg-[#fafafa]"
+          // ESTO ES LO QUE HACE QUE SE IMPRIMA EL FONDO:
+          style={{ 
+            printColorAdjust: 'exact', 
+            WebkitPrintColorAdjust: 'exact',
+            backgroundColor: '#fafafa' // Refuerzo explícito
+          }}
+        >
           <Image
             src="/assets/HOJA MEMBRETADA.png"
             alt="Hoja membretada Gran Dzilam"
@@ -255,19 +262,24 @@ export const MacroCotizadorPanel = ({
             className="object-cover"
           />
 
-          <div className="relative z-10 flex h-full flex-col justify-between px-12 py-14 text-[#1C2533]">
-            <header className="flex items-start justify-between text-sm font-semibold">
-              <span>Gran Dzilam</span>
-              <span>Fecha: {fechaCotizacion}</span>
-            </header>
+          {/* Contenedor relativo que ocupa toda la hoja para posicionar hijos absolutos */}
+          <div className="relative z-10 h-full w-full">
+            
+            {/* 1. Header Fijo (Absoluto arriba derecha) */}
+            <div className="absolute top-14 right-12 text-sm font-semibold text-[#1C2533]">
+              Fecha: {fechaCotizacion}
+            </div>
 
-            <main className="flex flex-col gap-4 text-sm leading-6">
+            {/* 2. Contenido Principal con Padding Inferior grande para no chocar con footer */}
+            <div className="px-12 pt-[20%] pb-48 h-full flex flex-col gap-5 text-[#1C2533]">
+              {/* Título */}
               <div>
                 <h2 className="font-serif text-2xl">Cotización de lotes</h2>
                 <p className="text-[#475569]">Estimación en MXN generada automáticamente.</p>
               </div>
 
-              <div className="space-y-2">
+              {/* Lista de lotes */}
+              <div className="space-y-2 border-b border-gray-200 pb-4">
                 {selectedLots.length === 0 ? (
                   <p className="text-[#475569]">No se seleccionaron lotes para esta cotización.</p>
                 ) : (
@@ -289,7 +301,8 @@ export const MacroCotizadorPanel = ({
                 )}
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              {/* Totales y Financiamiento */}
+              <div className="flex flex-col gap-3 pt-2">
                 <div className="space-y-1">
                   <div className="flex justify-between">
                     <span className="text-[#475569]">Subtotal</span>
@@ -299,13 +312,13 @@ export const MacroCotizadorPanel = ({
                     <span>Descuento ({Math.round(totales.descuentoPorcentaje * 100)}%)</span>
                     <span>-{formatCurrency(totales.descuentoAplicado)}</span>
                   </div>
-                  <div className="flex justify-between font-semibold">
+                  <div className="flex justify-between font-semibold text-base border-t border-dashed border-gray-300 pt-1 mt-1">
                     <span>Total con descuento</span>
                     <span>{formatCurrency(totales.totalConDescuento)}</span>
                   </div>
                 </div>
 
-                <div className="space-y-1">
+                <div className="space-y-1 bg-gray-50 p-3 rounded-md border border-gray-100 mt-2 print:bg-transparent print:border-gray-200">
                   <div className="flex justify-between">
                     <span className="text-[#475569]">Enganche</span>
                     <span className="font-semibold">{formatCurrency(totales.enganche)}</span>
@@ -314,7 +327,7 @@ export const MacroCotizadorPanel = ({
                     <span className="text-[#475569]">Saldo a financiar</span>
                     <span className="font-semibold">{formatCurrency(totales.saldoFinanciar)}</span>
                   </div>
-                  <div className="flex justify-between font-semibold">
+                  <div className="flex justify-between font-semibold mt-2">
                     <span>Mensualidad estimada</span>
                     <span>{formatCurrency(totales.mensualidad)}</span>
                   </div>
@@ -324,8 +337,12 @@ export const MacroCotizadorPanel = ({
                   </div>
                 </div>
               </div>
+            </div>
 
-              <div className="text-[12px] leading-relaxed text-[#475569]">
+            {/* 3. Footer Fijo (Absoluto abajo) */}
+            <div className="mb-[20%] absolute bottom-12 left-12 right-12 text-[#475569] flex flex-col items-center">
+              {/* Notas importantes */}
+              <div className="w-full text-[12px] leading-relaxed mb-4 text-left">
                 <p className="font-semibold text-[#1C2533]">Notas importantes</p>
                 <ul className="mt-1 list-disc space-y-0.5 pl-5">
                   <li>Los montos son informativos y pueden variar según disponibilidad y condiciones comerciales.</li>
@@ -333,44 +350,16 @@ export const MacroCotizadorPanel = ({
                   <li>Comunícate con nuestro equipo para confirmar precios y disponibilidad.</li>
                 </ul>
               </div>
-            </main>
+              
+              {/* Texto Legal */}
+              <p className="text-[10px] uppercase tracking-wide opacity-60 text-center border-t border-gray-300 w-full pt-2">
+                Esta herramienta es una representación ilustrativa y no constituye una oferta oficial ni legal
+              </p>
+            </div>
+
           </div>
         </div>
       </div>
-
-      <style jsx global>{`
-        @media print {
-          @page {
-            size: 210mm 297mm;
-            margin: 0;
-          }
-
-          html,
-          body {
-            width: 100%;
-            height: 100%;
-            padding: 0;
-            margin: 0;
-          }
-
-          body * {
-            visibility: hidden;
-          }
-
-          #cotizacion-print,
-          #cotizacion-print * {
-            visibility: visible;
-          }
-
-          #cotizacion-print {
-            position: absolute;
-            inset: 0;
-            display: block !important;
-            page-break-before: avoid;
-            page-break-after: avoid;
-          }
-        }
-      `}</style>
     </div>
   );
 };
