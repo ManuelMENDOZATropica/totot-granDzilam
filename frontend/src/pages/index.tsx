@@ -33,7 +33,7 @@ import { MacroCotizadorPanel } from '@/components/home/MacroCotizadorPanel';
 
 import { CookieBanner } from '@/components/home/CookieBanner';
 
-const INTEREST_PDF_PATH = '/assets/sitios%20de%20interes.pdf';
+const INTEREST_IMAGE_PATH = '/assets/sitios%20de%20interes.jpg';
 
 
 
@@ -614,16 +614,20 @@ export default function Home() {
                 >
                   Cerrar
                 </button>
-                <iframe
-                  src={INTEREST_PDF_PATH}
-                  title="Sitios de interés"
-                  className="h-full w-full"
-                />
+                <div className="relative h-full w-full">
+                  <Image
+                    src={INTEREST_IMAGE_PATH}
+                    alt="Sitios de interés"
+                    fill
+                    className="object-contain"
+                    sizes="(max-width: 1200px) 90vw, 1200px"
+                  />
+                </div>
 
                 <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between rounded-lg bg-white/90 px-4 py-2 text-sm text-slate-900 shadow">
                   <p className="font-semibold">Sitios de interés de la zona</p>
                   <Link
-                    href={INTEREST_PDF_PATH}
+                    href={INTEREST_IMAGE_PATH}
                     target="_blank"
                     rel="noreferrer"
                     className="rounded-full bg-slate-900 px-3 py-1 text-xs font-semibold text-white transition hover:bg-slate-800"
