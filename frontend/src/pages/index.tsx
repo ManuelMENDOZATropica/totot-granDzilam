@@ -32,8 +32,20 @@ import { ImaginePanel } from '@/components/home/ImaginePanel';
 import { MacroCotizadorPanel } from '@/components/home/MacroCotizadorPanel';
 
 import { CookieBanner } from '@/components/home/CookieBanner';
+import { useLanguage } from '@/contexts/LanguageContext';
+import LanguageSelector from '@/components/common/LanguageSelector';
 
 const INTEREST_IMAGE_PATH = '/assets/sitios%20de%20interes.jpg';
+const brochureFiles = {
+  desktop: {
+    es: '/brochure/Brochure horizontal.pdf',
+    en: '/brochure/Brochure english horizontal.pdf',
+  },
+  mobile: {
+    es: '/brochure/Brochure vertical.pdf',
+    en: '/brochure/Brochure vertical ingles.pdf',
+  },
+};
 
 
 
@@ -76,8 +88,8 @@ const vistasMobile = [
 export default function Home() {
 
   const [cookieConsent, setCookieConsent] = useState<'all' | 'essential' | null>(null);
-
   const [showCookieBanner, setShowCookieBanner] = useState(false);
+  const [isMobileViewport, setIsMobileViewport] = useState(false);
 
 
 
@@ -116,8 +128,8 @@ export default function Home() {
 
 
   const { status, error: imagineError, generate, lastPrompt, result } = useImagine();
-
   const { user } = useAuth();
+  const { language, translations } = useLanguage();
 
 
 
@@ -232,10 +244,14 @@ export default function Home() {
 
 
     updateVistas(mediaQuery.matches);
+    setIsMobileViewport(mediaQuery.matches);
 
 
 
-    const handleChange = (event: MediaQueryListEvent) => updateVistas(event.matches);
+    const handleChange = (event: MediaQueryListEvent) => {
+      updateVistas(event.matches);
+      setIsMobileViewport(event.matches);
+    };
 
 
 
@@ -410,17 +426,8 @@ export default function Home() {
     <>
 
       <Head>
-
-        <title>Gran Dzilam · Cotizador de lotes</title>
-
-        <meta
-
-          name="description"
-
-          content="Selecciona tus lotes y simula la mensualidad en segundos con el cotizador interactivo de Gran Dzilam."
-
-        />
-
+        <title>{translations.home.meta.title}</title>
+        <meta name="description" content={translations.home.meta.description} />
       </Head>
 
 
@@ -459,7 +466,7 @@ export default function Home() {
 
 
 
-          <div className="absolute top-6 left-6 z-30">
+          <div className="absolute top-6 left-6 z-30 flex gap-3">
 
             <button
 
@@ -471,15 +478,33 @@ export default function Home() {
 
             >
 
-              Sitios de interés
+              {translations.home.actions.interest}
 
             </button>
+
+            <Link
+
+              href={(isMobileViewport ? brochureFiles.mobile : brochureFiles.desktop)[language === 'fr' ? 'en' : language]}
+
+              target="_blank"
+
+              rel="noreferrer"
+
+              className="hidden items-center gap-2 rounded-full bg-white/85 px-4 py-2 text-sm font-semibold text-[#0F172A] shadow-lg ring-1 ring-white/40 transition hover:scale-[1.02] sm:inline-flex"
+
+            >
+
+              {translations.home.actions.brochure}
+
+            </Link>
 
           </div>
 
 
 
           <div className="absolute top-6 right-6 z-30 flex items-center gap-3 sm:flex-col sm:items-end">
+
+            <LanguageSelector />
 
             <AdminAccessLink mounted={mounted} user={user} className="relative" />
 
@@ -612,12 +637,12 @@ export default function Home() {
                   onClick={handleCloseInterestModal}
                   className="absolute right-4 top-4 z-10 rounded-full bg-slate-900/80 px-3 py-1 text-[11px] font-semibold text-white shadow-sm transition hover:bg-slate-900"
                 >
-                  Cerrar
+                  {translations.home.interestModal.close}
                 </button>
                 <div className="relative h-full w-full">
                   <Image
                     src={INTEREST_IMAGE_PATH}
-                    alt="Sitios de interés"
+                    alt={translations.home.interestModal.title}
                     fill
                     className="object-contain"
                     sizes="(max-width: 1200px) 90vw, 1200px"
@@ -625,14 +650,14 @@ export default function Home() {
                 </div>
 
                 <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between rounded-lg bg-white/90 px-4 py-2 text-sm text-slate-900 shadow">
-                  <p className="font-semibold">Sitios de interés de la zona</p>
+                  <p className="font-semibold">{translations.home.interestModal.description}</p>
                   <Link
                     href={INTEREST_IMAGE_PATH}
                     target="_blank"
                     rel="noreferrer"
                     className="rounded-full bg-slate-900 px-3 py-1 text-xs font-semibold text-white transition hover:bg-slate-800"
                   >
-                    Abrir en nueva pestaña
+                    {translations.home.interestModal.openNew}
                   </Link>
                 </div>
               </div>
@@ -650,21 +675,23 @@ export default function Home() {
 
             <div>
 
-              <p className="text-sm font-semibold">Gran Dzilam</p>
+              <p className="text-sm font-semibold">{translations.home.footer.title}</p>
 
-              <p className="text-xs text-white/70">
-
-                Tu espacio para visualizar y cotizar con confianza.
-
-              </p>
+              <p className="text-xs text-white/70">{translations.home.footer.description}</p>
 
               {cookieConsent ? (
 
                 <p className="pt-2 text-[11px] text-white/60">
 
-                  Preferencia actual:{' '}
+                  {translations.home.footer.preference}:{' '}
 
-                  {cookieConsent === 'all' ? 'todas las cookies' : 'solo las esenciales'}.
+                  {cookieConsent === 'all'
+
+                    ? translations.cookies.actions.all.toLowerCase()
+
+                    : translations.cookies.actions.essential.toLowerCase()}
+
+                  .
 
                 </p>
 
@@ -684,7 +711,7 @@ export default function Home() {
 
               >
 
-                Aviso de privacidad
+                {translations.home.footer.privacy}
 
               </Link>
 
@@ -698,7 +725,7 @@ export default function Home() {
 
               >
 
-                Preferencias de cookies
+                {translations.home.footer.cookies}
 
               </button>
 
