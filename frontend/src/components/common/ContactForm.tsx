@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from 'react';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface ContactFormData {
   nombre: string;
@@ -13,11 +14,9 @@ interface ContactFormProps {
   onSubmit?: (data: ContactFormData) => Promise<unknown> | void;
 }
 
-export const ContactForm = ({
-  className = '',
-  submitLabel = 'Enviar información',
-  onSubmit,
-}: ContactFormProps) => {
+export const ContactForm = ({ className = '', submitLabel, onSubmit }: ContactFormProps) => {
+  const { translations } = useLanguage();
+  const contactText = translations.contact;
   const [formData, setFormData] = useState<ContactFormData>({
     nombre: '',
     correo: '',
@@ -36,21 +35,21 @@ export const ContactForm = ({
     const newErrors: Partial<Record<keyof ContactFormData, string>> = {};
 
     if (!formData.nombre.trim()) {
-      newErrors.nombre = 'Ingresa tu nombre';
+      newErrors.nombre = contactText.fields.errors.name;
     }
 
     if (!formData.correo.trim()) {
-      newErrors.correo = 'Ingresa tu correo';
+      newErrors.correo = contactText.fields.errors.email;
     } else if (!isValidEmail(formData.correo)) {
-      newErrors.correo = 'Ingresa un correo válido';
+      newErrors.correo = contactText.fields.errors.emailInvalid;
     }
 
     if (!formData.telefono.trim()) {
-      newErrors.telefono = 'Ingresa tu teléfono';
+      newErrors.telefono = contactText.fields.errors.phone;
     }
 
     if (!formData.interes.trim()) {
-      newErrors.interes = 'Cuéntanos tu interés';
+      newErrors.interes = contactText.fields.errors.interest;
     }
 
     setErrors(newErrors);
@@ -72,15 +71,15 @@ export const ContactForm = ({
       }
       setSubmitted(true);
     } catch (error) {
-      setSubmissionError((error as Error).message ?? 'No se pudo enviar tu información');
+      setSubmissionError((error as Error).message ?? contactText.fields.errors.submit);
     } finally {
       setSubmitting(false);
     }
   };
 
   const helperText = useMemo(
-    () => (submitted ? '¡Gracias! Nos pondremos en contacto contigo.' : 'Deja tu información y nos pondremos en contacto:'),
-    [submitted],
+    () => (submitted ? contactText.helper.submitted : contactText.helper.idle),
+    [contactText.helper.idle, contactText.helper.submitted, submitted],
   );
 
   return (
@@ -97,9 +96,12 @@ export const ContactForm = ({
             </svg>
           </div>
           <div>
-            <p className="font-bold text-slate-900 text-lg">Correo electrónico</p>
-            <a href="mailto:grandzilam@info.com" className="text-slate-600 hover:text-[#385C7A] transition-colors">
-              grandzilam@info.com
+            <p className="font-bold text-slate-900 text-lg">{contactText.emailLabel}</p>
+            <a
+              href={`mailto:${contactText.emailValue}`}
+              className="text-slate-600 hover:text-[#385C7A] transition-colors"
+            >
+              {contactText.emailValue}
             </a>
           </div>
         </div>
@@ -113,9 +115,9 @@ export const ContactForm = ({
             </svg>
           </div>
           <div>
-            <p className="font-bold text-slate-900 text-lg">Teléfono</p>
-            <a href="tel:+0000000000" className="text-slate-600 hover:text-[#385C7A] transition-colors">
-              +00 00 000 000
+            <p className="font-bold text-slate-900 text-lg">{contactText.phoneLabel}</p>
+            <a href={`tel:${contactText.phoneValue}`} className="text-slate-600 hover:text-[#385C7A] transition-colors">
+              {contactText.phoneValue}
             </a>
           </div>
         </div>
@@ -131,7 +133,9 @@ export const ContactForm = ({
           {submissionError ? <p className="text-sm text-red-600">{submissionError}</p> : null}
           {/* Campo Nombre */}
           <div>
-            <label htmlFor="nombre" className="block text-slate-700 font-medium mb-1">Nombre:</label>
+            <label htmlFor="nombre" className="block text-slate-700 font-medium mb-1">
+              {contactText.fields.name}:
+            </label>
             <input
               type="text"
               id="nombre"
@@ -144,7 +148,9 @@ export const ContactForm = ({
 
           {/* Campo Correo */}
           <div>
-            <label htmlFor="correo" className="block text-slate-700 font-medium mb-1">Correo:</label>
+            <label htmlFor="correo" className="block text-slate-700 font-medium mb-1">
+              {contactText.fields.email}:
+            </label>
             <input
               type="email"
               id="correo"
@@ -157,7 +163,9 @@ export const ContactForm = ({
 
           {/* Campo Teléfono */}
           <div>
-            <label htmlFor="telefono" className="block text-slate-700 font-medium mb-1">Teléfono:</label>
+            <label htmlFor="telefono" className="block text-slate-700 font-medium mb-1">
+              {contactText.fields.phone}:
+            </label>
             <input
               type="tel"
               id="telefono"
@@ -170,7 +178,9 @@ export const ContactForm = ({
 
           {/* Campo Interés (TextArea) */}
           <div>
-            <label htmlFor="interes" className="block text-slate-700 font-medium mb-1">Interés:</label>
+            <label htmlFor="interes" className="block text-slate-700 font-medium mb-1">
+              {contactText.fields.interest}:
+            </label>
             <textarea
               id="interes"
               value={formData.interes}
@@ -187,7 +197,7 @@ export const ContactForm = ({
               disabled={submitting}
               className="rounded-full bg-[#385C7A] px-8 py-2 font-semibold text-white shadow-lg hover:bg-[#2a455c] transition-colors w-full sm:w-auto"
             >
-              {submitting ? 'Enviando…' : submitLabel}
+              {submitting ? contactText.actions.submitting : submitLabel ?? contactText.actions.submit}
             </button>
           </div>
         </form>
