@@ -169,7 +169,16 @@ export const MacroCotizadorPanel = ({
 
           <div className="grid h-full w-full lg:grid-cols-[1fr_460px] bg-[#F3F1EC] overflow-hidden flex-1">
             <div className="relative h-full w-full p-4 lg:p-6">
-              <div className="relative h-full w-[80%] pl-[10%] overflow-hidden bg-[#F3F1EC]">
+            <div className="relative h-full w-[80%] pl-[10%] overflow-hidden rounded-2xl bg-[#F3F1EC]">
+              <Image
+                src="/assets/vistas/1.png"
+                alt="Mapa de referencia Gran Dzilam"
+                fill
+                sizes="100vw"
+                className="object-cover"
+                priority={false}
+              />
+
                 {loading ? (
                    <div className="flex h-full items-center justify-center gap-4 text-[#64748B]">
                       <div className="h-10 w-10 animate-spin rounded-full border-4 border-[#1C2533] border-t-transparent" />
@@ -180,7 +189,7 @@ export const MacroCotizadorPanel = ({
                 ) : lotes.length === 0 ? (
                    <div className="flex h-full items-center justify-center text-[#1C2533]"><p>No hay lotes disponibles</p></div>
                 ) : (
-                  <div className="absolute inset-0 h-full w-full overflow-hidden bg-[#F3F1EC]/30">
+                  <div className="absolute inset-0 h-full w-full overflow-hidden">
                     <MapaLotes lotes={lotes} seleccionados={selectedIds} onToggle={toggleLote} />
                   </div>
                 )}
