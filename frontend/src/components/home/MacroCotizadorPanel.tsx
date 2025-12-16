@@ -169,9 +169,9 @@ export const MacroCotizadorPanel = ({
 
           <div className="grid h-full w-full lg:grid-cols-[1fr_460px] bg-[#F3F1EC] overflow-hidden flex-1">
             <div className="relative h-full w-full p-4 lg:p-6">
-            <div className="relative h-full w-[80%] pl-[10%] overflow-hidden rounded-2xl bg-[#F3F1EC]">
+            <div className="relative h-full h-[96%] w-[70%] pl-[10%] overflow-hidden rounded-2xl bg-[#F3F1EC]">
               <Image
-                src="/assets/vistas/1.png"
+                src="/assets/vistas/COTIZACION2.jpg"
                 alt="Mapa de referencia Gran Dzilam"
                 fill
                 sizes="100vw"
