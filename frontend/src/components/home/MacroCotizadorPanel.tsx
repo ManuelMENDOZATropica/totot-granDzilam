@@ -1,5 +1,6 @@
 import Image from 'next/image';
 import { useState } from 'react';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { formatearMoneda } from '@/lib/formatoMoneda';
 import { MapaLotes } from '@/components/mapa/MapaLotes';
 import { PanelCotizacion } from '@/components/panel/PanelCotizacion';
@@ -46,14 +47,20 @@ export const MacroCotizadorPanel = ({
   onMesesChange,
   onLimpiar,
 }: MacroCotizadorPanelProps) => {
+  const { translations, language } = useLanguage();
+  const macroCopy = translations.macro;
+  const panelCopy = translations.panel;
   const [isContactOpen, setIsContactOpen] = useState(false);
   const [downloadRequested, setDownloadRequested] = useState(false);
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
 
   const formatCurrency = (valor: number) => formatearMoneda(valor, 'MXN');
   const formatArea = (valor: number) =>
-    `${valor.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} m²`;
-  const fechaCotizacion = new Date().toLocaleDateString('es-MX');
+    `${valor.toLocaleString(language === 'en' ? 'en-US' : language === 'fr' ? 'fr-FR' : 'es-MX', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })} m²`;
+  const fechaCotizacion = new Date().toLocaleDateString(language === 'en' ? 'en-US' : language === 'fr' ? 'fr-FR' : 'es-MX');
   const totalArea = selectedLots.reduce((acum, lote) => acum + (lote.superficieM2 || 0), 0);
 
   const handleToggleMain = () => {
@@ -130,7 +137,7 @@ export const MacroCotizadorPanel = ({
       >
         <span
           className={`
-            flex h-8 w-8 items-center justify-center rounded-full border border-[#1C2E3D] 
+            flex h-8 w-8 items-center justify-center rounded-full border border-[#1C2E3D]
             text-[#1C2E3D] transition-transform duration-300
             ${panelMacroAbierto ? 'rotate-0' : 'rotate-0'}
           `}
@@ -142,7 +149,7 @@ export const MacroCotizadorPanel = ({
           )}
         </span>
         <span className="font-serif  text-[22px] sm:text-[28px] font-normal text-[#1C2E3D] leading-none pb-1">
-          Cotizar macro terreno
+          {macroCopy.toggle}
         </span>
       </button>
 
@@ -164,7 +171,7 @@ export const MacroCotizadorPanel = ({
         {/* FONDO (MAPA + PANEL) */}
         <div className="flex flex-col h-full w-full">
           <p className="px-6 pt-4 pb-2 text-xs text-[#1C2533] lg:px-8 bg-[#F3F1EC] shrink-0">
-            Esta herramienta es una representación ilustrativa y no constituye una oferta oficial ni legal.
+            {macroCopy.disclaimer}
           </p>
 
           <div className="grid h-full w-full lg:grid-cols-[1fr_460px] bg-[#F3F1EC] overflow-hidden flex-1">
@@ -182,12 +189,12 @@ export const MacroCotizadorPanel = ({
                 {loading ? (
                    <div className="flex h-full items-center justify-center gap-4 text-[#64748B]">
                       <div className="h-10 w-10 animate-spin rounded-full border-4 border-[#1C2533] border-t-transparent" />
-                      <p>Cargando...</p>
+                      <p>{macroCopy.loading}</p>
                    </div>
                 ) : error ? (
                    <div className="flex h-full items-center justify-center p-8 text-center text-red-500">{error}</div>
                 ) : lotes.length === 0 ? (
-                   <div className="flex h-full items-center justify-center text-[#1C2533]"><p>No hay lotes disponibles</p></div>
+                   <div className="flex h-full items-center justify-center text-[#1C2533]"><p>{macroCopy.empty}</p></div>
                 ) : (
                   <div className="absolute inset-0 h-full w-full overflow-hidden">
                     <MapaLotes lotes={lotes} seleccionados={selectedIds} onToggle={toggleLote} />
@@ -240,11 +247,11 @@ export const MacroCotizadorPanel = ({
           <div className="flex-1 overflow-y-auto py-6 overlay-scrollbar">
             <div className="mx-auto max-w-3xl">
               <h2 className="mb-6 px-4 md:px-[80px] font-serif text-3xl text-[#1C2E3D]">
-                {downloadRequested ? 'Completa tus datos para descargar tu cotización' : 'Contáctanos'}
+                {downloadRequested ? panelCopy.actions.download : panelCopy.actions.contact}
               </h2>
               <ContactForm
                 onSubmit={handleFormSubmit}
-                submitLabel={downloadRequested ? 'Enviar y descargar' : 'Enviar información'}
+                submitLabel={downloadRequested ? panelCopy.actions.download : translations.contact.actions.submit}
               />
             </div>
           </div>
@@ -333,16 +340,16 @@ export const MacroCotizadorPanel = ({
                     <span className="font-semibold">{formatCurrency(totales.enganche)}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-[#475569]">Saldo a financiar</span>
+                    <span className="text-[#475569]">{panelCopy.balance}</span>
                     <span className="font-semibold">{formatCurrency(totales.saldoFinanciar)}</span>
                   </div>
                   <div className="flex justify-between font-semibold mt-2">
-                    <span>Mensualidad estimada</span>
+                    <span>{panelCopy.monthly}</span>
                     <span>{formatCurrency(totales.mensualidad)}</span>
                   </div>
                   <div className="flex justify-between text-xs text-[#475569]">
-                    <span>Plazo</span>
-                    <span>{meses} pagos</span>
+                    <span>{panelCopy.monthsLabel}</span>
+                    <span>{meses} {panelCopy.monthsLabel}</span>
                   </div>
                 </div>
               </div>
@@ -362,7 +369,7 @@ export const MacroCotizadorPanel = ({
               
               {/* Texto Legal */}
               <p className="text-[10px] uppercase tracking-wide opacity-60 text-center border-t border-gray-300 w-full pt-2">
-                Esta herramienta es una representación ilustrativa y no constituye una oferta oficial ni legal
+                {macroCopy.disclaimer}
               </p>
             </div>
 
