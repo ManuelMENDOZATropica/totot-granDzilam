@@ -105,6 +105,16 @@ type HomeCopy = {
     brochureNewTab: string;
     adminAccess: string;
   };
+  brochureModal: {
+    title: string;
+    blurNotice: string;
+    unlockHint: string;
+    unlocked: string;
+    close: string;
+    contactTitle: string;
+    contactDescription: string;
+    submitLabel: string;
+  };
   interestModal: { title: string; description: string; close: string; openNew: string };
   footer: {
     title: string;
@@ -142,6 +152,16 @@ export const translations: Record<Language, TranslationSchema> = {
         brochure: 'Brochure',
         brochureNewTab: 'Abrir en nueva pestaña',
         adminAccess: 'Acceso administrativo',
+      },
+      brochureModal: {
+        title: 'Brochure',
+        blurNotice: 'Desde la página 9 el contenido está difuminado.',
+        unlockHint: 'Completa el formulario de contacto para verlo completo.',
+        unlocked: 'Contenido liberado',
+        close: 'Cerrar',
+        contactTitle: 'Desbloquea el brochure completo',
+        contactDescription: 'Compártenos tus datos y podrás consultar el brochure sin restricciones.',
+        submitLabel: 'Enviar y desbloquear',
       },
       interestModal: {
         title: 'Sitios de interés',
@@ -319,6 +339,16 @@ export const translations: Record<Language, TranslationSchema> = {
         brochureNewTab: 'Open in new tab',
         adminAccess: 'Admin access',
       },
+      brochureModal: {
+        title: 'Brochure',
+        blurNotice: 'Starting on page 9 the content is blurred.',
+        unlockHint: 'Fill out the contact form to view every page.',
+        unlocked: 'Content unlocked',
+        close: 'Close',
+        contactTitle: 'Unlock the full brochure',
+        contactDescription: 'Share your details to access the brochure without restrictions.',
+        submitLabel: 'Submit and unlock',
+      },
       interestModal: {
         title: 'Points of interest',
         description: 'Nearby points of interest',
@@ -489,6 +519,16 @@ export const translations: Record<Language, TranslationSchema> = {
         brochure: 'Brochure',
         brochureNewTab: 'Ouvrir dans un nouvel onglet',
         adminAccess: 'Accès administrateur',
+      },
+      brochureModal: {
+        title: 'Brochure',
+        blurNotice: 'À partir de la page 9, le contenu est flouté.',
+        unlockHint: 'Remplissez le formulaire de contact pour tout voir.',
+        unlocked: 'Contenu déverrouillé',
+        close: 'Fermer',
+        contactTitle: 'Débloquez le brochure complet',
+        contactDescription: 'Partagez vos coordonnées pour accéder au brochure sans limites.',
+        submitLabel: 'Envoyer et débloquer',
       },
       interestModal: {
         title: 'Points d’intérêt',
