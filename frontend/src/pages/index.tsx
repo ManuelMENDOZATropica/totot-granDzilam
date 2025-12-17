@@ -5,6 +5,8 @@ import Image from 'next/image';
 
 import Link from 'next/link';
 
+import dynamic from 'next/dynamic';
+
 import { FormEvent, useEffect, useRef, useState } from 'react';
 
 import { useCotizacion } from '@/hooks/useCotizacion';
@@ -34,6 +36,12 @@ import { MacroCotizadorPanel } from '@/components/home/MacroCotizadorPanel';
 import { CookieBanner } from '@/components/home/CookieBanner';
 import { useLanguage } from '@/contexts/LanguageContext';
 import LanguageSelector from '@/components/common/LanguageSelector';
+import { ContactForm } from '@/components/common/ContactForm';
+import { createContactSubmission, type CreateContactSubmissionPayload } from '@/lib/contactSubmissions';
+
+const BrochureViewer = dynamic(() => import('@/components/home/BrochureViewer').then((mod) => mod.BrochureViewer), {
+  ssr: false,
+});
 
 const INTEREST_IMAGE_PATH = '/assets/sitios%20de%20interes.jpg';
 const brochureFiles = {
@@ -46,6 +54,8 @@ const brochureFiles = {
     en: '/brochure/Brochure vertical ingles.pdf',
   },
 };
+
+const BROCHURE_LOCK_PAGE = 10;
 
 
 
@@ -142,6 +152,12 @@ export default function Home() {
   const [panelMacroAbierto, setPanelMacroAbierto] = useState(false);
 
   const [showInterestModal, setShowInterestModal] = useState(false);
+  const [showBrochureModal, setShowBrochureModal] = useState(false);
+  const [brochureUnlocked, setBrochureUnlocked] = useState(false);
+  const [showBrochureContactModal, setShowBrochureContactModal] = useState(false);
+  const [brochureGateDismissedPage, setBrochureGateDismissedPage] = useState<number | null>(null);
+  const [brochureCurrentPage, setBrochureCurrentPage] = useState<number | null>(null);
+  const [brochureTotalPages, setBrochureTotalPages] = useState<number | null>(null);
 
 
 
@@ -377,6 +393,66 @@ export default function Home() {
 
   };
 
+  const brochureUrl = (isMobileViewport ? brochureFiles.mobile : brochureFiles.desktop)[
+    language === 'fr' ? 'en' : language
+  ];
+
+  const handleOpenBrochureModal = () => {
+    setBrochureUnlocked(false);
+    setShowBrochureContactModal(false);
+    setBrochureGateDismissedPage(null);
+    setBrochureCurrentPage(null);
+    setBrochureTotalPages(null);
+    setShowBrochureModal(true);
+  };
+
+  const handleCloseBrochureModal = () => {
+    setShowBrochureModal(false);
+    setShowBrochureContactModal(false);
+    setBrochureUnlocked(false);
+    setBrochureGateDismissedPage(null);
+  };
+
+  const handleBrochureFormSubmit = async (formData: CreateContactSubmissionPayload) => {
+    await createContactSubmission(formData);
+    setBrochureUnlocked(true);
+    setShowBrochureContactModal(false);
+    setBrochureGateDismissedPage(null);
+  };
+
+  const handleBrochureUnlockRequest = (page: number) => {
+    if (brochureUnlocked) return;
+    if (brochureGateDismissedPage && brochureGateDismissedPage === page) return;
+    setBrochureGateDismissedPage(null);
+    setShowBrochureContactModal(true);
+  };
+
+  const handleOpenBrochureContactManually = () => {
+    setBrochureGateDismissedPage(null);
+    setShowBrochureContactModal(true);
+  };
+
+  const handleCloseBrochureContactModal = () => {
+    setShowBrochureContactModal(false);
+    setBrochureGateDismissedPage(brochureCurrentPage);
+  };
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const preload = async () => {
+      const mod = await import('@/components/home/BrochureViewer');
+      if (cancelled) return;
+      mod.preloadBrochureViewerAssets?.(brochureUrl);
+    };
+
+    preload();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [brochureUrl]);
+
 
 
   // --- LÓGICA DEL CARRUSEL VERTICAL (DESKTOP) ---
@@ -482,13 +558,11 @@ export default function Home() {
 
             </button>
 
-            <Link
+            <button
 
-              href={(isMobileViewport ? brochureFiles.mobile : brochureFiles.desktop)[language === 'fr' ? 'en' : language]}
+              type="button"
 
-              target="_blank"
-
-              rel="noreferrer"
+              onClick={handleOpenBrochureModal}
 
               className="hidden items-center gap-2 rounded-full bg-white/85 px-4 py-2 text-sm font-semibold text-[#0F172A] shadow-lg ring-1 ring-white/40 transition hover:scale-[1.02] sm:inline-flex"
 
@@ -496,7 +570,7 @@ export default function Home() {
 
               {translations.home.actions.brochure}
 
-            </Link>
+            </button>
 
           </div>
 
@@ -619,6 +693,106 @@ export default function Home() {
           />
 
 
+
+
+        {showBrochureModal ? (
+            <div
+              className="fixed inset-0 z-[65] flex items-center justify-center bg-slate-950/80 p-4"
+              onClick={handleCloseBrochureModal}
+              role="dialog"
+              aria-modal="true"
+            >
+              <div
+                className="relative w-full max-w-6xl overflow-hidden rounded-3xl bg-white shadow-2xl"
+                onClick={(event) => event.stopPropagation()}
+              >
+                <button
+                  type="button"
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    handleCloseBrochureModal();
+                  }}
+                  className="absolute right-4 top-4 z-20 rounded-full bg-slate-900/85 px-3 py-1 text-[11px] font-semibold text-white shadow transition hover:bg-slate-900"
+                >
+                  {translations.home.brochureModal.close}
+                </button>
+
+                <div className="relative h-[75vh] bg-slate-100">
+                  {brochureUnlocked ? (
+                    <div className="absolute left-4 top-4 z-10 rounded-full bg-emerald-600 px-3 py-1 text-xs font-semibold text-white shadow-lg">
+                      {translations.home.brochureModal.unlocked}
+                    </div>
+                  ) : null}
+
+                  <BrochureViewer
+                    url={brochureUrl}
+                    unlockGatePage={BROCHURE_LOCK_PAGE}
+                    unlocked={brochureUnlocked}
+                    blurNotice={translations.home.brochureModal.blurNotice}
+                    unlockHint={translations.home.brochureModal.unlockHint}
+                    onUnlockRequest={handleBrochureUnlockRequest}
+                    onPageChange={setBrochureCurrentPage}
+                    onDocumentLoad={setBrochureTotalPages}
+                  />
+
+                  {!brochureUnlocked ? (
+                    <div className="pointer-events-none absolute inset-x-0 bottom-0 left-0 right-0 z-10 flex justify-end px-4 pb-4">
+                      <div className="pointer-events-auto flex items-center gap-3 rounded-full bg-white/95 px-4 py-2 text-[11px] font-semibold text-slate-800 shadow-lg">
+                        <span>
+                          {translations.home.brochureModal.blurNotice}{' '}
+                          {brochureCurrentPage && brochureTotalPages
+                            ? `${brochureCurrentPage}/${brochureTotalPages}`
+                            : ''}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={handleOpenBrochureContactManually}
+                          className="rounded-full bg-[#0F172A] px-3 py-1 text-[11px] font-semibold text-white transition hover:scale-[1.02]"
+                        >
+                          {translations.home.brochureModal.submitLabel}
+                        </button>
+                      </div>
+                    </div>
+                  ) : null}
+                </div>
+              </div>
+            </div>
+          ) : null}
+
+        {showBrochureContactModal && !brochureUnlocked ? (
+            <div
+              className="fixed inset-0 z-[70] flex items-center justify-center bg-slate-950/80 p-4"
+              role="dialog"
+              aria-modal="true"
+              onClick={handleCloseBrochureContactModal}
+            >
+              <div
+                className="relative w-full max-w-xl overflow-hidden rounded-2xl bg-white shadow-2xl"
+                onClick={(event) => event.stopPropagation()}
+              >
+                <button
+                  type="button"
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    handleCloseBrochureContactModal();
+                  }}
+                  className="absolute right-4 top-4 z-10 rounded-full bg-slate-900/85 px-3 py-1 text-[11px] font-semibold text-white shadow transition hover:bg-slate-900"
+                >
+                  {translations.home.brochureModal.close}
+                </button>
+
+                <div className="space-y-3 px-6 pb-6 pt-10">
+                  <p className="text-lg font-bold text-slate-900">{translations.home.brochureModal.contactTitle}</p>
+                  <p className="text-sm text-slate-600">{translations.home.brochureModal.contactDescription}</p>
+                  <ContactForm
+                    className="!px-0 !pt-0"
+                    submitLabel={translations.home.brochureModal.submitLabel}
+                    onSubmit={handleBrochureFormSubmit}
+                  />
+                </div>
+              </div>
+            </div>
+          ) : null}
 
 
         {showInterestModal ? (
