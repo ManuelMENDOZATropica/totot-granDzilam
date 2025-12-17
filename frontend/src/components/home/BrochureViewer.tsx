@@ -68,6 +68,7 @@ export function BrochureViewer({
     return Array.from({ length: numPages }, (_, index) => index + 1);
   }, [numPages]);
 
+  // Detectar ancho del contenedor para renderizado responsive
   useEffect(() => {
     if (!containerRef.current) return;
 
@@ -82,6 +83,7 @@ export function BrochureViewer({
     return () => observer.disconnect();
   }, []);
 
+  // Cargar PDF
   useEffect(() => {
     let cancelled = false;
 
@@ -120,6 +122,7 @@ export function BrochureViewer({
     };
   }, [url, onDocumentLoad, onPageChange]);
 
+  // Renderizar páginas en Canvas
   useEffect(() => {
     if (!pages.length || !renderWidth || !pdfInstanceRef.current || !pdfjsLibRef.current) return;
 
@@ -154,6 +157,7 @@ export function BrochureViewer({
     };
   }, [pages, renderWidth]);
 
+  // Intersection Observer: Lógica de scroll y disparador del formulario
   useEffect(() => {
     if (!pages.length) return;
 
@@ -168,6 +172,7 @@ export function BrochureViewer({
           setCurrentPage(pageNumber);
           onPageChange?.(pageNumber);
 
+          // LÓGICA FUNCIONAL: El formulario se pide EXACTAMENTE en la unlockGatePage
           if (!unlocked && pageNumber >= unlockGatePage) {
             onUnlockRequest(pageNumber);
           }
@@ -203,7 +208,8 @@ export function BrochureViewer({
       ) : (
         <div className="flex flex-col items-center gap-6">
           {pages.map((pageNumber) => {
-            const isLockedSection = !unlocked && pageNumber >= unlockGatePage;
+            // LÓGICA VISUAL: El blur comienza UNA PÁGINA ANTES (unlockGatePage - 1)
+            const isLockedSection = !unlocked && pageNumber >= unlockGatePage - 1;
 
             return (
               <div
