@@ -146,6 +146,9 @@ export default function Home() {
   const [showInterestModal, setShowInterestModal] = useState(false);
   const [showBrochureModal, setShowBrochureModal] = useState(false);
   const [brochureUnlocked, setBrochureUnlocked] = useState(false);
+  const [showBrochureContactModal, setShowBrochureContactModal] = useState(false);
+  const [brochureGateTriggered, setBrochureGateTriggered] = useState(false);
+  const brochureBlurRef = useRef<HTMLDivElement | null>(null);
 
 
 
@@ -387,17 +390,42 @@ export default function Home() {
 
   const handleOpenBrochureModal = () => {
     setBrochureUnlocked(false);
+    setShowBrochureContactModal(false);
+    setBrochureGateTriggered(false);
     setShowBrochureModal(true);
   };
 
   const handleCloseBrochureModal = () => {
     setShowBrochureModal(false);
+    setShowBrochureContactModal(false);
   };
 
   const handleBrochureFormSubmit = async (formData: CreateContactSubmissionPayload) => {
     await createContactSubmission(formData);
     setBrochureUnlocked(true);
+    setShowBrochureContactModal(false);
   };
+
+  useEffect(() => {
+    if (!showBrochureModal || brochureUnlocked) return;
+
+    const target = brochureBlurRef.current;
+    if (!target) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((entry) => entry.isIntersecting)) {
+          setShowBrochureContactModal(true);
+          setBrochureGateTriggered(true);
+        }
+      },
+      { threshold: 0.6 },
+    );
+
+    observer.observe(target);
+
+    return () => observer.disconnect();
+  }, [showBrochureModal, brochureUnlocked]);
 
 
 
@@ -660,51 +688,83 @@ export default function Home() {
                   {translations.home.brochureModal.close}
                 </button>
 
-                <div className="grid grid-cols-1 gap-0 sm:grid-cols-[1.2fr_1fr]">
-                  <div className="relative h-[72vh] overflow-hidden bg-slate-100">
-                    <iframe
-                      src={`${brochureUrl}#toolbar=1&navpanes=0`}
-                      title={translations.home.brochureModal.title}
-                      className="h-full w-full"
-                    />
+                <div className="relative h-[75vh] bg-slate-100">
+                  <iframe
+                    src={`${brochureUrl}#toolbar=1&navpanes=0`}
+                    title={translations.home.brochureModal.title}
+                    className="h-full w-full"
+                  />
 
-                    {brochureUnlocked ? (
-                      <div className="absolute left-4 top-4 rounded-full bg-emerald-600 px-3 py-1 text-xs font-semibold text-white shadow-lg">
-                        {translations.home.brochureModal.unlocked}
-                      </div>
-                    ) : (
-                      <div className="pointer-events-auto absolute inset-x-0 bottom-0 top-1/2 bg-gradient-to-t from-white via-white/85 to-transparent backdrop-blur">
-                        <div className="m-4 rounded-2xl bg-white/90 p-4 text-slate-900 shadow-lg">
-                          <p className="text-sm font-semibold">{translations.home.brochureModal.blurNotice}</p>
-                          <p className="text-xs text-slate-600">{translations.home.brochureModal.unlockHint}</p>
+                  {brochureUnlocked ? (
+                    <div className="absolute left-4 top-4 rounded-full bg-emerald-600 px-3 py-1 text-xs font-semibold text-white shadow-lg">
+                      {translations.home.brochureModal.unlocked}
+                    </div>
+                  ) : (
+                    <div
+                      ref={brochureBlurRef}
+                      className="pointer-events-auto absolute inset-x-0 bottom-0 top-1/2 bg-gradient-to-t from-white via-white/85 to-transparent backdrop-blur"
+                    >
+                      <div className="m-4 flex flex-col gap-3 rounded-2xl bg-white/90 p-4 text-slate-900 shadow-lg">
+                        <p className="text-sm font-semibold">{translations.home.brochureModal.blurNotice}</p>
+                        <p className="text-xs text-slate-600">{translations.home.brochureModal.unlockHint}</p>
+                        <button
+                          type="button"
+                          onClick={() => setShowBrochureContactModal(true)}
+                          className="inline-flex items-center justify-center rounded-full bg-[#0F172A] px-4 py-2 text-xs font-semibold text-white transition hover:scale-[1.02]"
+                        >
+                          {translations.home.brochureModal.submitLabel}
+                        </button>
+                        <div className="text-[11px] text-slate-500">
+                          {brochureGateTriggered
+                            ? translations.home.brochureModal.unlockHint
+                            : translations.home.brochureModal.blurNotice}
                         </div>
                       </div>
-                    )}
-                  </div>
-
-                  <div className="flex flex-col border-t border-slate-200 bg-white sm:border-l sm:border-t-0">
-                    <div className="space-y-2 px-6 pt-6">
-                      <p className="text-lg font-bold text-slate-900">{translations.home.brochureModal.contactTitle}</p>
-                      <p className="text-sm text-slate-600">{translations.home.brochureModal.contactDescription}</p>
                     </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          ) : null}
 
-                    <ContactForm
-                      className="!px-6 !pt-4 !pb-4 sm:!pb-6"
-                      submitLabel={translations.home.brochureModal.submitLabel}
-                      onSubmit={handleBrochureFormSubmit}
-                    />
+        {showBrochureContactModal && !brochureUnlocked ? (
+            <div
+              className="fixed inset-0 z-[70] flex items-center justify-center bg-slate-950/80 p-4"
+              role="dialog"
+              aria-modal="true"
+              onClick={() => setShowBrochureContactModal(false)}
+            >
+              <div
+                className="relative w-full max-w-xl overflow-hidden rounded-2xl bg-white shadow-2xl"
+                onClick={(event) => event.stopPropagation()}
+              >
+                <button
+                  type="button"
+                  onClick={() => setShowBrochureContactModal(false)}
+                  className="absolute right-4 top-4 z-10 rounded-full bg-slate-900/85 px-3 py-1 text-[11px] font-semibold text-white shadow transition hover:bg-slate-900"
+                >
+                  {translations.home.brochureModal.close}
+                </button>
 
-                    <div className="flex flex-col gap-3 px-6 pb-6 text-sm text-slate-700 sm:flex-row sm:items-center sm:justify-between">
-                      <span className="font-semibold text-slate-900">{translations.home.actions.brochure}</span>
-                      <Link
-                        href={brochureUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="inline-flex items-center justify-center rounded-full bg-[#0F172A] px-4 py-2 text-xs font-semibold text-white transition hover:scale-[1.02]"
-                      >
-                        {translations.home.actions.brochureNewTab}
-                      </Link>
-                    </div>
+                <div className="space-y-3 px-6 pb-6 pt-10">
+                  <p className="text-lg font-bold text-slate-900">{translations.home.brochureModal.contactTitle}</p>
+                  <p className="text-sm text-slate-600">{translations.home.brochureModal.contactDescription}</p>
+                  <ContactForm
+                    className="!px-0 !pt-0"
+                    submitLabel={translations.home.brochureModal.submitLabel}
+                    onSubmit={handleBrochureFormSubmit}
+                  />
+
+                  <div className="flex items-center justify-between gap-3 rounded-xl bg-slate-50 px-4 py-3 text-xs text-slate-700">
+                    <span className="font-semibold text-slate-900">{translations.home.actions.brochure}</span>
+                    <Link
+                      href={brochureUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex items-center justify-center rounded-full bg-[#0F172A] px-3 py-2 text-[11px] font-semibold text-white transition hover:scale-[1.02]"
+                    >
+                      {translations.home.actions.brochureNewTab}
+                    </Link>
                   </div>
                 </div>
               </div>
