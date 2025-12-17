@@ -8,7 +8,7 @@ type BrochureViewerProps = {
   unlocked: boolean;
   blurNotice: string;
   unlockHint: string;
-  onUnlockRequest: () => void;
+  onUnlockRequest: (page: number) => void;
   onPageChange?: (current: number) => void;
   onDocumentLoad?: (total: number) => void;
 };
@@ -169,7 +169,7 @@ export function BrochureViewer({
           onPageChange?.(pageNumber);
 
           if (!unlocked && pageNumber >= unlockGatePage) {
-            onUnlockRequest();
+            onUnlockRequest(pageNumber);
           }
         });
       },

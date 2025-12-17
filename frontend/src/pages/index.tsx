@@ -55,6 +55,8 @@ const brochureFiles = {
   },
 };
 
+const BROCHURE_LOCK_PAGE = 10;
+
 
 
 // 1. DEFINIMOS LAS 6 VISTAS
@@ -153,6 +155,7 @@ export default function Home() {
   const [showBrochureModal, setShowBrochureModal] = useState(false);
   const [brochureUnlocked, setBrochureUnlocked] = useState(false);
   const [showBrochureContactModal, setShowBrochureContactModal] = useState(false);
+  const [brochureGateDismissedPage, setBrochureGateDismissedPage] = useState<number | null>(null);
   const [brochureCurrentPage, setBrochureCurrentPage] = useState<number | null>(null);
   const [brochureTotalPages, setBrochureTotalPages] = useState<number | null>(null);
 
@@ -397,6 +400,7 @@ export default function Home() {
   const handleOpenBrochureModal = () => {
     setBrochureUnlocked(false);
     setShowBrochureContactModal(false);
+    setBrochureGateDismissedPage(null);
     setBrochureCurrentPage(null);
     setBrochureTotalPages(null);
     setShowBrochureModal(true);
@@ -406,17 +410,31 @@ export default function Home() {
     setShowBrochureModal(false);
     setShowBrochureContactModal(false);
     setBrochureUnlocked(false);
+    setBrochureGateDismissedPage(null);
   };
 
   const handleBrochureFormSubmit = async (formData: CreateContactSubmissionPayload) => {
     await createContactSubmission(formData);
     setBrochureUnlocked(true);
     setShowBrochureContactModal(false);
+    setBrochureGateDismissedPage(null);
   };
 
-  const handleBrochureUnlockRequest = () => {
+  const handleBrochureUnlockRequest = (page: number) => {
     if (brochureUnlocked) return;
+    if (brochureGateDismissedPage && brochureGateDismissedPage === page) return;
+    setBrochureGateDismissedPage(null);
     setShowBrochureContactModal(true);
+  };
+
+  const handleOpenBrochureContactManually = () => {
+    setBrochureGateDismissedPage(null);
+    setShowBrochureContactModal(true);
+  };
+
+  const handleCloseBrochureContactModal = () => {
+    setShowBrochureContactModal(false);
+    setBrochureGateDismissedPage(brochureCurrentPage);
   };
 
   useEffect(() => {
@@ -708,7 +726,7 @@ export default function Home() {
 
                   <BrochureViewer
                     url={brochureUrl}
-                    unlockGatePage={10}
+                    unlockGatePage={BROCHURE_LOCK_PAGE}
                     unlocked={brochureUnlocked}
                     blurNotice={translations.home.brochureModal.blurNotice}
                     unlockHint={translations.home.brochureModal.unlockHint}
@@ -728,7 +746,7 @@ export default function Home() {
                         </span>
                         <button
                           type="button"
-                          onClick={() => setShowBrochureContactModal(true)}
+                          onClick={handleOpenBrochureContactManually}
                           className="rounded-full bg-[#0F172A] px-3 py-1 text-[11px] font-semibold text-white transition hover:scale-[1.02]"
                         >
                           {translations.home.brochureModal.submitLabel}
@@ -746,7 +764,7 @@ export default function Home() {
               className="fixed inset-0 z-[70] flex items-center justify-center bg-slate-950/80 p-4"
               role="dialog"
               aria-modal="true"
-              onClick={() => setShowBrochureContactModal(false)}
+              onClick={handleCloseBrochureContactModal}
             >
               <div
                 className="relative w-full max-w-xl overflow-hidden rounded-2xl bg-white shadow-2xl"
@@ -756,7 +774,7 @@ export default function Home() {
                   type="button"
                   onClick={(event) => {
                     event.stopPropagation();
-                    setShowBrochureContactModal(false);
+                    handleCloseBrochureContactModal();
                   }}
                   className="absolute right-4 top-4 z-10 rounded-full bg-slate-900/85 px-3 py-1 text-[11px] font-semibold text-white shadow transition hover:bg-slate-900"
                 >
