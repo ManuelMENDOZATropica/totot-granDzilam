@@ -34,6 +34,8 @@ import { MacroCotizadorPanel } from '@/components/home/MacroCotizadorPanel';
 import { CookieBanner } from '@/components/home/CookieBanner';
 import { useLanguage } from '@/contexts/LanguageContext';
 import LanguageSelector from '@/components/common/LanguageSelector';
+import { ContactForm } from '@/components/common/ContactForm';
+import { createContactSubmission, type CreateContactSubmissionPayload } from '@/lib/contactSubmissions';
 
 const INTEREST_IMAGE_PATH = '/assets/sitios%20de%20interes.jpg';
 const brochureFiles = {
@@ -142,6 +144,8 @@ export default function Home() {
   const [panelMacroAbierto, setPanelMacroAbierto] = useState(false);
 
   const [showInterestModal, setShowInterestModal] = useState(false);
+  const [showBrochureModal, setShowBrochureModal] = useState(false);
+  const [brochureUnlocked, setBrochureUnlocked] = useState(false);
 
 
 
@@ -377,6 +381,24 @@ export default function Home() {
 
   };
 
+  const brochureUrl = (isMobileViewport ? brochureFiles.mobile : brochureFiles.desktop)[
+    language === 'fr' ? 'en' : language
+  ];
+
+  const handleOpenBrochureModal = () => {
+    setBrochureUnlocked(false);
+    setShowBrochureModal(true);
+  };
+
+  const handleCloseBrochureModal = () => {
+    setShowBrochureModal(false);
+  };
+
+  const handleBrochureFormSubmit = async (formData: CreateContactSubmissionPayload) => {
+    await createContactSubmission(formData);
+    setBrochureUnlocked(true);
+  };
+
 
 
   // --- LÓGICA DEL CARRUSEL VERTICAL (DESKTOP) ---
@@ -482,13 +504,11 @@ export default function Home() {
 
             </button>
 
-            <Link
+            <button
 
-              href={(isMobileViewport ? brochureFiles.mobile : brochureFiles.desktop)[language === 'fr' ? 'en' : language]}
+              type="button"
 
-              target="_blank"
-
-              rel="noreferrer"
+              onClick={handleOpenBrochureModal}
 
               className="hidden items-center gap-2 rounded-full bg-white/85 px-4 py-2 text-sm font-semibold text-[#0F172A] shadow-lg ring-1 ring-white/40 transition hover:scale-[1.02] sm:inline-flex"
 
@@ -496,7 +516,7 @@ export default function Home() {
 
               {translations.home.actions.brochure}
 
-            </Link>
+            </button>
 
           </div>
 
@@ -619,6 +639,77 @@ export default function Home() {
           />
 
 
+
+
+        {showBrochureModal ? (
+            <div
+              className="fixed inset-0 z-[65] flex items-center justify-center bg-slate-950/80 p-4"
+              onClick={handleCloseBrochureModal}
+              role="dialog"
+              aria-modal="true"
+            >
+              <div
+                className="relative w-full max-w-6xl overflow-hidden rounded-3xl bg-white shadow-2xl"
+                onClick={(event) => event.stopPropagation()}
+              >
+                <button
+                  type="button"
+                  onClick={handleCloseBrochureModal}
+                  className="absolute right-4 top-4 z-20 rounded-full bg-slate-900/85 px-3 py-1 text-[11px] font-semibold text-white shadow transition hover:bg-slate-900"
+                >
+                  {translations.home.brochureModal.close}
+                </button>
+
+                <div className="grid grid-cols-1 gap-0 sm:grid-cols-[1.2fr_1fr]">
+                  <div className="relative h-[72vh] overflow-hidden bg-slate-100">
+                    <iframe
+                      src={`${brochureUrl}#toolbar=1&navpanes=0`}
+                      title={translations.home.brochureModal.title}
+                      className="h-full w-full"
+                    />
+
+                    {brochureUnlocked ? (
+                      <div className="absolute left-4 top-4 rounded-full bg-emerald-600 px-3 py-1 text-xs font-semibold text-white shadow-lg">
+                        {translations.home.brochureModal.unlocked}
+                      </div>
+                    ) : (
+                      <div className="pointer-events-auto absolute inset-x-0 bottom-0 top-1/2 bg-gradient-to-t from-white via-white/85 to-transparent backdrop-blur">
+                        <div className="m-4 rounded-2xl bg-white/90 p-4 text-slate-900 shadow-lg">
+                          <p className="text-sm font-semibold">{translations.home.brochureModal.blurNotice}</p>
+                          <p className="text-xs text-slate-600">{translations.home.brochureModal.unlockHint}</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="flex flex-col border-t border-slate-200 bg-white sm:border-l sm:border-t-0">
+                    <div className="space-y-2 px-6 pt-6">
+                      <p className="text-lg font-bold text-slate-900">{translations.home.brochureModal.contactTitle}</p>
+                      <p className="text-sm text-slate-600">{translations.home.brochureModal.contactDescription}</p>
+                    </div>
+
+                    <ContactForm
+                      className="!px-6 !pt-4 !pb-4 sm:!pb-6"
+                      submitLabel={translations.home.brochureModal.submitLabel}
+                      onSubmit={handleBrochureFormSubmit}
+                    />
+
+                    <div className="flex flex-col gap-3 px-6 pb-6 text-sm text-slate-700 sm:flex-row sm:items-center sm:justify-between">
+                      <span className="font-semibold text-slate-900">{translations.home.actions.brochure}</span>
+                      <Link
+                        href={brochureUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center justify-center rounded-full bg-[#0F172A] px-4 py-2 text-xs font-semibold text-white transition hover:scale-[1.02]"
+                      >
+                        {translations.home.actions.brochureNewTab}
+                      </Link>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : null}
 
 
         {showInterestModal ? (
