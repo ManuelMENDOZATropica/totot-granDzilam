@@ -27,6 +27,20 @@ async function loadPdfjs(): Promise<any | null> {
   });
 }
 
+export function preloadBrochureViewerAssets(url?: string) {
+  if (typeof window === 'undefined') return;
+
+  void loadPdfjs().catch(() => {
+    /* ignored */
+  });
+
+  if (!url) return;
+
+  void fetch(url, { cache: 'force-cache' }).catch(() => {
+    /* ignored */
+  });
+}
+
 export function BrochureViewer({
   url,
   unlockGatePage,

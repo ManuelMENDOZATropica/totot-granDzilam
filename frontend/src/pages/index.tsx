@@ -405,6 +405,7 @@ export default function Home() {
   const handleCloseBrochureModal = () => {
     setShowBrochureModal(false);
     setShowBrochureContactModal(false);
+    setBrochureUnlocked(false);
   };
 
   const handleBrochureFormSubmit = async (formData: CreateContactSubmissionPayload) => {
@@ -417,6 +418,22 @@ export default function Home() {
     if (brochureUnlocked) return;
     setShowBrochureContactModal(true);
   };
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const preload = async () => {
+      const mod = await import('@/components/home/BrochureViewer');
+      if (cancelled) return;
+      mod.preloadBrochureViewerAssets?.(brochureUrl);
+    };
+
+    preload();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [brochureUrl]);
 
 
 
@@ -673,7 +690,10 @@ export default function Home() {
               >
                 <button
                   type="button"
-                  onClick={handleCloseBrochureModal}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    handleCloseBrochureModal();
+                  }}
                   className="absolute right-4 top-4 z-20 rounded-full bg-slate-900/85 px-3 py-1 text-[11px] font-semibold text-white shadow transition hover:bg-slate-900"
                 >
                   {translations.home.brochureModal.close}
@@ -688,7 +708,7 @@ export default function Home() {
 
                   <BrochureViewer
                     url={brochureUrl}
-                    unlockGatePage={9}
+                    unlockGatePage={10}
                     unlocked={brochureUnlocked}
                     blurNotice={translations.home.brochureModal.blurNotice}
                     unlockHint={translations.home.brochureModal.unlockHint}
@@ -734,7 +754,10 @@ export default function Home() {
               >
                 <button
                   type="button"
-                  onClick={() => setShowBrochureContactModal(false)}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    setShowBrochureContactModal(false);
+                  }}
                   className="absolute right-4 top-4 z-10 rounded-full bg-slate-900/85 px-3 py-1 text-[11px] font-semibold text-white shadow transition hover:bg-slate-900"
                 >
                   {translations.home.brochureModal.close}
@@ -748,18 +771,6 @@ export default function Home() {
                     submitLabel={translations.home.brochureModal.submitLabel}
                     onSubmit={handleBrochureFormSubmit}
                   />
-
-                  <div className="flex items-center justify-between gap-3 rounded-xl bg-slate-50 px-4 py-3 text-xs text-slate-700">
-                    <span className="font-semibold text-slate-900">{translations.home.actions.brochure}</span>
-                    <Link
-                      href={brochureUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="inline-flex items-center justify-center rounded-full bg-[#0F172A] px-3 py-2 text-[11px] font-semibold text-white transition hover:scale-[1.02]"
-                    >
-                      {translations.home.actions.brochureNewTab}
-                    </Link>
-                  </div>
                 </div>
               </div>
             </div>

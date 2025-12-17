@@ -102,7 +102,6 @@ type HomeCopy = {
   actions: {
     interest: string;
     brochure: string;
-    brochureNewTab: string;
     adminAccess: string;
   };
   brochureModal: {
@@ -150,12 +149,11 @@ export const translations: Record<Language, TranslationSchema> = {
       actions: {
         interest: 'Sitios de interés',
         brochure: 'Brochure',
-        brochureNewTab: 'Abrir en nueva pestaña',
         adminAccess: 'Acceso administrativo',
       },
       brochureModal: {
         title: 'Brochure',
-        blurNotice: 'Desde la página 9 el contenido está difuminado.',
+        blurNotice: 'Desde la página 10 el contenido está difuminado.',
         unlockHint: 'Completa el formulario de contacto para verlo completo.',
         unlocked: 'Contenido liberado',
         close: 'Cerrar',
@@ -336,12 +334,11 @@ export const translations: Record<Language, TranslationSchema> = {
       actions: {
         interest: 'Points of interest',
         brochure: 'Brochure',
-        brochureNewTab: 'Open in new tab',
         adminAccess: 'Admin access',
       },
       brochureModal: {
         title: 'Brochure',
-        blurNotice: 'Starting on page 9 the content is blurred.',
+        blurNotice: 'Starting on page 10 the content is blurred.',
         unlockHint: 'Fill out the contact form to view every page.',
         unlocked: 'Content unlocked',
         close: 'Close',
@@ -517,12 +514,11 @@ export const translations: Record<Language, TranslationSchema> = {
       actions: {
         interest: 'Points d’intérêt',
         brochure: 'Brochure',
-        brochureNewTab: 'Ouvrir dans un nouvel onglet',
         adminAccess: 'Accès administrateur',
       },
       brochureModal: {
         title: 'Brochure',
-        blurNotice: 'À partir de la page 9, le contenu est flouté.',
+        blurNotice: 'À partir de la page 10, le contenu est flouté.',
         unlockHint: 'Remplissez le formulaire de contact pour tout voir.',
         unlocked: 'Contenu déverrouillé',
         close: 'Fermer',
