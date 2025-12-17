@@ -145,6 +145,10 @@ export default function Home() {
 
   const [mounted, setMounted] = useState(false);
 
+  const [fontScale, setFontScale] = useState(1);
+
+  const clampFontScale = (value: number) => Math.min(Math.max(value, 0.9), 1.2);
+
   const [prompt, setPrompt] = useState('');
 
   const promptLoaded = useRef(false);
@@ -180,6 +184,28 @@ export default function Home() {
     setMounted(true);
 
   }, []);
+
+  useEffect(() => {
+
+    const storedFontScale = localStorage.getItem('fontScale');
+
+    if (!storedFontScale) return;
+
+    const parsedScale = Number.parseFloat(storedFontScale);
+
+    if (Number.isNaN(parsedScale)) return;
+
+    setFontScale(clampFontScale(parsedScale));
+
+  }, []);
+
+  useEffect(() => {
+
+    document.documentElement.style.setProperty('--base-font-size', `${16 * fontScale}px`);
+
+    localStorage.setItem('fontScale', fontScale.toString());
+
+  }, [fontScale]);
 
 
 
@@ -355,6 +381,20 @@ export default function Home() {
       setFading(false);
 
     }, 200);
+
+  };
+
+
+
+  const handleIncreaseFontScale = () => {
+
+    setFontScale((current) => clampFontScale(current + 0.1));
+
+  };
+
+  const handleDecreaseFontScale = () => {
+
+    setFontScale((current) => clampFontScale(current - 0.1));
 
   };
 
@@ -571,6 +611,52 @@ export default function Home() {
               {translations.home.actions.brochure}
 
             </button>
+
+            <div
+
+              className="hidden items-center gap-2 rounded-full bg-white/85 px-3 py-2 text-xs font-semibold text-[#0F172A] shadow-lg ring-1 ring-white/40 transition hover:scale-[1.02] sm:inline-flex"
+
+              role="group"
+
+              aria-label={translations.home.actions.textSize}
+
+            >
+
+              <button
+
+                type="button"
+
+                onClick={handleDecreaseFontScale}
+
+                aria-label={translations.home.actions.decreaseText}
+
+                className="rounded-full px-2 py-1 transition hover:bg-white/80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0F172A]"
+
+              >
+
+                A-
+
+              </button>
+
+              <div className="h-5 w-px bg-slate-300/70" aria-hidden="true" />
+
+              <button
+
+                type="button"
+
+                onClick={handleIncreaseFontScale}
+
+                aria-label={translations.home.actions.increaseText}
+
+                className="rounded-full px-2 py-1 transition hover:bg-white/80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0F172A]"
+
+              >
+
+                A+
+
+              </button>
+
+            </div>
 
           </div>
 
