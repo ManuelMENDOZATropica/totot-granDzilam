@@ -5,6 +5,8 @@ import Image from 'next/image';
 
 import Link from 'next/link';
 
+import dynamic from 'next/dynamic';
+
 import { FormEvent, useEffect, useRef, useState } from 'react';
 
 import { useCotizacion } from '@/hooks/useCotizacion';
@@ -36,6 +38,10 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import LanguageSelector from '@/components/common/LanguageSelector';
 import { ContactForm } from '@/components/common/ContactForm';
 import { createContactSubmission, type CreateContactSubmissionPayload } from '@/lib/contactSubmissions';
+
+const BrochureViewer = dynamic(() => import('@/components/home/BrochureViewer').then((mod) => mod.BrochureViewer), {
+  ssr: false,
+});
 
 const INTEREST_IMAGE_PATH = '/assets/sitios%20de%20interes.jpg';
 const brochureFiles = {
@@ -147,8 +153,8 @@ export default function Home() {
   const [showBrochureModal, setShowBrochureModal] = useState(false);
   const [brochureUnlocked, setBrochureUnlocked] = useState(false);
   const [showBrochureContactModal, setShowBrochureContactModal] = useState(false);
-  const [brochureGateTriggered, setBrochureGateTriggered] = useState(false);
-  const brochureBlurRef = useRef<HTMLDivElement | null>(null);
+  const [brochureCurrentPage, setBrochureCurrentPage] = useState<number | null>(null);
+  const [brochureTotalPages, setBrochureTotalPages] = useState<number | null>(null);
 
 
 
@@ -391,7 +397,8 @@ export default function Home() {
   const handleOpenBrochureModal = () => {
     setBrochureUnlocked(false);
     setShowBrochureContactModal(false);
-    setBrochureGateTriggered(false);
+    setBrochureCurrentPage(null);
+    setBrochureTotalPages(null);
     setShowBrochureModal(true);
   };
 
@@ -406,26 +413,10 @@ export default function Home() {
     setShowBrochureContactModal(false);
   };
 
-  useEffect(() => {
-    if (!showBrochureModal || brochureUnlocked) return;
-
-    const target = brochureBlurRef.current;
-    if (!target) return;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries.some((entry) => entry.isIntersecting)) {
-          setShowBrochureContactModal(true);
-          setBrochureGateTriggered(true);
-        }
-      },
-      { threshold: 0.6 },
-    );
-
-    observer.observe(target);
-
-    return () => observer.disconnect();
-  }, [showBrochureModal, brochureUnlocked]);
+  const handleBrochureUnlockRequest = () => {
+    if (brochureUnlocked) return;
+    setShowBrochureContactModal(true);
+  };
 
 
 
@@ -689,39 +680,42 @@ export default function Home() {
                 </button>
 
                 <div className="relative h-[75vh] bg-slate-100">
-                  <iframe
-                    src={`${brochureUrl}#toolbar=1&navpanes=0`}
-                    title={translations.home.brochureModal.title}
-                    className="h-full w-full"
-                  />
-
                   {brochureUnlocked ? (
-                    <div className="absolute left-4 top-4 rounded-full bg-emerald-600 px-3 py-1 text-xs font-semibold text-white shadow-lg">
+                    <div className="absolute left-4 top-4 z-10 rounded-full bg-emerald-600 px-3 py-1 text-xs font-semibold text-white shadow-lg">
                       {translations.home.brochureModal.unlocked}
                     </div>
-                  ) : (
-                    <div
-                      ref={brochureBlurRef}
-                      className="pointer-events-auto absolute inset-x-0 bottom-0 top-1/2 bg-gradient-to-t from-white via-white/85 to-transparent backdrop-blur"
-                    >
-                      <div className="m-4 flex flex-col gap-3 rounded-2xl bg-white/90 p-4 text-slate-900 shadow-lg">
-                        <p className="text-sm font-semibold">{translations.home.brochureModal.blurNotice}</p>
-                        <p className="text-xs text-slate-600">{translations.home.brochureModal.unlockHint}</p>
+                  ) : null}
+
+                  <BrochureViewer
+                    url={brochureUrl}
+                    unlockGatePage={9}
+                    unlocked={brochureUnlocked}
+                    blurNotice={translations.home.brochureModal.blurNotice}
+                    unlockHint={translations.home.brochureModal.unlockHint}
+                    onUnlockRequest={handleBrochureUnlockRequest}
+                    onPageChange={setBrochureCurrentPage}
+                    onDocumentLoad={setBrochureTotalPages}
+                  />
+
+                  {!brochureUnlocked ? (
+                    <div className="pointer-events-none absolute inset-x-0 bottom-0 left-0 right-0 z-10 flex justify-end px-4 pb-4">
+                      <div className="pointer-events-auto flex items-center gap-3 rounded-full bg-white/95 px-4 py-2 text-[11px] font-semibold text-slate-800 shadow-lg">
+                        <span>
+                          {translations.home.brochureModal.blurNotice}{' '}
+                          {brochureCurrentPage && brochureTotalPages
+                            ? `${brochureCurrentPage}/${brochureTotalPages}`
+                            : ''}
+                        </span>
                         <button
                           type="button"
                           onClick={() => setShowBrochureContactModal(true)}
-                          className="inline-flex items-center justify-center rounded-full bg-[#0F172A] px-4 py-2 text-xs font-semibold text-white transition hover:scale-[1.02]"
+                          className="rounded-full bg-[#0F172A] px-3 py-1 text-[11px] font-semibold text-white transition hover:scale-[1.02]"
                         >
                           {translations.home.brochureModal.submitLabel}
                         </button>
-                        <div className="text-[11px] text-slate-500">
-                          {brochureGateTriggered
-                            ? translations.home.brochureModal.unlockHint
-                            : translations.home.brochureModal.blurNotice}
-                        </div>
                       </div>
                     </div>
-                  )}
+                  ) : null}
                 </div>
               </div>
             </div>
