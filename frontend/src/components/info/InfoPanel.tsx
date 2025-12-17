@@ -4,11 +4,69 @@ import ContactForm from '@/components/common/ContactForm';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { createContactSubmission } from '@/lib/contactSubmissions';
 
-// LISTA MANUAL DE TUS IMÁGENES REALES (Renombradas 1-24)
-const imagenesRealesList = Array.from(
-  { length: 24 },
-  (_, i) => `/assets/imagenesReales/${i + 1}.png`,
-);
+type GalleryCategory = {
+  id: string;
+  title: string;
+  images: string[];
+};
+
+const buildImagePath = (fileName: string) =>
+  `/assets/imagenesReales/${encodeURIComponent(fileName)}`;
+
+const formatImageTitle = (fileName: string) =>
+  fileName
+    .replace(/\.[^/.]+$/, '')
+    .replace(/_/g, ' ')
+    .trim();
+
+const galleryCategories: GalleryCategory[] = [
+  {
+    id: 'vistas',
+    title: 'Vistas',
+    images: [
+      'Máster Plan con perspectiva.png',
+      'Master Plan del predio.png',
+      'Perspectictiva desde terreno 1.png',
+      'Perspectiva punto de fuga.png',
+      'Perspectiva terreno.png',
+      'Perspectiva.png',
+      'Vista perspectiva Terrenos.png',
+      'Vista perspectiva de atras para adelante.png',
+      'Vista superior.png',
+      'Malecón + Puerto.png',
+      'Predios cercanos Dzilam_Mesa de trabajo 1.png',
+      'Predios cercanos Dzilam_Mesa de trabajo 1 copia 2.png',
+    ],
+  },
+  {
+    id: 'lotes',
+    title: 'Lotes',
+    images: ['Lotes__Perspectiva 1.png', 'Lotes__Vista Sueprior.png', 'Predio2.skp.png'],
+  },
+  {
+    id: 'cercanas',
+    title: 'Cosas cercanas',
+    images: [
+      'Cenote Valladolid.jpg',
+      'Cenote-Ik-Kil-Galeria-2.jpg.webp',
+      'Flamingos close.jpg',
+      'Izamal.jpg',
+      'Izamal.jpg.webp',
+      'Laguna Dzilam.png',
+      'Lagunas Dzilam.png',
+      'Las coloradas.jpg',
+      'Malecon Dzilam.jpeg',
+      'Malecon progreso.jpg',
+      'Playa _ Laguna Dzilam.png',
+      'Playas Dzilam(1).png',
+      'Playas Dzilam.png',
+      'Puerto Dzilam.png',
+      'Puerto prrogreso, segundo mas largo del mundo.jpeg.webp',
+      'Suelo de piedra bajo la vegetacion.png',
+      'Valladolid_iglesia.jpg',
+    ],
+  },
+];
 
 interface InfoPanelProps {
   closeSignal?: number;
@@ -166,30 +224,45 @@ export const InfoPanel = ({ closeSignal }: InfoPanelProps) => {
     </div>
   );
 
-  const renderGallery = (galleryEmpty?: string) => (
-    <div className="space-y-4 text-justify text-slate-800 w-full">
-      <div className="grid grid-cols-1 gap-4">
-        {imagenesRealesList.map((src, index) => (
-          <div
-            key={src + index}
-            className="relative h-48 w-full overflow-hidden rounded-2xl border border-slate-200 shadow-sm transition-transform hover:scale-[1.02] sm:h-60"
-          >
-            <Image
-              src={src}
-              alt={`${translations.home.footer.title} ${index + 1}`}
-              fill
-              className="object-cover"
-              sizes="(max-width: 768px) 100vw, 50vw"
-            />
+  const renderGallery = (galleryEmpty?: string) => {
+    const hasImages = galleryCategories.some((category) => category.images.length > 0);
+
+    return (
+      <div className="space-y-6 text-justify text-slate-800 w-full">
+        {galleryCategories.map((category) => (
+          <div key={category.id} className="space-y-3">
+            <h4 className="text-lg font-semibold text-slate-900">{category.title}</h4>
+            <div className="grid grid-cols-1 gap-4">
+              {category.images.map((fileName) => {
+                const imageTitle = formatImageTitle(fileName);
+                return (
+                  <figure
+                    key={`${category.id}-${fileName}`}
+                    className="relative h-52 w-full overflow-hidden rounded-2xl border border-slate-200 shadow-sm transition-transform hover:scale-[1.02] sm:h-64"
+                  >
+                    <Image
+                      src={buildImagePath(fileName)}
+                      alt={`${category.title} - ${imageTitle}`}
+                      fill
+                      className="object-cover"
+                      sizes="(max-width: 768px) 100vw, 50vw"
+                    />
+                    <figcaption className="absolute bottom-0 left-0 right-0 bg-slate-900/60 px-3 py-2 text-xs font-medium text-white backdrop-blur-sm">
+                      {imageTitle}
+                    </figcaption>
+                  </figure>
+                );
+              })}
+            </div>
           </div>
         ))}
-      </div>
 
-      {imagenesRealesList.length === 0 && (
-        <p className="py-10 text-center text-sm italic text-slate-500">{galleryEmpty}</p>
-      )}
-    </div>
-  );
+        {!hasImages && (
+          <p className="py-10 text-center text-sm italic text-slate-500">{galleryEmpty}</p>
+        )}
+      </div>
+    );
+  };
 
   const renderSectionContent = (sectionId: string) => {
     const section = sections.find((item) => item.id === sectionId);
