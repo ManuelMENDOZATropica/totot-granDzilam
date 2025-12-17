@@ -103,6 +103,9 @@ type HomeCopy = {
     interest: string;
     brochure: string;
     adminAccess: string;
+    textSize: string;
+    increaseText: string;
+    decreaseText: string;
   };
   brochureModal: {
     title: string;
@@ -150,6 +153,9 @@ export const translations: Record<Language, TranslationSchema> = {
         interest: 'Sitios de interés',
         brochure: 'Brochure',
         adminAccess: 'Acceso administrativo',
+        textSize: 'Tamaño de texto',
+        increaseText: 'Aumentar tamaño de texto',
+        decreaseText: 'Disminuir tamaño de texto',
       },
       brochureModal: {
         title: 'Brochure',
@@ -335,6 +341,9 @@ export const translations: Record<Language, TranslationSchema> = {
         interest: 'Points of interest',
         brochure: 'Brochure',
         adminAccess: 'Admin access',
+        textSize: 'Text size',
+        increaseText: 'Increase text size',
+        decreaseText: 'Decrease text size',
       },
       brochureModal: {
         title: 'Brochure',
@@ -515,6 +524,9 @@ export const translations: Record<Language, TranslationSchema> = {
         interest: 'Points d’intérêt',
         brochure: 'Brochure',
         adminAccess: 'Accès administrateur',
+        textSize: 'Taille du texte',
+        increaseText: 'Augmenter la taille du texte',
+        decreaseText: 'Réduire la taille du texte',
       },
       brochureModal: {
         title: 'Brochure',
