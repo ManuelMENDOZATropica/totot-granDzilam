@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useState } from 'react';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { buildApiUrl } from '@/utils/api';
 
 export type ChatbotStatus = 'idle' | 'loading';
@@ -29,10 +30,12 @@ export const useChatbot = () => {
   // CAMBIO IMPORTANTE: Iniciamos con array vacío para que el Widget
   // muestre la UI de bienvenida con las sugerencias.
   const [messages, setMessages] = useState<ChatMessage[]>([]);
-  
+
   const [status, setStatus] = useState<ChatbotStatus>('idle');
   const [error, setError] = useState<string | null>(null);
 
+  const { language, translations } = useLanguage();
+  const errorMessages = translations.chatbot.errors;
   const endpoint = useMemo(() => buildApiUrl('/api/chatbot'), []);
 
   const sendMessage = useCallback(
@@ -61,7 +64,7 @@ export const useChatbot = () => {
         const response = await fetch(endpoint, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ message: trimmed, history: historyPayload }),
+          body: JSON.stringify({ message: trimmed, history: historyPayload, language }),
         });
 
         let payload: ChatbotResponse;
@@ -75,15 +78,15 @@ export const useChatbot = () => {
           const errorCode = payload.error ?? 'CHATBOT_ERROR';
           const apiMessage = payload.message;
 
-          let friendly = 'No pude responder en este momento. Intenta de nuevo más tarde.';
+          let friendly = errorMessages.generic;
           if (response.status === 429 && errorCode === 'OPENAI_QUOTA') {
-            friendly = 'Se alcanzó el límite de uso. Intenta más tarde.';
+            friendly = errorMessages.quota;
           } else if (response.status === 429 && errorCode === 'RATE_LIMITED') {
-            friendly = 'Has superado el límite de solicitudes. Intenta de nuevo en unos minutos.';
+            friendly = errorMessages.rateLimited;
           } else if ((response.status === 504 || response.status === 502) && errorCode === 'OPENAI_UPSTREAM') {
-            friendly = 'El servicio tardó demasiado. Intenta nuevamente.';
+            friendly = errorMessages.timeout;
           } else if (response.status === 400 && errorCode === 'INVALID_PROMPT_OR_FORMAT') {
-            friendly = 'No pudimos procesar tu mensaje. Ajusta el texto e inténtalo de nuevo.';
+            friendly = errorMessages.invalidPrompt;
           } else if (!response.ok && apiMessage) {
             friendly = apiMessage;
           }
@@ -102,12 +105,12 @@ export const useChatbot = () => {
         if ((err as Error).name === 'AbortError') {
           return;
         }
-        setError('No pude responder en este momento. Intenta de nuevo más tarde.');
+        setError(errorMessages.generic);
       } finally {
         setStatus('idle');
       }
     },
-    [endpoint, messages, status],
+    [endpoint, errorMessages.generic, errorMessages.invalidPrompt, errorMessages.quota, errorMessages.rateLimited, errorMessages.timeout, language, messages, status],
   );
 
   const reset = useCallback(() => {

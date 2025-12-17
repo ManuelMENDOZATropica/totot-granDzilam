@@ -1,6 +1,7 @@
 import { FormEvent, useEffect, useRef, useState } from 'react';
-import { useChatbot } from '@/hooks/useChatbot';
 import Image from 'next/image';
+import { useChatbot } from '@/hooks/useChatbot';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export const ChatbotWidget = () => {
   const { messages, status, error, sendMessage } = useChatbot();
@@ -8,12 +9,11 @@ export const ChatbotWidget = () => {
   const [input, setInput] = useState('');
   const scrollRef = useRef<HTMLDivElement | null>(null);
 
+  const { translations } = useLanguage();
+  const chatbotCopy = translations.chatbot;
+
   // Preguntas sugeridas basadas en la imagen "Frame 51"
-  const suggestions = [
-    '¿Puedo personalizar mi financiamiento?',
-    '¿Puedo personalizar la superficie?',
-    '¿Qué proyectos hay en la zona?',
-  ];
+  const suggestions = chatbotCopy.suggestions;
 
   useEffect(() => {
     if (!isOpen || !scrollRef.current) return;
@@ -41,7 +41,7 @@ export const ChatbotWidget = () => {
           <div className="flex items-center justify-end bg-[#efeeeb] px-1 py-1 ">
             <button
               type="button"
-              aria-label="Cerrar"
+              aria-label={chatbotCopy.aria.close}
               onClick={() => setIsOpen(false)}
               className="rounded-full bg-slate-100 p-2 text-slate-500 transition hover:bg-slate-200 hover:text-slate-700"
             >
@@ -73,10 +73,8 @@ export const ChatbotWidget = () => {
                     
                     {/* Texto de Bienvenida */}
                     <div className="mb-4 text-[15px] leading-relaxed text-[#1C2E3D]">
-                      <p>
-                        Hola, Soy tu <span className="font-bold">asistente virtual</span>, puedo resolver tus dudas sobre tu inversión en Gran Dzilam.
-                      </p>
-                      <p className="mt-1">¿Tienes alguna pregunta?</p>
+                      <p>{chatbotCopy.intro.greeting}</p>
+                      <p className="mt-1">{chatbotCopy.intro.question}</p>
                     </div>
 
                     {/* Botones de Sugerencias */}
@@ -151,7 +149,7 @@ export const ChatbotWidget = () => {
                 type="text"
                 value={input}
                 onChange={(event) => setInput(event.target.value)}
-                placeholder="Escribe aquí tu pregunta..."
+                placeholder={chatbotCopy.placeholder}
                 className="w-full rounded-full border border-[#2F4F4F] py-3 pl-5 pr-12 text-[15px] text-slate-700 placeholder:text-slate-500 focus:outline-none focus:ring-1 focus:ring-[#2F4F4F] bg-white"
                 disabled={status === 'loading'}
               />
@@ -162,7 +160,7 @@ export const ChatbotWidget = () => {
                   type="submit"
                   disabled={status === 'loading'}
                   className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full bg-[#355F62] p-2 text-white transition-all hover:bg-[#2A4A4D]"
-                  aria-label="Enviar"
+                  aria-label={chatbotCopy.aria.send}
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
                     <path d="M3.478 2.405a.75.75 0 00-.926.94l2.432 7.905H13.5a.75.75 0 010 1.5H4.984l-2.432 7.905a.75.75 0 00.926.94 60.519 60.519 0 0018.445-8.986.75.75 0 000-1.218A60.517 60.517 0 003.478 2.405z" />
@@ -180,6 +178,7 @@ export const ChatbotWidget = () => {
         onClick={() => setIsOpen((prev) => !prev)}
         className="flex h-14 w-14 items-center justify-center rounded-full border border-slate-100 bg-[#efeeeb] shadow-[0_4px_12px_rgba(0,0,0,0.1)] transition-transform hover:scale-110 active:scale-95"
         aria-expanded={isOpen}
+        aria-label={isOpen ? chatbotCopy.aria.close : chatbotCopy.aria.open}
       >
         {isOpen ? (
              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="#355F62" className="w-6 h-6">

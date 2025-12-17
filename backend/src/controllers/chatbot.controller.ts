@@ -15,6 +15,7 @@ const messageSchema = z.object({
     )
     .max(10)
     .optional(),
+  language: z.enum(['es', 'en', 'fr']).optional(),
 });
 
 export const chatWithAssistant = async (req: Request, res: Response) => {
@@ -29,10 +30,10 @@ export const chatWithAssistant = async (req: Request, res: Response) => {
     });
   }
 
-  const { message, history } = parsed.data;
+  const { message, history, language } = parsed.data;
 
   try {
-    const response = await chatbotService.chat({ message, history });
+    const response = await chatbotService.chat({ message, history, language });
     return res.status(200).json({ ok: true, data: response });
   } catch (error) {
     if (error instanceof OpenAIRequestError) {

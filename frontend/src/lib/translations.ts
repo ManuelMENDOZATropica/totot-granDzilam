@@ -42,6 +42,20 @@ type InfoSection = {
   specs?: { title: string; description: string }[];
 };
 
+type ChatbotCopy = {
+  intro: { greeting: string; question: string };
+  suggestions: string[];
+  placeholder: string;
+  aria: { open: string; close: string; send: string };
+  errors: {
+    generic: string;
+    quota: string;
+    rateLimited: string;
+    timeout: string;
+    invalidPrompt: string;
+  };
+};
+
 type MacroEstimator = {
   toggle: string;
   disclaimer: string;
@@ -106,11 +120,12 @@ export type TranslationSchema = {
   home: HomeCopy;
   cookies: CookieCopy;
   admin: { panel: string };
-  infoPanel: { sections: InfoSection[] };
+  infoPanel: { sections: InfoSection[]; viewLarge: string };
   macro: MacroEstimator;
   panel: PanelEstimator;
   imagine: ImagineCopy;
   contact: ContactInfo;
+  chatbot: ChatbotCopy;
 };
 
 export const translations: Record<Language, TranslationSchema> = {
@@ -151,6 +166,7 @@ export const translations: Record<Language, TranslationSchema> = {
     },
     admin: { panel: 'Panel admin' },
     infoPanel: {
+      viewLarge: 'Click para ver en grande',
       sections: [
         {
           id: 'sobre',
@@ -204,6 +220,27 @@ export const translations: Record<Language, TranslationSchema> = {
           ],
         },
       ],
+    },
+    chatbot: {
+      intro: {
+        greeting:
+          'Hola, soy tu asistente virtual y puedo ayudarte con todo lo relacionado con tu inversión en Gran Dzilam.',
+        question: '¿Tienes alguna pregunta?',
+      },
+      suggestions: [
+        '¿Puedo personalizar mi financiamiento?',
+        '¿Puedo personalizar la superficie?',
+        '¿Qué proyectos hay en la zona?',
+      ],
+      placeholder: 'Escribe aquí tu pregunta...',
+      aria: { open: 'Abrir asistente virtual', close: 'Cerrar asistente virtual', send: 'Enviar' },
+      errors: {
+        generic: 'No pude responder en este momento. Intenta de nuevo más tarde.',
+        quota: 'Se alcanzó el límite de uso. Intenta más tarde.',
+        rateLimited: 'Has superado el límite de solicitudes. Intenta de nuevo en unos minutos.',
+        timeout: 'El servicio tardó demasiado. Intenta nuevamente.',
+        invalidPrompt: 'No pudimos procesar tu mensaje. Ajusta el texto e inténtalo de nuevo.',
+      },
     },
     macro: {
       toggle: 'Cotizar macro terreno',
@@ -305,6 +342,7 @@ export const translations: Record<Language, TranslationSchema> = {
     },
     admin: { panel: 'Admin panel' },
     infoPanel: {
+      viewLarge: 'Click to enlarge',
       sections: [
         {
           id: 'sobre',
@@ -358,6 +396,22 @@ export const translations: Record<Language, TranslationSchema> = {
           ],
         },
       ],
+    },
+    chatbot: {
+      intro: {
+        greeting: 'Hi, I am your virtual assistant. I can help with anything related to your investment in Gran Dzilam.',
+        question: 'Do you have any questions?',
+      },
+      suggestions: ['Can I customize my financing?', 'Can I customize the surface area?', 'What projects are nearby?'],
+      placeholder: 'Type your question here...',
+      aria: { open: 'Open virtual assistant', close: 'Close virtual assistant', send: 'Send' },
+      errors: {
+        generic: 'I could not reply right now. Please try again later.',
+        quota: 'Usage limit reached. Please try again later.',
+        rateLimited: 'You have exceeded the request limit. Try again in a few minutes.',
+        timeout: 'The service took too long. Please try again.',
+        invalidPrompt: 'We could not process your message. Adjust the text and try again.',
+      },
     },
     macro: {
       toggle: 'Quote macrolot',
@@ -459,6 +513,7 @@ export const translations: Record<Language, TranslationSchema> = {
     },
     admin: { panel: 'Panneau admin' },
     infoPanel: {
+      viewLarge: 'Cliquer pour agrandir',
       sections: [
         {
           id: 'sobre',
@@ -512,6 +567,27 @@ export const translations: Record<Language, TranslationSchema> = {
           ],
         },
       ],
+    },
+    chatbot: {
+      intro: {
+        greeting:
+          'Bonjour, je suis votre assistant virtuel. Je peux vous aider pour tout ce qui concerne votre investissement à Gran Dzilam.',
+        question: 'Avez-vous des questions ?',
+      },
+      suggestions: [
+        'Puis-je personnaliser mon financement ?',
+        'Puis-je personnaliser la surface ?',
+        'Quels projets se trouvent dans la zone ?',
+      ],
+      placeholder: 'Écrivez votre question ici...',
+      aria: { open: 'Ouvrir l’assistant virtuel', close: 'Fermer l’assistant virtuel', send: 'Envoyer' },
+      errors: {
+        generic: 'Je ne peux pas répondre pour le moment. Réessayez plus tard.',
+        quota: "Limite d’utilisation atteinte. Réessayez plus tard.",
+        rateLimited: 'Vous avez dépassé la limite de requêtes. Réessayez dans quelques minutes.',
+        timeout: 'Le service a mis trop de temps à répondre. Veuillez réessayer.',
+        invalidPrompt: 'Nous n’avons pas pu traiter votre message. Modifiez le texte et réessayez.',
+      },
     },
     macro: {
       toggle: 'Estimer un macrolot',

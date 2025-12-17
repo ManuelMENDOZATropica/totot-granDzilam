@@ -12,6 +12,7 @@ export interface ChatbotMessage {
 export interface ChatbotRequest {
   message: string;
   history?: ChatbotMessage[];
+  language?: 'es' | 'en' | 'fr';
 }
 
 export interface ChatbotResponse {
@@ -27,6 +28,11 @@ interface ChatbotServiceDependencies {
 const MODEL = 'gpt-4o-mini';
 const CHAT_URL = 'https://api.openai.com/v1/chat/completions';
 const MAX_HISTORY = 10;
+const LANGUAGE_LABEL: Record<'es' | 'en' | 'fr', string> = {
+  es: 'español',
+  en: 'inglés',
+  fr: 'francés',
+};
 
 // --- BASE DE CONOCIMIENTO (Gran Dzilam) ---
 const KNOWLEDGE_BASE = `
@@ -98,9 +104,11 @@ export const createChatbotService = (deps: ChatbotServiceDependencies = {}) => {
 
   if (!useMock && !apiKey) throw new Error('OPENAI_API_KEY is required when USE_MOCK_OPENAI is disabled');
 
-  const chat = async ({ message, history }: ChatbotRequest): Promise<ChatbotResponse> => {
+  const chat = async ({ message, history, language }: ChatbotRequest): Promise<ChatbotResponse> => {
     const trimmedMessage = message.trim();
     const sanitizedHistory = sanitizeHistory(history);
+    const replyLanguage: 'es' | 'en' | 'fr' = language && LANGUAGE_LABEL[language] ? language : 'es';
+    const languageInstruction = `Responde siempre en ${LANGUAGE_LABEL[replyLanguage]}. Si el usuario escribe en otro idioma, adapta la respuesta al ${LANGUAGE_LABEL[replyLanguage]} manteniendo la información exacta.`;
 
     if (useMock) {
       return { reply: 'Modo Mock: Hola, ¿te interesa conocer nuestros planes de financiamiento a 24 meses?' };
@@ -111,7 +119,7 @@ export const createChatbotService = (deps: ChatbotServiceDependencies = {}) => {
     const messages = [
       {
         role: 'system' as const,
-        content: `Eres un experto asesor de ventas de Gran Dzilam.\n\n${KNOWLEDGE_BASE}\n\n${SECURITY_GRAILS}`,
+        content: `Eres un experto asesor de ventas de Gran Dzilam.\n\n${KNOWLEDGE_BASE}\n\n${SECURITY_GRAILS}\n\n${languageInstruction}`,
       },
       ...sanitizedHistory.map((entry) => ({ role: entry.role, content: entry.content })),
       { role: 'user' as const, content: trimmedMessage },

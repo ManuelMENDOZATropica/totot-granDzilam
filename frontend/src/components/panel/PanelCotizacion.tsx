@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from 'react';
+import { useLanguage } from '@/contexts/LanguageContext';
 import type { Lote, TotalesCotizacion } from '@/hooks/useCotizacion';
 import type { FinanceSettingsDTO } from '@/lib/financeSettings';
 import { formatearMoneda } from '@/lib/formatoMoneda';
@@ -42,6 +43,9 @@ export const PanelCotizacion = ({
   onDescargar,
   descargaEnProgreso = false,
 }: PanelCotizacionProps) => {
+  const { translations, language } = useLanguage();
+  const panelCopy = translations.panel;
+  const locale = language === 'en' ? 'en-US' : language === 'fr' ? 'fr-FR' : 'es-MX';
   const [moneda, setMoneda] = useState<Moneda>('mxn');
   const [unidadMedida, setUnidadMedida] = useState<UnidadMedida>('metric');
 
@@ -57,8 +61,8 @@ export const PanelCotizacion = ({
   const formatArea = useMemo(() => {
     const factor = unidadMedida === 'metric' ? 1 : SQM_TO_SQFT;
     return (valor: number) =>
-      `${(valor * factor).toLocaleString('es-MX', { minimumFractionDigits: 2 })} ${etiquetaMedida}`;
-  }, [etiquetaMedida, unidadMedida]);
+      `${(valor * factor).toLocaleString(locale, { minimumFractionDigits: 2 })} ${etiquetaMedida}`;
+  }, [etiquetaMedida, locale, unidadMedida]);
 
   const totalMetros = lotesSeleccionados.reduce(
     (acum, lote) => acum + lote.superficieM2,
@@ -78,15 +82,13 @@ export const PanelCotizacion = ({
       style={{ backgroundColor: colors.bg }}
     >
       <div className="flex-1 overflow-y-auto px-8 py-10 lg:px-12 overlay-scrollbar">
-        
-        <h2 className="mb-10 font-serif text-3xl font-medium text-[#1C2533]">
-          Genera tu estimación
-        </h2>
+
+        <h2 className="mb-10 font-serif text-3xl font-medium text-[#1C2533]">{panelCopy.title}</h2>
 
         {/* --- Medidas --- */}
         <div className="mb-8">
           <div className="mb-3 flex items-center gap-3">
-            <span className="text-sm font-bold text-[#1C2533]">Medidas</span>
+            <span className="text-sm font-bold text-[#1C2533]">{panelCopy.measures}</span>
             <div className="flex items-center gap-1 rounded-full bg-[#E2E0DB] p-1 text-[10px] font-medium text-[#1C2533]">
               <button
                 type="button"
@@ -112,7 +114,7 @@ export const PanelCotizacion = ({
               </div>
             ))}
             <div className="flex justify-between pt-2 font-bold">
-              <span>TOTAL</span>
+              <span>{panelCopy.total}</span>
               <span>{formatArea(totalMetros)}</span>
             </div>
           </div>
@@ -121,7 +123,7 @@ export const PanelCotizacion = ({
         {/* --- Estimación --- */}
         <div className="mb-10">
           <div className="mb-3 flex items-center gap-3">
-            <span className="text-sm font-bold text-[#1C2533]">Estimación de costo</span>
+            <span className="text-sm font-bold text-[#1C2533]">{panelCopy.estimation}</span>
             <div className="flex items-center gap-1 rounded-full bg-[#E2E0DB] p-1 text-[10px] font-medium text-[#1C2533]">
               <button
                 type="button"
@@ -147,28 +149,30 @@ export const PanelCotizacion = ({
               </div>
             ))}
             <div className="flex justify-between font-bold">
-              <span>Subtotal</span>
+              <span>{panelCopy.subtotal}</span>
               <span>{formatCurrency(totales.totalSeleccionado)} {etiquetaMoneda}</span>
             </div>
             <div className="flex justify-between text-[#16a34a]">
-              <span>Descuento ({Math.round(totales.descuentoPorcentaje * 100)}%)</span>
+              <span>
+                {panelCopy.discount} ({Math.round(totales.descuentoPorcentaje * 100)}%)
+              </span>
               <span>-{formatCurrency(totales.descuentoAplicado)} {etiquetaMoneda}</span>
             </div>
             <div className="flex justify-between pb-4 font-bold">
-              <span>Total con descuento</span>
+              <span>{panelCopy.totalWithDiscount}</span>
               <span>{formatCurrency(totales.totalConDescuento)} {etiquetaMoneda}</span>
             </div>
             <div className="space-y-2">
               <div className="flex justify-between">
-                <span>Enganche</span>
+                <span>{panelCopy.downPayment}</span>
                 <span>{formatCurrency(totales.enganche)} {etiquetaMoneda}</span>
               </div>
               <div className="flex justify-between">
-                <span>Saldo</span>
+                <span>{panelCopy.balance}</span>
                 <span>{formatCurrency(totales.saldoFinanciar)} {etiquetaMoneda}</span>
               </div>
               <div className="flex justify-between">
-                <span>Mensualidad</span>
+                <span>{panelCopy.monthly}</span>
                 <span>{formatCurrency(totales.mensualidad)} {etiquetaMoneda}</span>
               </div>
             </div>
@@ -177,11 +181,11 @@ export const PanelCotizacion = ({
 
         {/* --- Sliders --- */}
         <div className="mb-10">
-          <h3 className="mb-6 text-sm font-bold text-[#1C2533]">Personaliza tu cotización</h3>
+          <h3 className="mb-6 text-sm font-bold text-[#1C2533]">{panelCopy.personalize}</h3>
           <div className="flex flex-col gap-8">
             <div className="flex flex-col gap-3">
               <div className="flex justify-between text-xs uppercase tracking-wider text-[#64748B]">
-                <span>Enganche</span>
+                <span>{panelCopy.downPaymentLabel}</span>
               </div>
               <input
                 type="range"
@@ -198,7 +202,7 @@ export const PanelCotizacion = ({
 
             <div className="flex flex-col gap-3">
               <div className="flex justify-between text-xs uppercase tracking-wider text-[#64748B]">
-                <span>Pagos</span>
+                <span>{panelCopy.monthsLabel}</span>
               </div>
               <input
                 type="range"
@@ -210,7 +214,7 @@ export const PanelCotizacion = ({
                 disabled={configuracionCargando}
                 className="h-1 w-full cursor-pointer appearance-none rounded-full bg-[#E2E0DB] accent-[#1C2533]"
               />
-              <div className="text-right text-sm font-semibold text-[#1C2533]">{meses} pagos</div>
+              <div className="text-right text-sm font-semibold text-[#1C2533]">{meses} {panelCopy.monthsLabel}</div>
             </div>
           </div>
         </div>
@@ -223,7 +227,7 @@ export const PanelCotizacion = ({
             disabled={descargaEnProgreso}
             className="flex-1 rounded-full bg-[#1C2533] px-4 py-3 text-sm font-medium text-white hover:bg-[#2d3b50] transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
           >
-            {descargaEnProgreso ? 'Generando...' : 'Descargar cotización'}
+            {descargaEnProgreso ? panelCopy.actions.downloading : panelCopy.actions.download}
           </button>
 
           {/* BOTÓN RESTAURADO: Ejecuta la función del padre */}
@@ -232,7 +236,7 @@ export const PanelCotizacion = ({
             onClick={onContactar}
             className="flex-1 rounded-full border border-[#1C2533] px-4 py-3 text-sm font-medium text-[#1C2533] hover:bg-[#1C2533] hover:text-white transition-colors"
           >
-            Contáctanos
+            {panelCopy.actions.contact}
           </button>
         </div>
 
@@ -248,7 +252,7 @@ export const PanelCotizacion = ({
               <rect width="24" height="2" rx="1" fill="currentColor" />
             </svg>
           </div>
-          Cerrar cotizador
+          {panelCopy.actions.close}
         </button>
       </div>
     </aside>
