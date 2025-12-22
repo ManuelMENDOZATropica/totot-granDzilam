@@ -14,7 +14,7 @@ import { HeroLanding } from '@/components/home/HeroLanding';
 
 import { ChatbotWidget } from '@/components/chat/ChatbotWidget';
 
-import { useImagine } from '@/hooks/useImagine';
+import { LAST_IMAGE_KEY, getImagineImageSrc, useImagine } from '@/hooks/useImagine';
 
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -164,6 +164,15 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const storedImage = window.localStorage.getItem(LAST_IMAGE_KEY);
+      if (storedImage) {
+        setFondoActual(storedImage);
+      }
+    }
+  }, []);
+
+  useEffect(() => {
     const storedFontScale = localStorage.getItem('fontScale');
 
     if (!storedFontScale) return;
@@ -218,9 +227,13 @@ export default function Home() {
       });
 
       setFondoActual((actual) => {
-        const sigueDisponible = vistasObjetivo.some((vista) => vista.src === actual);
+        if (!actual) return vistasObjetivo[0]?.src ?? actual;
 
-        if (sigueDisponible) return actual;
+        const sigueDisponible = vistasObjetivo.some((vista) => vista.src === actual);
+        const isCustomBackground =
+          actual.startsWith('data:') || actual.startsWith('/IA/') || actual.startsWith('http');
+
+        if (sigueDisponible || isCustomBackground) return actual;
 
         return vistasObjetivo[0]?.src ?? actual;
       });
@@ -240,9 +253,10 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    if (status !== 'success' || !result?.imageUrl) return;
+    if (status !== 'success') return;
 
-    const imageUrl = result.imageUrl;
+    const imageUrl = getImagineImageSrc(result ?? null);
+    if (!imageUrl) return;
 
     setFading(true);
 

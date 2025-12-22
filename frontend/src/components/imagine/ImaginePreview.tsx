@@ -1,4 +1,5 @@
 import clsx from 'clsx';
+import { getImagineImageSrc } from '@/hooks/useImagine';
 import type { ImagineData, ImagineStatus } from '@/hooks/useImagine';
 
 interface ImaginePreviewProps {
@@ -9,7 +10,8 @@ interface ImaginePreviewProps {
 }
 
 export const ImaginePreview = ({ status, result, error, onRetry }: ImaginePreviewProps) => {
-  const showPlaceholder = status === 'idle' || (!result?.imageUrl && status === 'success');
+  const imageSrc = result ? getImagineImageSrc(result) : null;
+  const showPlaceholder = status === 'idle' || (status === 'success' && !imageSrc);
 
   return (
     <section
@@ -36,10 +38,10 @@ export const ImaginePreview = ({ status, result, error, onRetry }: ImaginePrevie
             <span className="text-sm text-slate-400 text-center px-6">
               Describe tu idea y aquí aparecerá la imagen conceptual.
             </span>
-          ) : result?.imageUrl ? (
+          ) : imageSrc ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
-              src={result.imageUrl}
+              src={imageSrc}
               alt="Concepto generado para tu lote"
               className="h-full w-full object-cover"
             />

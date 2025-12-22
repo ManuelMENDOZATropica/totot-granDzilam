@@ -235,6 +235,7 @@ export const createImagineService = (deps: ImagineServiceDependencies = {}) => {
         textoInspirador,
         promptVisual: promptForImage,
         imageUrl: resolvedImage.url,
+        imageBase64: resolvedImage.base64 ?? null,
       };
 
       cache.set(cacheKey, { value: result, expiresAt: currentTime + CACHE_TTL_MS });
