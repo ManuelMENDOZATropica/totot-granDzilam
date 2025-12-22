@@ -99,11 +99,26 @@ export const requestOpenAI = async <T>({
           errorCode: mappedError,
         });
 
-        if (shouldRetryStatus(response.status) && attempt < maxAttempts) {
+        const shouldRetry = shouldRetryStatus(response.status);
+        if (shouldRetry && attempt < maxAttempts) {
+          logger.warn('OpenAI request will retry after upstream error', {
+            attempt,
+            maxAttempts,
+            status: response.status,
+            type: errorType,
+            code: errorCode,
+          });
           const backoff = Math.pow(2, attempt - 1) * 300;
           await delay(backoff);
           continue;
         }
+
+        logger.error('OpenAI request failed without more retries', {
+          status: response.status,
+          message: messageFromApi,
+          type: errorType,
+          code: errorCode,
+        });
 
         throw apiError;
       }
@@ -113,11 +128,26 @@ export const requestOpenAI = async <T>({
       lastError = error;
 
       if (error instanceof OpenAIRequestError) {
-        if (shouldRetryStatus(error.status) && attempt < maxAttempts) {
+        const shouldRetry = shouldRetryStatus(error.status);
+        if (shouldRetry && attempt < maxAttempts) {
+          logger.warn('OpenAI request will retry after downstream error', {
+            attempt,
+            maxAttempts,
+            status: error.status,
+            type: error.type,
+            code: error.code,
+            message: error.message,
+          });
           const backoff = Math.pow(2, attempt - 1) * 300;
           await delay(backoff);
           continue;
         }
+        logger.error('OpenAI request failed without more retries', {
+          status: error.status,
+          type: error.type,
+          code: error.code,
+          message: error.message,
+        });
         throw error;
       }
 
@@ -128,14 +158,14 @@ export const requestOpenAI = async <T>({
           code: 'timeout',
           errorCode: 'OPENAI_UPSTREAM',
         });
-        logger.error('OpenAI request timed out', { status: 504, message: timeoutError.message });
-
         if (attempt < maxAttempts) {
+          logger.warn('OpenAI request timed out; retrying', { attempt, maxAttempts, status: 504 });
           const backoff = Math.pow(2, attempt - 1) * 300;
           await delay(backoff);
           continue;
         }
 
+        logger.error('OpenAI request timed out without more retries', { status: 504, message: timeoutError.message });
         throw timeoutError;
       }
 
@@ -146,14 +176,22 @@ export const requestOpenAI = async <T>({
         code: 'network_error',
         errorCode: 'OPENAI_UPSTREAM',
       });
-      logger.error('OpenAI request encountered a network error', { status: 502, message: networkMessage });
-
       if (attempt < maxAttempts) {
+        logger.warn('OpenAI request encountered a network error; retrying', {
+          attempt,
+          maxAttempts,
+          status: 502,
+          message: networkMessage,
+        });
         const backoff = Math.pow(2, attempt - 1) * 300;
         await delay(backoff);
         continue;
       }
 
+      logger.error('OpenAI request encountered a network error without more retries', {
+        status: 502,
+        message: networkMessage,
+      });
       throw networkError;
     } finally {
       clearTimeout(timer);
