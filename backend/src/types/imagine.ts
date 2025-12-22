@@ -4,5 +4,6 @@ export interface ImagineResult {
   textoInspirador: string;
   promptVisual: string;
   imageUrl: string | null;
+  imageBase64?: string | null;
   imageId?: string | null;
 }

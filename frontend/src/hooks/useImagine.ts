@@ -9,6 +9,7 @@ export interface ImagineData {
   textoInspirador: string;
   promptVisual: string;
   imageUrl: string | null;
+  imageBase64?: string | null;
 }
 
 interface ImagineResponse {
@@ -21,11 +22,18 @@ interface ImagineResponse {
 const buildImagineEndpoint = () => buildApiUrl('/api/imagine');
 
 const LAST_PROMPT_KEY = 'gran-dzilam-imagine:last-prompt';
+export const LAST_IMAGE_KEY = 'gran-dzilam-imagine:last-image';
 
 const sanitizePrompt = (value: string) => value.replace(/\s+/g, ' ').trim();
 
 const allowedSizes: ImagineSize[] = ['1024x1024', '1024x1536', '1536x1024', 'auto'];
 const allowedSizeSet = new Set<ImagineSize>(allowedSizes);
+
+export const getImagineImageSrc = (data: Pick<ImagineData, 'imageUrl' | 'imageBase64'> | null) => {
+  if (!data) return null;
+  if (data.imageBase64) return `data:image/png;base64,${data.imageBase64}`;
+  return data.imageUrl;
+};
 
 export const useImagine = () => {
   const [status, setStatus] = useState<ImagineStatus>('idle');
@@ -109,6 +117,12 @@ export const useImagine = () => {
 
         if (typeof window !== 'undefined') {
           window.localStorage.setItem(LAST_PROMPT_KEY, normalizedPrompt);
+          const storedImage = getImagineImageSrc(payload.data) ?? '';
+          if (storedImage) {
+            window.localStorage.setItem(LAST_IMAGE_KEY, storedImage);
+          } else {
+            window.localStorage.removeItem(LAST_IMAGE_KEY);
+          }
         }
 
         return { ok: true, data: payload.data } as const;

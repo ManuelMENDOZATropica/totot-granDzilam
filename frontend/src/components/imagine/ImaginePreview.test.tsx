@@ -35,6 +35,19 @@ test('ImaginePreview renders success state with content', () => {
   assert.ok(html.includes('Ver prompt usado'));
 });
 
+test('ImaginePreview renders base64 images when provided', () => {
+  const html = renderToString(
+    <ImaginePreview
+      status="success"
+      result={{ ...baseResult, imageUrl: null, imageBase64: 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAAB' }}
+      error={null}
+      onRetry={() => {}}
+    />,
+  );
+
+  assert.ok(html.includes('data:image/png;base64,'));
+});
+
 test('ImaginePreview renders error message', () => {
   const html = renderToString(
     <ImaginePreview status="error" result={null} error="No se pudo" onRetry={() => {}} />,
