@@ -1,4 +1,3 @@
-
 import Head from 'next/head';
 
 import Image from 'next/image';
@@ -37,11 +36,17 @@ import { CookieBanner } from '@/components/home/CookieBanner';
 import { useLanguage } from '@/contexts/LanguageContext';
 import LanguageSelector from '@/components/common/LanguageSelector';
 import { ContactForm } from '@/components/common/ContactForm';
-import { createContactSubmission, type CreateContactSubmissionPayload } from '@/lib/contactSubmissions';
+import {
+  createContactSubmission,
+  type CreateContactSubmissionPayload,
+} from '@/lib/contactSubmissions';
 
-const BrochureViewer = dynamic(() => import('@/components/home/BrochureViewer').then((mod) => mod.BrochureViewer), {
-  ssr: false,
-});
+const BrochureViewer = dynamic(
+  () => import('@/components/home/BrochureViewer').then((mod) => mod.BrochureViewer),
+  {
+    ssr: false,
+  },
+);
 
 const INTEREST_IMAGE_PATH = '/assets/sitios%20de%20interes.jpg';
 const brochureFiles = {
@@ -57,28 +62,19 @@ const brochureFiles = {
 
 const BROCHURE_LOCK_PAGE = 10;
 
-
-
 // 1. DEFINIMOS LAS 6 VISTAS
 
 const vistasDesktop = [
-
   { nombre: '1', src: '/assets/vistas/1.png' },
 
   { nombre: '2', src: '/assets/vistas/2.png' },
 
   { nombre: '3', src: '/assets/vistas/3.png' },
-
   { nombre: '4', src: '/assets/vistas/4.png' },
-
-  { nombre: '5', src: '/assets/vistas/5.png' },
-
-  { nombre: '6', src: '/assets/vistas/6.png' },
-
+  
 ];
 
 const vistasMobile = [
-
   { nombre: '1', src: '/assets/vistas/mobile1.png' },
 
   { nombre: '2', src: '/assets/vistas/mobile2.png' },
@@ -90,21 +86,14 @@ const vistasMobile = [
   { nombre: '5', src: '/assets/vistas/mobile5.png' },
 
   { nombre: '6', src: '/assets/vistas/mobile6.png' },
-
 ];
 
-
-
 export default function Home() {
-
   const [cookieConsent, setCookieConsent] = useState<'all' | 'essential' | null>(null);
   const [showCookieBanner, setShowCookieBanner] = useState(false);
   const [isMobileViewport, setIsMobileViewport] = useState(false);
 
-
-
   const {
-
     lotes,
 
     loading,
@@ -132,16 +121,11 @@ export default function Home() {
     actualizarPorcentaje,
 
     actualizarMeses,
-
   } = useCotizacion();
-
-
 
   const { status, error: imagineError, generate, lastPrompt, result } = useImagine();
   const { user } = useAuth();
   const { language, translations } = useLanguage();
-
-
 
   const [mounted, setMounted] = useState(false);
 
@@ -163,8 +147,6 @@ export default function Home() {
   const [brochureCurrentPage, setBrochureCurrentPage] = useState<number | null>(null);
   const [brochureTotalPages, setBrochureTotalPages] = useState<number | null>(null);
 
-
-
   // Inicialización
 
   const [fondoActual, setFondoActual] = useState(vistasDesktop[0].src);
@@ -177,16 +159,11 @@ export default function Home() {
 
   const [vistas, setVistas] = useState(vistasDesktop);
 
-
-
   useEffect(() => {
-
     setMounted(true);
-
   }, []);
 
   useEffect(() => {
-
     const storedFontScale = localStorage.getItem('fontScale');
 
     if (!storedFontScale) return;
@@ -196,241 +173,148 @@ export default function Home() {
     if (Number.isNaN(parsedScale)) return;
 
     setFontScale(clampFontScale(parsedScale));
-
   }, []);
 
   useEffect(() => {
-
     document.documentElement.style.setProperty('--base-font-size', `${16 * fontScale}px`);
 
     localStorage.setItem('fontScale', fontScale.toString());
-
   }, [fontScale]);
 
-
-
   useEffect(() => {
-
     const storedConsent = localStorage.getItem('cookieConsent');
 
     if (storedConsent === 'all' || storedConsent === 'essential') {
-
       setCookieConsent(storedConsent);
 
       return;
-
     }
 
     setShowCookieBanner(true);
-
   }, []);
 
-
-
   useEffect(() => {
-
     if (!promptLoaded.current && lastPrompt) {
-
       setPrompt(lastPrompt);
 
       promptLoaded.current = true;
-
     }
-
   }, [lastPrompt]);
 
-
-
   useEffect(() => {
-
     if (typeof window === 'undefined') return;
-
-
 
     const mediaQuery = window.matchMedia('(max-width: 768px)');
 
-
-
     const updateVistas = (matches: boolean) => {
-
       const vistasObjetivo = matches ? vistasMobile : vistasDesktop;
-
-
 
       setVistas(vistasObjetivo);
 
-
-
       setVistaActiva((prev) => {
-
         if (prev !== null && prev < vistasObjetivo.length) return prev;
 
         return 0;
-
       });
 
-
-
       setFondoActual((actual) => {
-
         const sigueDisponible = vistasObjetivo.some((vista) => vista.src === actual);
 
         if (sigueDisponible) return actual;
 
         return vistasObjetivo[0]?.src ?? actual;
-
       });
-
     };
-
-
 
     updateVistas(mediaQuery.matches);
     setIsMobileViewport(mediaQuery.matches);
-
-
 
     const handleChange = (event: MediaQueryListEvent) => {
       updateVistas(event.matches);
       setIsMobileViewport(event.matches);
     };
 
-
-
     mediaQuery.addEventListener('change', handleChange);
 
-
-
     return () => mediaQuery.removeEventListener('change', handleChange);
-
   }, []);
 
-
-
   useEffect(() => {
-
     if (status !== 'success' || !result?.imageUrl) return;
-
-
 
     const imageUrl = result.imageUrl;
 
     setFading(true);
 
     const timer = setTimeout(() => {
-
       setFondoActual(imageUrl);
 
       setFading(false);
-
     }, 200);
 
-
-
     return () => clearTimeout(timer);
-
   }, [result, status]);
 
-
-
   const handleImagineSubmit = async (event: FormEvent<HTMLFormElement>) => {
-
     event.preventDefault();
 
     await generate(prompt, '1024x1024');
-
   };
-
-
 
   const handleImagineShortcut = (value: string) => {
-
     setPrompt(value);
-
   };
 
-
   const handleCambioVista = (index: number) => {
-
     const vista = vistas[index];
 
     if (!vista) return;
 
     setInfoPanelReset((value) => value + 1);
 
-
-
     if (vista.src === fondoActual) {
-
       setVistaActiva(index);
 
       return;
-
     }
-
-
 
     setVistaActiva(index);
 
     setFading(true);
 
     setTimeout(() => {
-
       setFondoActual(vista.src);
 
       setFading(false);
-
     }, 200);
-
   };
 
-
-
   const handleIncreaseFontScale = () => {
-
     setFontScale((current) => clampFontScale(current + 0.1));
-
   };
 
   const handleDecreaseFontScale = () => {
-
     setFontScale((current) => clampFontScale(current - 0.1));
-
   };
 
-
-
   const handleCookieChoice = (choice: 'all' | 'essential') => {
-
     setCookieConsent(choice);
 
     localStorage.setItem('cookieConsent', choice);
 
     setShowCookieBanner(false);
-
   };
-
-
 
   const handleOpenCookieBanner = () => {
-
     setShowCookieBanner(true);
-
   };
-
-
 
   const handleOpenInterestModal = () => {
     setShowInterestModal(true);
-
   };
 
-
-
   const handleCloseInterestModal = () => {
-
     setShowInterestModal(false);
-
   };
 
   const brochureUrl = (isMobileViewport ? brochureFiles.mobile : brochureFiles.desktop)[
@@ -493,66 +377,43 @@ export default function Home() {
     };
   }, [brochureUrl]);
 
-
-
   // --- LÓGICA DEL CARRUSEL VERTICAL (DESKTOP) ---
 
   const vistasDinamicas = vistas.slice(1); // Las 2, 3, 4, 5, 6...
-
-
 
   // Altura de cada item + gap (100px + 16px)
 
   const ITEM_HEIGHT_WITH_GAP = 116;
 
-
-
   // Usamos el operador ?? para asegurar que activeIndex sea un número
 
   const activeIndex = vistaActiva ?? 0;
-
-
 
   // Muestra 3 items a la vez en la ventana deslizante
 
   const VISIBLE_ITEMS = 3;
 
-
-
   // Límite máximo de scroll (para que no se pase al vacío al final)
 
   const maxScrollIndex = Math.max(0, vistasDinamicas.length - VISIBLE_ITEMS);
-
-
 
   // Usamos -2 para centrar la selección y mostrar contexto
 
   const idealOffset = Math.max(0, activeIndex - 2);
 
-
-
   // Aseguramos no pasarnos del tope
 
   const scrollOffset = Math.min(idealOffset, maxScrollIndex);
 
-
-
   return (
-
     <>
-
       <Head>
         <title>{translations.home.meta.title}</title>
         <meta name="description" content={translations.home.meta.description} />
       </Head>
 
-
-
       <main className="min-h-screen bg-white text-slate-900 scroll-smooth">
-
         <HeroLanding />
-
-
 
         {/* ============================ */}
 
@@ -561,227 +422,121 @@ export default function Home() {
         {/* ============================ */}
 
         <section
-
           id="macro-terreno"
-
           className="relative isolate min-h-screen overflow-hidden text-white"
-
         >
-
           <InteractiveMap
-
             src={fondoActual}
-
             className={`absolute inset-0 z-1 object-cover transition-opacity duration-500 ${fading ? 'opacity-0' : 'opacity-100'}`}
-
           />
-
-
 
           <InfoPanel closeSignal={infoPanelReset} />
 
-
-
           <div className="absolute top-6 left-6 z-30 flex gap-3">
-
             <button
-
               type="button"
-
               onClick={handleOpenInterestModal}
-
               className="hidden items-center gap-2 rounded-full bg-white/85 px-4 py-2 text-sm font-semibold text-[#0F172A] shadow-lg ring-1 ring-white/40 transition hover:scale-[1.02] sm:inline-flex"
-
             >
-
               {translations.home.actions.interest}
-
             </button>
 
             <button
-
               type="button"
-
               onClick={handleOpenBrochureModal}
-
               className="hidden items-center gap-2 rounded-full bg-white/85 px-4 py-2 text-sm font-semibold text-[#0F172A] shadow-lg ring-1 ring-white/40 transition hover:scale-[1.02] sm:inline-flex"
-
             >
-
               {translations.home.actions.brochure}
-
             </button>
 
             <div
-
               className="hidden items-center gap-2 rounded-full bg-white/85 px-3 py-2 text-xs font-semibold text-[#0F172A] shadow-lg ring-1 ring-white/40 transition hover:scale-[1.02] sm:inline-flex"
-
               role="group"
-
               aria-label={translations.home.actions.textSize}
-
             >
-
               <button
-
                 type="button"
-
                 onClick={handleDecreaseFontScale}
-
                 aria-label={translations.home.actions.decreaseText}
-
                 className="rounded-full px-2 py-1 transition hover:bg-white/80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0F172A]"
-
               >
-
                 A-
-
               </button>
 
               <div className="h-5 w-px bg-slate-300/70" aria-hidden="true" />
 
               <button
-
                 type="button"
-
                 onClick={handleIncreaseFontScale}
-
                 aria-label={translations.home.actions.increaseText}
-
                 className="rounded-full px-2 py-1 transition hover:bg-white/80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0F172A]"
-
               >
-
                 A+
-
               </button>
-
             </div>
-
           </div>
 
-
-
           <div className="absolute top-6 right-6 z-30 flex items-center gap-3 sm:flex-col sm:items-end">
-
             <LanguageSelector />
 
             <AdminAccessLink mounted={mounted} user={user} className="relative" />
-
           </div>
-
-
 
           <div className="absolute top-8 left-1/2 z-20 -translate-x-1/2">
-
             <Image
-
               src="/assets/GD.png"
-
               alt="Logo Gran Dzilam"
-
               width={140}
-
               height={140}
-
               className="h-20 w-20 object-contain sm:h-28 sm:w-28"
-
               priority
-
             />
-
           </div>
 
-
-
           <ViewSelectorDesktop
-
             vistas={vistas}
-
             vistaActiva={vistaActiva}
-
             onChange={handleCambioVista}
-
             scrollOffset={scrollOffset}
-
             itemHeightWithGap={ITEM_HEIGHT_WITH_GAP}
-
           />
-
-
 
           <ViewSelectorMobile
-
             vistas={vistas}
-
             vistaActiva={vistaActiva}
-
             onChange={handleCambioVista}
-
             className="mt-[60vh] px-4 pb-12"
-
           />
-
-
 
           <ImaginePanel
-
             prompt={prompt}
-
             onPromptChange={setPrompt}
-
             onSubmit={handleImagineSubmit}
-
             onShortcut={handleImagineShortcut}
-
             status={status}
-
             imagineError={imagineError}
-
           />
-
-
 
           <MacroCotizadorPanel
-
             panelMacroAbierto={panelMacroAbierto}
-
             onToggle={() => setPanelMacroAbierto((value) => !value)}
-
             loading={loading}
-
             error={error}
-
             lotes={lotes}
-
             selectedIds={selectedIds}
-
             toggleLote={toggleLote}
-
             selectedLots={selectedLots}
-
             porcentajeEnganche={porcentajeEnganche}
-
             meses={meses}
-
             totales={totales}
-
             configuracion={financeSettings}
-
             configuracionCargando={loadingFinanceSettings}
-
             onPorcentajeChange={actualizarPorcentaje}
-
             onMesesChange={actualizarMeses}
-
             onLimpiar={limpiarSeleccion}
-
           />
 
-
-
-
-        {showBrochureModal ? (
+          {showBrochureModal ? (
             <div
               className="fixed inset-0 z-[65] flex items-center justify-center bg-slate-950/80 p-4"
               onClick={handleCloseBrochureModal}
@@ -845,7 +600,7 @@ export default function Home() {
             </div>
           ) : null}
 
-        {showBrochureContactModal && !brochureUnlocked ? (
+          {showBrochureContactModal && !brochureUnlocked ? (
             <div
               className="fixed inset-0 z-[70] flex items-center justify-center bg-slate-950/80 p-4"
               role="dialog"
@@ -868,8 +623,12 @@ export default function Home() {
                 </button>
 
                 <div className="space-y-3 px-6 pb-6 pt-10">
-                  <p className="text-lg font-bold text-slate-900">{translations.home.brochureModal.contactTitle}</p>
-                  <p className="text-sm text-slate-600">{translations.home.brochureModal.contactDescription}</p>
+                  <p className="text-lg font-bold text-slate-900">
+                    {translations.home.brochureModal.contactTitle}
+                  </p>
+                  <p className="text-sm text-slate-600">
+                    {translations.home.brochureModal.contactDescription}
+                  </p>
                   <ContactForm
                     className="!px-0 !pt-0"
                     submitLabel={translations.home.brochureModal.submitLabel}
@@ -880,8 +639,7 @@ export default function Home() {
             </div>
           ) : null}
 
-
-        {showInterestModal ? (
+          {showInterestModal ? (
             <div
               className="fixed inset-0 z-[60] hidden items-center justify-center bg-slate-950/80 sm:flex"
               onClick={handleCloseInterestModal}
@@ -923,93 +681,49 @@ export default function Home() {
               </div>
             </div>
           ) : null}
-
-
         </section>
 
-
-
         <footer className="bg-[#0F172A] text-white">
-
           <div className="mx-auto flex max-w-6xl flex-col gap-4 px-6 py-8 sm:flex-row sm:items-center sm:justify-between">
-
             <div>
-
               <p className="text-sm font-semibold">{translations.home.footer.title}</p>
 
               <p className="text-xs text-white/70">{translations.home.footer.description}</p>
 
               {cookieConsent ? (
-
                 <p className="pt-2 text-[11px] text-white/60">
-
                   {translations.home.footer.preference}:{' '}
-
                   {cookieConsent === 'all'
-
                     ? translations.cookies.actions.all.toLowerCase()
-
                     : translations.cookies.actions.essential.toLowerCase()}
-
                   .
-
                 </p>
-
               ) : null}
-
             </div>
 
-
-
             <div className="flex flex-wrap items-center gap-3 text-sm">
-
               <Link
-
                 href="/aviso-de-privacidad"
-
                 className="rounded-full border border-white/30 px-4 py-2 transition hover:border-white hover:bg-white hover:text-[#0F172A]"
-
               >
-
                 {translations.home.footer.privacy}
-
               </Link>
 
               <button
-
                 type="button"
-
                 onClick={handleOpenCookieBanner}
-
                 className="rounded-full bg-white px-4 py-2 text-[#0F172A] transition hover:scale-[1.01]"
-
               >
-
                 {translations.home.footer.cookies}
-
               </button>
-
             </div>
-
           </div>
-
         </footer>
-
       </main>
-
-
 
       {showCookieBanner ? <CookieBanner onChoice={handleCookieChoice} /> : null}
 
-
-
       <ChatbotWidget />
-
     </>
-
   );
-
 }
-
-
-

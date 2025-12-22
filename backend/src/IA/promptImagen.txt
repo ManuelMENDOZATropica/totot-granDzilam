@@ -1,0 +1,48 @@
+Generate a high-resolution, top-down (90-degree) aerial architectural visualization based on the following master plan.
+
+PROJECT TYPE:
+[eco hotel / jungle gym park / sports complex / eco resort]
+
+MASTER PLAN DESCRIPTION:
+[Describe the master plan in 5–10 lines: layout, main zones, sequence, key elements]
+
+SITE:
+- Rectangular plot, long and narrow
+- Exact proportions: 100 meters wide by 800 meters long
+- Horizontal orientation
+- The entire project fits strictly inside the site boundaries
+
+LAYOUT & COMPOSITION:
+- Clear longitudinal organization with repeated modules
+- Central or linear circulation spine
+- Secondary paths connecting each zone
+- Balanced distribution of built areas and open green spaces
+- Logical spacing and realistic architectural scale
+
+PROGRAM ELEMENTS:
+[Example – adjust per project]
+- Main entrance and arrival plaza
+- Central core / main building
+- Modular units (rooms, villas, courts, play zones, etc.)
+- Green buffers and landscaped areas
+- Water features (if applicable)
+- Service and back-of-house areas
+
+VISUAL STYLE:
+- True orthographic top-down view (no tilt, no perspective)
+- Architectural master plan aesthetic
+- High realism, clean and readable composition
+- Natural colors and materials appropriate to the concept
+- Dense vegetation where required, clearly defined paths and structures
+
+RENDERING RULES:
+- Do NOT show site boundaries, red outlines, frames, or borders
+- Do NOT generate elements outside the site
+- No text, labels, arrows, or annotations
+- No people visible
+- No dramatic lighting or shadows
+
+QUALITY:
+- Ultra-detailed
+- Suitable for presentation boards and conceptual development
+- Looks like a professional aerial master plan visualization

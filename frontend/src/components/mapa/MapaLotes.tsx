@@ -133,7 +133,7 @@ export const MapaLotes = ({ lotes, seleccionados, onToggle }: MapaLotesProps) =>
             </filter>
           </defs>
 
-          <g transform="translate(-117, -60)">
+          <g transform="translate(-117, -30)">
             {lotes.map((lote, index) => {
               const points = LOT_PATHS[index];
               if (!points) return null;
