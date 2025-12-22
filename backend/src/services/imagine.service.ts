@@ -173,6 +173,8 @@ export const createImagineService = (deps: ImagineServiceDependencies = {}) => {
 
   const envMock = env.USE_MOCK_OPENAI;
   const useMock = deps.useMock ?? (typeof envMock === 'string' ? envMock === 'true' || envMock === '1' : false);
+  const timeoutMs = Number.isFinite(env.OPENAI_TIMEOUT_MS) ? Number(env.OPENAI_TIMEOUT_MS) : 45000;
+  const maxAttempts = Number.isFinite(env.OPENAI_MAX_ATTEMPTS) ? Number(env.OPENAI_MAX_ATTEMPTS) : 3;
 
   const apiKey = deps.apiKey ?? env.OPENAI_API_KEY ?? process.env.OPENAI_API_KEY ?? null;
 
@@ -219,7 +221,8 @@ export const createImagineService = (deps: ImagineServiceDependencies = {}) => {
         fetchImpl,
         url: IMAGE_URL,
         apiKey,
-        timeoutMs: 30000,
+        timeoutMs,
+        maxAttempts,
         body: {
           model: IMAGE_MODEL,
           prompt: promptForImage,
