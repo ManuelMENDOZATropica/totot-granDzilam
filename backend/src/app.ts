@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
+import path from 'path';
 import { loadEnv } from './config/env';
 import { healthRouter } from './routes/health.routes';
 import { lotsRouter } from './routes/lots.route';
@@ -22,6 +23,9 @@ export const createApp = () => {
   app.use(cors({ origin: CORS_ORIGIN, credentials: true }));
   app.use(express.json());
   app.use(morgan('dev'));
+
+  const imagineAssetsDir = path.join(process.cwd(), 'public', 'IA');
+  app.use('/IA', express.static(imagineAssetsDir));
 
   app.use('/api/health', healthRouter);
   app.use('/api/healthz', healthRouter);

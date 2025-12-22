@@ -164,8 +164,7 @@ export const createImagineService = (deps: ImagineServiceDependencies = {}) => {
   const now = deps.now ?? Date.now;
   const env = loadEnv();
   const fetchImpl = deps.fetchImpl ?? globalThis.fetch;
-  const resultsDir =
-    deps.resultsDir ?? path.join(process.cwd(), '..', 'frontend', 'public', 'IA', 'resultados');
+  const resultsDir = deps.resultsDir ?? path.join(process.cwd(), 'public', 'IA', 'resultados');
 
   if (!fetchImpl) {
     throw new Error('Fetch implementation is required');
