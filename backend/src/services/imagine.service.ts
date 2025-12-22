@@ -1,22 +1,20 @@
+import fs from 'fs';
+import path from 'path';
 import { loadEnv } from '../config/env';
 import { logger } from '../utils/logger';
 import { buildCacheKey } from '../utils/prompt';
 import { requestOpenAI } from './openai.request';
-import fs from 'fs';
-import path from 'path';
+import { ImagineImageModel } from '../models/imagine-image.model';
+import type { ImagineImageSize as ImagineImageSizeType, ImagineResult as ImagineResultType } from '../types/imagine';
 
-export type ImagineImageSize = '1024x1024' | '1024x1536' | '1536x1024';
+export type ImagineImageSize = ImagineImageSizeType;
 
 export interface ImagineRequestPayload {
   prompt: string;
   size?: ImagineImageSize;
 }
 
-export interface ImagineResult {
-  textoInspirador: string;
-  promptVisual: string;
-  imageUrl: string | null;
-}
+export type ImagineResult = ImagineResultType;
 
 interface CacheEntry {
   value: ImagineResult;
@@ -52,16 +50,16 @@ const resolveAssetPath = (fileName: string) => {
   return found;
 };
 
-const MASTER_PROMPT_PATH = resolveAssetPath('masterPrompt.txt');
+const IMAGE_PROMPT_PATH = resolveAssetPath('promptImagen.txt');
 
-let cachedMasterPrompt: string | null = null;
+let cachedImagePrompt: string | null = null;
 
-const loadMasterPrompt = () => {
-  if (cachedMasterPrompt) return cachedMasterPrompt;
+const loadImagePromptTemplate = () => {
+  if (cachedImagePrompt) return cachedImagePrompt;
 
-  const buffer = fs.readFileSync(MASTER_PROMPT_PATH);
-  cachedMasterPrompt = buffer.toString();
-  return cachedMasterPrompt;
+  const buffer = fs.readFileSync(IMAGE_PROMPT_PATH);
+  cachedImagePrompt = buffer.toString();
+  return cachedImagePrompt;
 };
 
 const buildObjective = (idea: string) => {
@@ -86,11 +84,10 @@ const buildObjective = (idea: string) => {
 };
 
 const buildImagePrompt = (idea: string) => {
-  const template = loadMasterPrompt();
-  const objective = buildObjective(idea);
-  return template
-    .replace(/\[\[objective\]\]/gi, objective)
-    .replace(/\[\[objetive\]\]/gi, objective);
+  const template = loadImagePromptTemplate();
+  const concept = idea.trim() || 'un master plan de 8 hectáreas con usos mixtos y plazas arboladas';
+
+  return template.replace(/“?\{CONCEPTO\}”?/gi, concept);
 };
 
 const cleanBase64 = (value: string) => (value.includes(',') ? value.split(',', 2)[1] ?? value : value);
@@ -110,27 +107,57 @@ const saveImageToResults = (resultsDir: string, base64Image: string) => {
   return `/IA/resultados/${fileName}`;
 };
 
-const resolveImageUrl = (data: any, resultsDir: string): string | null => {
+interface ResolvedImage {
+  url: string | null;
+  base64?: string | null;
+}
+
+const resolveImageAsset = (data: any, resultsDir: string): ResolvedImage => {
   const asset = Array.isArray(data?.data) ? data.data[0] : undefined;
   if (!asset) {
-    return null;
+    return { url: null, base64: null };
   }
 
   if (typeof asset.b64_json === 'string' && asset.b64_json.length > 0) {
-    return saveImageToResults(resultsDir, asset.b64_json);
+    const url = saveImageToResults(resultsDir, asset.b64_json);
+    return { url, base64: cleanBase64(asset.b64_json) };
   }
 
   if (typeof asset.url === 'string' && asset.url.length > 0) {
     if (asset.url.startsWith('data:image')) {
-      return saveImageToResults(resultsDir, asset.url);
+      const url = saveImageToResults(resultsDir, asset.url);
+      return { url, base64: cleanBase64(asset.url) };
     }
-    return asset.url;
+    return { url: asset.url, base64: null };
   }
 
-  return null;
+  return { url: null, base64: null };
 };
 
 export type ImagineServiceErrorCode = 'INVALID_PROMPT_OR_FORMAT' | 'OPENAI_QUOTA' | 'OPENAI_AUTH' | 'OPENAI_UPSTREAM';
+
+const persistImagineImage = async (
+  payload: ImagineRequestPayload,
+  result: ImagineResult,
+  size: ImagineImageSize,
+  base64Image?: string | null,
+) => {
+  try {
+    const document = await ImagineImageModel.create({
+      prompt: payload.prompt.trim(),
+      promptVisual: result.promptVisual,
+      textoInspirador: result.textoInspirador,
+      imageUrl: result.imageUrl ?? '',
+      imageBase64: base64Image ?? null,
+      size,
+    });
+
+    return document.id;
+  } catch (error) {
+    logger.warn('Failed to persist imagine image', { message: (error as Error)?.message ?? 'Unknown error' });
+    return null;
+  }
+};
 
 export const createImagineService = (deps: ImagineServiceDependencies = {}) => {
   const cache = deps.cache ?? new Map<string, CacheEntry>();
@@ -146,6 +173,8 @@ export const createImagineService = (deps: ImagineServiceDependencies = {}) => {
 
   const envMock = env.USE_MOCK_OPENAI;
   const useMock = deps.useMock ?? (typeof envMock === 'string' ? envMock === 'true' || envMock === '1' : false);
+  const timeoutMs = Number.isFinite(env.OPENAI_TIMEOUT_MS) ? Number(env.OPENAI_TIMEOUT_MS) : 45000;
+  const maxAttempts = Number.isFinite(env.OPENAI_MAX_ATTEMPTS) ? Number(env.OPENAI_MAX_ATTEMPTS) : 3;
 
   const apiKey = deps.apiKey ?? env.OPENAI_API_KEY ?? process.env.OPENAI_API_KEY ?? null;
 
@@ -172,6 +201,8 @@ export const createImagineService = (deps: ImagineServiceDependencies = {}) => {
         promptVisual,
         imageUrl: 'https://placehold.co/1024x1024?text=Gran+Dzilam',
       };
+
+      void persistImagineImage(payload, mockResult, size, null);
       cache.set(cacheKey, { value: mockResult, expiresAt: currentTime + CACHE_TTL_MS });
       logger.info('Imagine generation completed', { size, cached: false });
       return mockResult;
@@ -190,7 +221,8 @@ export const createImagineService = (deps: ImagineServiceDependencies = {}) => {
         fetchImpl,
         url: IMAGE_URL,
         apiKey,
-        timeoutMs: 30000,
+        timeoutMs,
+        maxAttempts,
         body: {
           model: IMAGE_MODEL,
           prompt: promptForImage,
@@ -198,15 +230,19 @@ export const createImagineService = (deps: ImagineServiceDependencies = {}) => {
         },
       });
 
-      const imageUrl = resolveImageUrl(imageResponse, resultsDir);
+      const resolvedImage = resolveImageAsset(imageResponse, resultsDir);
 
       const result: ImagineResult = {
         textoInspirador,
         promptVisual: promptForImage,
-        imageUrl,
+        imageUrl: resolvedImage.url,
       };
 
       cache.set(cacheKey, { value: result, expiresAt: currentTime + CACHE_TTL_MS });
+      const imageId = await persistImagineImage(payload, result, size, resolvedImage.base64);
+      if (imageId) {
+        result.imageId = imageId;
+      }
       logger.info('Imagine generation completed', { size, cached: false });
       return result;
     } catch (error) {

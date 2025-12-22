@@ -11,6 +11,8 @@ const envSchema = z.object({
   USE_MOCK_OPENAI: z
     .union([z.literal('true'), z.literal('false'), z.literal('1'), z.literal('0')])
     .optional(),
+  OPENAI_TIMEOUT_MS: z.coerce.number().int().positive().optional(),
+  OPENAI_MAX_ATTEMPTS: z.coerce.number().int().positive().optional(),
 });
 
 type Env = z.infer<typeof envSchema>;
