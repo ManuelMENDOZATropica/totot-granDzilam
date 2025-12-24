@@ -9,6 +9,20 @@ interface PublicLot {
   order: number;
 }
 
+const DESKTOP_VIEWBOX = { width: 850, height: 680 };
+const MOBILE_VIEWBOX = { width: 380, height: 568 };
+const DESKTOP_TRANSLATE = { x: -312, y: -125 };
+
+const scalePoints = (points: string, scaleX: number, scaleY: number) =>
+  points
+    .trim()
+    .split(' ')
+    .map((pair) => {
+      const [x, y] = pair.split(',').map(Number);
+      return `${(x * scaleX).toFixed(2)},${(y * scaleY).toFixed(2)}`;
+    })
+    .join(' ');
+
 // Coordenadas para la VISTA 1 (Ajustadas a tu imagen 1.png)
 const LOT_PATHS_V1 = [
   "390,200 425,200 420,698.2 382,705",   // 1
@@ -27,6 +41,10 @@ const LOT_PATHS_V1 = [
   "814,200 845,200 837,308 840,430 843,508 842,590 808,598.8", // 13
 ];
 
+const LOT_PATHS_V1_MOBILE = LOT_PATHS_V1.map((points) =>
+  scalePoints(points, MOBILE_VIEWBOX.width / DESKTOP_VIEWBOX.width, MOBILE_VIEWBOX.height / DESKTOP_VIEWBOX.height),
+);
+
 // INTERFAZ DE PROPS ACTUALIZADA
 interface InteractiveMapProps {
   src: string;       // Recibe la imagen dinámica
@@ -42,7 +60,19 @@ export const InteractiveMap = ({ src, className, imageClassName }: InteractiveMa
   const containerRef = useRef<HTMLDivElement | null>(null);
 
   // Solo mostramos los polígonos si estamos en la vista 1
-  const isInteractiveView = src.includes('1.png') || src.includes('1.jpg');
+  const isDesktopInteractiveView = src.includes('1.png') || src.includes('1.jpg');
+  const isMobileInteractiveView = src.includes('mobile1.png') || src.includes('mobile1.jpg');
+  const isInteractiveView = isDesktopInteractiveView || isMobileInteractiveView;
+  const viewBox = isMobileInteractiveView
+    ? `0 0 ${MOBILE_VIEWBOX.width} ${MOBILE_VIEWBOX.height}`
+    : `0 0 ${DESKTOP_VIEWBOX.width} ${DESKTOP_VIEWBOX.height}`;
+  const mapPaths = isMobileInteractiveView ? LOT_PATHS_V1_MOBILE : LOT_PATHS_V1;
+  const preserveAspectRatio = isMobileInteractiveView ? 'xMidYMin meet' : 'none';
+  const scaleX = MOBILE_VIEWBOX.width / DESKTOP_VIEWBOX.width;
+  const scaleY = MOBILE_VIEWBOX.height / DESKTOP_VIEWBOX.height;
+  const mapTranslate = isMobileInteractiveView
+    ? `translate(${(DESKTOP_TRANSLATE.x * scaleX).toFixed(2)}, ${(DESKTOP_TRANSLATE.y * scaleY).toFixed(2)})`
+    : `translate(${DESKTOP_TRANSLATE.x}, ${DESKTOP_TRANSLATE.y})`;
 
   useEffect(() => {
     // Si no es la vista interactiva, no cargamos datos para ahorrar recursos
@@ -108,12 +138,12 @@ export const InteractiveMap = ({ src, className, imageClassName }: InteractiveMa
         {isInteractiveView && (
           <svg
             className="absolute top-0 left-0 h-full w-full pointer-events-none z-[44]"
-            viewBox="0 0 850 680"
-            preserveAspectRatio="none"
+            viewBox={viewBox}
+            preserveAspectRatio={preserveAspectRatio}
           >
-            <g className="pointer-events-auto" transform="translate(-312, -125)">
+            <g className="pointer-events-auto" transform={mapTranslate}>
               {lots.map((lot, index) => {
-                const points = LOT_PATHS_V1[index];
+                const points = mapPaths[index];
                 if (!points) return null;
 
                 return (
