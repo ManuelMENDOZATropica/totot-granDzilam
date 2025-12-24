@@ -31,9 +31,11 @@ const LOT_PATHS_V1 = [
 interface InteractiveMapProps {
   src: string;       // Recibe la imagen dinámica
   className?: string; // Recibe las clases de opacidad y posición
+  imageClassName?: string;
 }
 
-export const InteractiveMap = ({ src, className }: InteractiveMapProps) => {
+export const InteractiveMap = ({ src, className, imageClassName }: InteractiveMapProps) => {
+  const imageClasses = ['object-cover select-none', imageClassName].filter(Boolean).join(' ');
   const [lots, setLots] = useState<PublicLot[]>([]);
   const [hoveredLot, setHoveredLot] = useState<PublicLot | null>(null);
   const [tooltipPos, setTooltipPos] = useState({ x: 0, y: 0 });
@@ -98,7 +100,7 @@ export const InteractiveMap = ({ src, className }: InteractiveMapProps) => {
           alt="Mapa de lotes"
           fill
           priority
-          className="object-cover select-none"
+          className={imageClasses}
           sizes="100vw"
         />
 
