@@ -1,37 +1,20 @@
 import Head from 'next/head';
-
 import Image from 'next/image';
-
 import Link from 'next/link';
-
 import dynamic from 'next/dynamic';
-
 import { FormEvent, useEffect, useRef, useState } from 'react';
-
 import { useCotizacion } from '@/hooks/useCotizacion';
-
 import { HeroLanding } from '@/components/home/HeroLanding';
-
 import { ChatbotWidget } from '@/components/chat/ChatbotWidget';
-
 import { LAST_IMAGE_KEY, getImagineImageSrc, useImagine } from '@/hooks/useImagine';
-
 import { useAuth } from '@/contexts/AuthContext';
-
 import { InfoPanel } from '@/components/info/InfoPanel';
-
 import { InteractiveMap } from '@/components/InteractiveMap';
-
 import { AdminAccessLink } from '@/components/home/AdminAccessLink';
-
 import { ViewSelectorDesktop } from '@/components/home/ViewSelectorDesktop';
-
 import { ViewSelectorMobile } from '@/components/home/ViewSelectorMobile';
-
 import { ImaginePanel } from '@/components/home/ImaginePanel';
-
 import { MacroCotizadorPanel } from '@/components/home/MacroCotizadorPanel';
-
 import { CookieBanner } from '@/components/home/CookieBanner';
 import { useLanguage } from '@/contexts/LanguageContext';
 import LanguageSelector from '@/components/common/LanguageSelector';
@@ -63,28 +46,19 @@ const brochureFiles = {
 const BROCHURE_LOCK_PAGE = 10;
 
 // 1. DEFINIMOS LAS 6 VISTAS
-
 const vistasDesktop = [
   { nombre: '1', src: '/assets/vistas/1.png' },
-
   { nombre: '2', src: '/assets/vistas/2.png' },
-
   { nombre: '3', src: '/assets/vistas/3.png' },
   { nombre: '4', src: '/assets/vistas/4.png' },
-  
 ];
 
 const vistasMobile = [
   { nombre: '1', src: '/assets/vistas/mobile1.png' },
-
   { nombre: '2', src: '/assets/vistas/mobile2.png' },
-
   { nombre: '3', src: '/assets/vistas/mobile3.png' },
-
   { nombre: '4', src: '/assets/vistas/mobile4.png' },
-
   { nombre: '5', src: '/assets/vistas/mobile5.png' },
-
   { nombre: '6', src: '/assets/vistas/mobile6.png' },
 ];
 
@@ -95,31 +69,18 @@ export default function Home() {
 
   const {
     lotes,
-
     loading,
-
     error,
-
     financeSettings,
-
     loadingFinanceSettings,
-
     selectedIds,
-
     selectedLots,
-
     porcentajeEnganche,
-
     meses,
-
     totales,
-
     toggleLote,
-
     limpiarSeleccion,
-
     actualizarPorcentaje,
-
     actualizarMeses,
   } = useCotizacion();
 
@@ -128,15 +89,10 @@ export default function Home() {
   const { language, translations } = useLanguage();
 
   const [mounted, setMounted] = useState(false);
-
   const [fontScale, setFontScale] = useState(1);
-
   const clampFontScale = (value: number) => Math.min(Math.max(value, 0.9), 1.2);
-
   const [prompt, setPrompt] = useState('');
-
   const promptLoaded = useRef(false);
-
   const [panelMacroAbierto, setPanelMacroAbierto] = useState(false);
 
   const [showInterestModal, setShowInterestModal] = useState(false);
@@ -148,15 +104,10 @@ export default function Home() {
   const [brochureTotalPages, setBrochureTotalPages] = useState<number | null>(null);
 
   // Inicialización
-
   const [fondoActual, setFondoActual] = useState(vistasDesktop[0].src);
-
   const [vistaActiva, setVistaActiva] = useState<number | null>(0);
-
   const [fading, setFading] = useState(false);
-
   const [infoPanelReset, setInfoPanelReset] = useState(0);
-
   const [vistas, setVistas] = useState(vistasDesktop);
 
   useEffect(() => {
@@ -174,38 +125,29 @@ export default function Home() {
 
   useEffect(() => {
     const storedFontScale = localStorage.getItem('fontScale');
-
     if (!storedFontScale) return;
-
     const parsedScale = Number.parseFloat(storedFontScale);
-
     if (Number.isNaN(parsedScale)) return;
-
     setFontScale(clampFontScale(parsedScale));
   }, []);
 
   useEffect(() => {
     document.documentElement.style.setProperty('--base-font-size', `${16 * fontScale}px`);
-
     localStorage.setItem('fontScale', fontScale.toString());
   }, [fontScale]);
 
   useEffect(() => {
     const storedConsent = localStorage.getItem('cookieConsent');
-
     if (storedConsent === 'all' || storedConsent === 'essential') {
       setCookieConsent(storedConsent);
-
       return;
     }
-
     setShowCookieBanner(true);
   }, []);
 
   useEffect(() => {
     if (!promptLoaded.current && lastPrompt) {
       setPrompt(lastPrompt);
-
       promptLoaded.current = true;
     }
   }, [lastPrompt]);
@@ -217,24 +159,18 @@ export default function Home() {
 
     const updateVistas = (matches: boolean) => {
       const vistasObjetivo = matches ? vistasMobile : vistasDesktop;
-
       setVistas(vistasObjetivo);
-
       setVistaActiva((prev) => {
         if (prev !== null && prev < vistasObjetivo.length) return prev;
-
         return 0;
       });
 
       setFondoActual((actual) => {
         if (!actual) return vistasObjetivo[0]?.src ?? actual;
-
         const sigueDisponible = vistasObjetivo.some((vista) => vista.src === actual);
         const isCustomBackground =
           actual.startsWith('data:') || actual.startsWith('/IA/') || actual.startsWith('http');
-
         if (sigueDisponible || isCustomBackground) return actual;
-
         return vistasObjetivo[0]?.src ?? actual;
       });
     };
@@ -248,30 +184,23 @@ export default function Home() {
     };
 
     mediaQuery.addEventListener('change', handleChange);
-
     return () => mediaQuery.removeEventListener('change', handleChange);
   }, []);
 
   useEffect(() => {
     if (status !== 'success') return;
-
     const imageUrl = getImagineImageSrc(result ?? null);
     if (!imageUrl) return;
-
     setFading(true);
-
     const timer = setTimeout(() => {
       setFondoActual(imageUrl);
-
       setFading(false);
     }, 200);
-
     return () => clearTimeout(timer);
   }, [result, status]);
 
   const handleImagineSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-
     await generate(prompt, '1024x1024');
   };
 
@@ -281,24 +210,16 @@ export default function Home() {
 
   const handleCambioVista = (index: number) => {
     const vista = vistas[index];
-
     if (!vista) return;
-
     setInfoPanelReset((value) => value + 1);
-
     if (vista.src === fondoActual) {
       setVistaActiva(index);
-
       return;
     }
-
     setVistaActiva(index);
-
     setFading(true);
-
     setTimeout(() => {
       setFondoActual(vista.src);
-
       setFading(false);
     }, 200);
   };
@@ -313,9 +234,7 @@ export default function Home() {
 
   const handleCookieChoice = (choice: 'all' | 'essential') => {
     setCookieConsent(choice);
-
     localStorage.setItem('cookieConsent', choice);
-
     setShowCookieBanner(false);
   };
 
@@ -377,46 +296,24 @@ export default function Home() {
 
   useEffect(() => {
     let cancelled = false;
-
     const preload = async () => {
       const mod = await import('@/components/home/BrochureViewer');
       if (cancelled) return;
       mod.preloadBrochureViewerAssets?.(brochureUrl);
     };
-
     preload();
-
     return () => {
       cancelled = true;
     };
   }, [brochureUrl]);
 
   // --- LÓGICA DEL CARRUSEL VERTICAL (DESKTOP) ---
-
-  const vistasDinamicas = vistas.slice(1); // Las 2, 3, 4, 5, 6...
-
-  // Altura de cada item + gap (100px + 16px)
-
+  const vistasDinamicas = vistas.slice(1);
   const ITEM_HEIGHT_WITH_GAP = 116;
-
-  // Usamos el operador ?? para asegurar que activeIndex sea un número
-
   const activeIndex = vistaActiva ?? 0;
-
-  // Muestra 3 items a la vez en la ventana deslizante
-
   const VISIBLE_ITEMS = 3;
-
-  // Límite máximo de scroll (para que no se pase al vacío al final)
-
   const maxScrollIndex = Math.max(0, vistasDinamicas.length - VISIBLE_ITEMS);
-
-  // Usamos -2 para centrar la selección y mostrar contexto
-
   const idealOffset = Math.max(0, activeIndex - 2);
-
-  // Aseguramos no pasarnos del tope
-
   const scrollOffset = Math.min(idealOffset, maxScrollIndex);
 
   return (
@@ -430,18 +327,19 @@ export default function Home() {
         <HeroLanding />
 
         {/* ============================ */}
-
         {/* SECCIÓN MACRO TERRENO        */}
-
         {/* ============================ */}
-
         <section
           id="macro-terreno"
           className="relative isolate min-h-screen overflow-hidden text-white"
         >
           <InteractiveMap
             src={fondoActual}
-            className={`absolute inset-0 z-1 object-cover transition-opacity duration-500 ${fading ? 'opacity-0' : 'opacity-100'}`}
+            // MODIFICACIÓN: Lógica para ajustar imagen al ancho en móvil (contain) y cubrir en desktop (cover)
+            className={`absolute inset-0 z-1 transition-opacity duration-500 
+              ${fading ? 'opacity-0' : 'opacity-100'}
+              ${isMobileViewport ? 'object-contain object-top bg-slate-900' : 'object-cover'}
+            `}
           />
 
           <InfoPanel closeSignal={infoPanelReset} />
@@ -492,7 +390,6 @@ export default function Home() {
 
           <div className="absolute top-6 right-6 z-30 flex items-center gap-3 sm:flex-col sm:items-end">
             <LanguageSelector />
-
             <AdminAccessLink mounted={mounted} user={user} className="relative" />
           </div>
 
@@ -519,7 +416,8 @@ export default function Home() {
             vistas={vistas}
             vistaActiva={vistaActiva}
             onChange={handleCambioVista}
-            className="mt-[60vh] px-4 pb-12"
+            // MODIFICACIÓN: Asegurar ancho completo y prevenir desbordamiento
+            className="mt-[60vh] w-full max-w-[100vw] overflow-x-hidden px-4 pb-12"
           />
 
           <ImaginePanel
@@ -550,6 +448,7 @@ export default function Home() {
             onLimpiar={limpiarSeleccion}
           />
 
+          {/* ... MODALES (Brochure, Interest, Contact) ... */}
           {showBrochureModal ? (
             <div
               className="fixed inset-0 z-[65] flex items-center justify-center bg-slate-950/80 p-4"
@@ -701,9 +600,7 @@ export default function Home() {
           <div className="mx-auto flex max-w-6xl flex-col gap-4 px-6 py-8 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p className="text-sm font-semibold">{translations.home.footer.title}</p>
-
               <p className="text-xs text-white/70">{translations.home.footer.description}</p>
-
               {cookieConsent ? (
                 <p className="pt-2 text-[11px] text-white/60">
                   {translations.home.footer.preference}:{' '}
@@ -714,7 +611,6 @@ export default function Home() {
                 </p>
               ) : null}
             </div>
-
             <div className="flex flex-wrap items-center gap-3 text-sm">
               <Link
                 href="/aviso-de-privacidad"
@@ -722,7 +618,6 @@ export default function Home() {
               >
                 {translations.home.footer.privacy}
               </Link>
-
               <button
                 type="button"
                 onClick={handleOpenCookieBanner}
