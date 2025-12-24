@@ -12,7 +12,6 @@ import { InfoPanel } from '@/components/info/InfoPanel';
 import { InteractiveMap } from '@/components/InteractiveMap';
 import { AdminAccessLink } from '@/components/home/AdminAccessLink';
 import { ViewSelectorDesktop } from '@/components/home/ViewSelectorDesktop';
-import { ViewSelectorMobile } from '@/components/home/ViewSelectorMobile';
 import { ImaginePanel } from '@/components/home/ImaginePanel';
 import { MacroCotizadorPanel } from '@/components/home/MacroCotizadorPanel';
 import { CookieBanner } from '@/components/home/CookieBanner';
@@ -201,11 +200,16 @@ export default function Home() {
 
   const handleImagineSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    await generate(prompt, '1024x1024');
+    const size = isMobileViewport ? '1024x1536' : '1536x1024';
+    await generate(prompt, size);
   };
 
-  const handleImagineShortcut = (value: string) => {
+  const handleImagineShortcut = (value: string, index: number) => {
     setPrompt(value);
+    if (!isMobileViewport) return;
+    const mobileViewIndex = [1, 2, 3][index];
+    if (mobileViewIndex === undefined) return;
+    handleCambioVista(mobileViewIndex);
   };
 
   const handleCambioVista = (index: number) => {
@@ -335,10 +339,10 @@ export default function Home() {
         >
           <InteractiveMap
             src={fondoActual}
-            // MODIFICACIÓN: Lógica para ajustar imagen al ancho en móvil (contain) y cubrir en desktop (cover)
+            imageClassName={isMobileViewport ? 'object-contain object-top' : 'object-cover'}
             className={`absolute inset-0 z-1 transition-opacity duration-500 
               ${fading ? 'opacity-0' : 'opacity-100'}
-              ${isMobileViewport ? 'object-contain object-top bg-slate-900' : 'object-cover'}
+              ${isMobileViewport ? 'bg-slate-900' : ''}
             `}
           />
 
@@ -410,14 +414,6 @@ export default function Home() {
             onChange={handleCambioVista}
             scrollOffset={scrollOffset}
             itemHeightWithGap={ITEM_HEIGHT_WITH_GAP}
-          />
-
-          <ViewSelectorMobile
-            vistas={vistas}
-            vistaActiva={vistaActiva}
-            onChange={handleCambioVista}
-            // MODIFICACIÓN: Asegurar ancho completo y prevenir desbordamiento
-            className="mt-[60vh] w-full max-w-[100vw] overflow-x-hidden px-4 pb-12"
           />
 
           <ImaginePanel

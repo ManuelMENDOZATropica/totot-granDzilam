@@ -5,7 +5,7 @@ interface ImaginePanelProps {
   prompt: string;
   onPromptChange: (value: string) => void;
   onSubmit: (event: FormEvent<HTMLFormElement>) => Promise<void> | void;
-  onShortcut: (value: string) => void;
+  onShortcut: (value: string, index: number) => void;
   status: string;
   imagineError: string | null;
 }
@@ -49,11 +49,11 @@ export const ImaginePanel = ({
           <div className="pt-1 text-left">
             <p className="text-[12px] text-white/85">{copy.inspirationLabel}</p>
             <div className="mt-2 flex flex-wrap gap-2">
-              {copy.inspirationItems.map((idea) => (
+              {copy.inspirationItems.map((idea, index) => (
                 <button
                   key={idea}
                   type="button"
-                  onClick={() => onShortcut(idea)}
+                  onClick={() => onShortcut(idea, index)}
                   className="rounded-full bg-[#385C7A] px-4 py-1.5 text-[12px] text-white transition hover:bg-[#2d4a63]"
                 >
                   {idea}
