@@ -7,7 +7,7 @@ export const HeroLanding = () => {
 
       {/* 🎥 VIDEO DE FONDO */}
       <video
-        src="/assets/EXPECTATIVA DZILAM.mov"
+        src="/assets/EXPECTATIVA DZILAM.mp4"
         autoPlay
         loop
         muted
