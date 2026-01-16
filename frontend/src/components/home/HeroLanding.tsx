@@ -5,7 +5,6 @@ import Link from 'next/link';
 
 export const HeroLanding = () => {
   const [isVideoReady, setIsVideoReady] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
   const playerRef = useRef<any>(null);
 
   // IDs de tus videos
@@ -13,15 +12,7 @@ export const HeroLanding = () => {
   const VIDEO_MOBILE = "nk6mU1qpGNQ";
 
   useEffect(() => {
-    // 1. Detectar si es móvil al cargar y si cambia el tamaño
-    const checkDevice = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-    
-    checkDevice();
-    window.addEventListener('resize', checkDevice);
-
-    // 2. Cargar API de YouTube
+    // 1. Cargar API de YouTube
     if (!(window as any).YT) {
       const tag = document.createElement('script');
       tag.src = "https://www.youtube.com/iframe_api";
@@ -29,7 +20,7 @@ export const HeroLanding = () => {
       firstScriptTag.parentNode?.insertBefore(tag, firstScriptTag);
     }
 
-    // 3. Inicializar el reproductor
+    // 2. Inicializar el reproductor
     const initPlayer = () => {
       const currentVideoId = window.innerWidth < 768 ? VIDEO_MOBILE : VIDEO_DESKTOP;
       
@@ -64,7 +55,6 @@ export const HeroLanding = () => {
       (window as any).onYouTubeIframeAPIReady = initPlayer;
     }
 
-    return () => window.removeEventListener('resize', checkDevice);
   }, []);
 
   return (
@@ -79,15 +69,15 @@ export const HeroLanding = () => {
       )}
 
       {/* 🎥 REPRODUCTOR DINÁMICO */}
-      <div className={`absolute inset-0 z-0 pointer-events-none transition-opacity duration-1000 ${isVideoReady ? 'opacity-100' : 'opacity-0'}`}>
-        <div 
-          id="youtube-player" 
-          className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2
-            ${isMobile 
-              ? 'h-[100vh] w-[56.25vh] min-h-full min-w-[177.77vw]' // Proporción vertical para móvil
-              : 'h-[100vh] w-[177.77vh] min-w-full min-h-[56.25vw]' // Proporción horizontal para desktop
-            }`} 
-        />
+      <div
+        className={`absolute inset-0 z-0 pointer-events-none flex items-center justify-center transition-opacity duration-1000 ${isVideoReady ? 'opacity-100' : 'opacity-0'}`}
+      >
+        <div className="relative w-full max-w-[clamp(320px,90vw,1440px)] max-h-[clamp(180px,70vh,810px)] aspect-video">
+          <div
+            id="youtube-player"
+            className="absolute inset-0 h-full w-full [&>iframe]:h-full [&>iframe]:w-full [&>iframe]:object-cover"
+          />
+        </div>
         {/* Capa de contraste */}
         <div className="absolute inset-0 bg-black/20" />
       </div>
