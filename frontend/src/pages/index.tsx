@@ -447,7 +447,7 @@ export default function Home() {
                     event.stopPropagation();
                     handleCloseBrochureModal();
                   }}
-                  className="absolute right-4 top-4 z-20 rounded-full bg-slate-900/85 px-3 py-1 text-[11px] font-semibold text-white shadow transition hover:bg-slate-900"
+                  className="absolute right-4 top-4 z-20 rounded-full bg-slate-900/85 px-3 py-1 text-[clamp(0.6rem,1.1vw,0.7rem)] font-semibold text-white shadow transition hover:bg-slate-900"
                 >
                   {translations.home.brochureModal.close}
                 </button>
@@ -472,7 +472,7 @@ export default function Home() {
 
                   {!brochureUnlocked ? (
                     <div className="pointer-events-none absolute inset-x-0 bottom-0 left-0 right-0 z-10 flex justify-end px-4 pb-4">
-                      <div className="pointer-events-auto flex items-center gap-3 rounded-full bg-white/95 px-4 py-2 text-[11px] font-semibold text-slate-800 shadow-lg">
+                      <div className="pointer-events-auto flex items-center gap-3 rounded-full bg-white/95 px-4 py-2 text-[clamp(0.6rem,1.1vw,0.7rem)] font-semibold text-slate-800 shadow-lg">
                         <span>
                           {translations.home.brochureModal.blurNotice}{' '}
                           {brochureCurrentPage && brochureTotalPages
@@ -482,7 +482,7 @@ export default function Home() {
                         <button
                           type="button"
                           onClick={handleOpenBrochureContactManually}
-                          className="rounded-full bg-[#0F172A] px-3 py-1 text-[11px] font-semibold text-white transition hover:scale-[1.02]"
+                          className="rounded-full bg-[#0F172A] px-3 py-1 text-[clamp(0.6rem,1.1vw,0.7rem)] font-semibold text-white transition hover:scale-[1.02]"
                         >
                           {translations.home.brochureModal.submitLabel}
                         </button>
@@ -511,7 +511,7 @@ export default function Home() {
                     event.stopPropagation();
                     handleCloseBrochureContactModal();
                   }}
-                  className="absolute right-4 top-4 z-10 rounded-full bg-slate-900/85 px-3 py-1 text-[11px] font-semibold text-white shadow transition hover:bg-slate-900"
+                  className="absolute right-4 top-4 z-10 rounded-full bg-slate-900/85 px-3 py-1 text-[clamp(0.6rem,1.1vw,0.7rem)] font-semibold text-white shadow transition hover:bg-slate-900"
                 >
                   {translations.home.brochureModal.close}
                 </button>
@@ -547,7 +547,7 @@ export default function Home() {
                 <button
                   type="button"
                   onClick={handleCloseInterestModal}
-                  className="absolute right-4 top-4 z-10 rounded-full bg-slate-900/80 px-3 py-1 text-[11px] font-semibold text-white shadow-sm transition hover:bg-slate-900"
+                  className="absolute right-4 top-4 z-10 rounded-full bg-slate-900/80 px-3 py-1 text-[clamp(0.6rem,1.1vw,0.7rem)] font-semibold text-white shadow-sm transition hover:bg-slate-900"
                 >
                   {translations.home.interestModal.close}
                 </button>
@@ -583,7 +583,7 @@ export default function Home() {
               <p className="text-sm font-semibold">{translations.home.footer.title}</p>
               <p className="text-xs text-white/70">{translations.home.footer.description}</p>
               {cookieConsent ? (
-                <p className="pt-2 text-[11px] text-white/60">
+                <p className="pt-2 text-[clamp(0.6rem,1.1vw,0.7rem)] text-white/60">
                   {translations.home.footer.preference}:{' '}
                   {cookieConsent === 'all'
                     ? translations.cookies.actions.all.toLowerCase()
