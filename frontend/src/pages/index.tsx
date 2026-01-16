@@ -88,6 +88,8 @@ export default function Home() {
   const { language, translations } = useLanguage();
 
   const [mounted, setMounted] = useState(false);
+  const [fontScale, setFontScale] = useState(1);
+  const clampFontScale = (value: number) => Math.min(Math.max(value, 0.9), 1.2);
   const [prompt, setPrompt] = useState('');
   const promptLoaded = useRef(false);
   const [panelMacroAbierto, setPanelMacroAbierto] = useState(false);
@@ -110,6 +112,19 @@ export default function Home() {
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  useEffect(() => {
+    const storedFontScale = localStorage.getItem('fontScale');
+    if (!storedFontScale) return;
+    const parsedScale = Number.parseFloat(storedFontScale);
+    if (Number.isNaN(parsedScale)) return;
+    setFontScale(clampFontScale(parsedScale));
+  }, []);
+
+  useEffect(() => {
+    document.documentElement.style.setProperty('--base-font-size', `${16 * fontScale}px`);
+    localStorage.setItem('fontScale', fontScale.toString());
+  }, [fontScale]);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
