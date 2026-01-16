@@ -90,17 +90,13 @@
    2. ESTILOS GENERALES
    ========================================= */
 
-:root {
-  --base-font-size: 16px;
-}
-
 html {
   @apply scroll-smooth;
-  font-size: var(--base-font-size, 16px);
 }
 
 body {
   @apply bg-white font-sans text-slate-900 antialiased;
+  font-size: clamp(16px, 0.25vw + 15px, 18px);
 }
 
 h1,
