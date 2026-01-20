@@ -24,15 +24,18 @@ const galleryCategories: GalleryCategory[] = [
     id: 'vistas',
     title: 'Vistas',
     images: [
-      'Máster Plan con perspectiva.png',
-      'Master Plan del predio.png',
+      
       'Perspectictiva desde terreno 1.png',
-      'Perspectiva punto de fuga.png',
-      'Perspectiva terreno.png',
-      'Perspectiva.png',
+       'Perspectiva terreno.png',
       'Vista perspectiva Terrenos.png',
       'Vista perspectiva de atras para adelante.png',
+
+      'Máster Plan con perspectiva.png',
+      'Master Plan del predio.png',
+      'Perspectiva punto de fuga.png',
+      'Perspectiva.png',
       'Vista superior.png',
+      
       'Malecón + Puerto.png',
       'Predios cercanos Dzilam_Mesa de trabajo 1.png',
       'Predios cercanos Dzilam_Mesa de trabajo 1 copia 2.png',
