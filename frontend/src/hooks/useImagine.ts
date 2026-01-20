@@ -31,8 +31,9 @@ const allowedSizeSet = new Set<ImagineSize>(allowedSizes);
 
 export const getImagineImageSrc = (data: Pick<ImagineData, 'imageUrl' | 'imageBase64'> | null) => {
   if (!data) return null;
+  if (data.imageUrl) return data.imageUrl;
   if (data.imageBase64) return `data:image/png;base64,${data.imageBase64}`;
-  return data.imageUrl;
+  return null;
 };
 
 export const useImagine = () => {
@@ -116,12 +117,21 @@ export const useImagine = () => {
         setLastPrompt(normalizedPrompt);
 
         if (typeof window !== 'undefined') {
-          window.localStorage.setItem(LAST_PROMPT_KEY, normalizedPrompt);
-          const storedImage = getImagineImageSrc(payload.data) ?? '';
-          if (storedImage) {
-            window.localStorage.setItem(LAST_IMAGE_KEY, storedImage);
-          } else {
-            window.localStorage.removeItem(LAST_IMAGE_KEY);
+          try {
+            window.localStorage.setItem(LAST_PROMPT_KEY, normalizedPrompt);
+          } catch {
+            // Ignore storage failures (e.g. Safari private mode).
+          }
+
+          try {
+            const storedImage = payload.data.imageUrl ?? '';
+            if (storedImage) {
+              window.localStorage.setItem(LAST_IMAGE_KEY, storedImage);
+            } else {
+              window.localStorage.removeItem(LAST_IMAGE_KEY);
+            }
+          } catch {
+            // Ignore storage failures (e.g. Safari private mode).
           }
         }
 
