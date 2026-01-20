@@ -176,32 +176,30 @@ export const MacroCotizadorPanel = ({
 
           <div className="grid h-full w-full lg:grid-cols-[1fr_460px] bg-[#F3F1EC] overflow-hidden flex-1">
             <div className="relative h-full w-full p-4 lg:p-6">
-              <div className="flex h-full w-full items-center justify-center">
-                <div className="relative w-full max-w-[900px] aspect-[5/4] max-h-[70vh] overflow-hidden rounded-2xl bg-[#F3F1EC]">
-                  <Image
-                    src="/assets/vistas/COTIZACION2.jpg"
-                    alt="Mapa de referencia Gran Dzilam"
-                    fill
-                    sizes="100vw"
-                    className="object-cover"
-                    priority={false}
-                  />
+            <div className="relative h-full h-[96%] w-[70%] pl-[10%] overflow-hidden rounded-2xl bg-[#F3F1EC]">
+              <Image
+                src="/assets/vistas/COTIZACION2.jpg"
+                alt="Mapa de referencia Gran Dzilam"
+                fill
+                sizes="100vw"
+                className="object-cover"
+                priority={false}
+              />
 
-                  {loading ? (
-                    <div className="flex h-full items-center justify-center gap-4 text-[#64748B]">
+                {loading ? (
+                   <div className="flex h-full items-center justify-center gap-4 text-[#64748B]">
                       <div className="h-10 w-10 animate-spin rounded-full border-4 border-[#1C2533] border-t-transparent" />
                       <p>{macroCopy.loading}</p>
-                    </div>
-                  ) : error ? (
-                    <div className="flex h-full items-center justify-center p-8 text-center text-red-500">{error}</div>
-                  ) : lotes.length === 0 ? (
-                    <div className="flex h-full items-center justify-center text-[#1C2533]"><p>{macroCopy.empty}</p></div>
-                  ) : (
-                    <div className="absolute inset-0 h-full w-full overflow-hidden">
-                      <MapaLotes lotes={lotes} seleccionados={selectedIds} onToggle={toggleLote} />
-                    </div>
-                  )}
-                </div>
+                   </div>
+                ) : error ? (
+                   <div className="flex h-full items-center justify-center p-8 text-center text-red-500">{error}</div>
+                ) : lotes.length === 0 ? (
+                   <div className="flex h-full items-center justify-center text-[#1C2533]"><p>{macroCopy.empty}</p></div>
+                ) : (
+                  <div className="absolute inset-0 h-full w-full overflow-hidden">
+                    <MapaLotes lotes={lotes} seleccionados={selectedIds} onToggle={toggleLote} />
+                  </div>
+                )}
               </div>
             </div>
 
