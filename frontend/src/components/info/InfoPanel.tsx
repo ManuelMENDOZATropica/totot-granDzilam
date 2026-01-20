@@ -38,8 +38,6 @@ const galleryCategories: GalleryCategory[] = [
       'Perspectiva.png',
       'Vista superior.png',
       
-      'Predios cercanos',
-      'Predios cercanos ',
 
       'Malecón + Puerto.png',
     ],
