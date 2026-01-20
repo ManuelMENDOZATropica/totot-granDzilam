@@ -29,23 +29,22 @@ const galleryCategories: GalleryCategory[] = [
        'Perspectiva terreno.png',
       'Vista perspectiva Terrenos.png',
       'Vista perspectiva de atras para adelante.png',
+      
+      'Suelo de piedra bajo la vegetacion.png',
 
       'Máster Plan con perspectiva.png',
       'Master Plan del predio.png',
       'Perspectiva punto de fuga.png',
       'Perspectiva.png',
       'Vista superior.png',
+      
+      'Predios cercanos',
+      'Predios cercanos ',
 
       'Malecón + Puerto.png',
-      'Predios cercanos Dzilam_Mesa de trabajo 1.png',
-      'Predios cercanos Dzilam_Mesa de trabajo 1 copia 2.png',
     ],
   },
-  {
-    id: 'lotes',
-    title: 'Lotes',
-    images: ['Lotes__Perspectiva 1.png', 'Lotes__Vista Sueprior.png', 'Predio2.skp.png'],
-  },
+
   {
     id: 'cercanas',
     title: 'Cosas cercanas',
@@ -65,7 +64,6 @@ const galleryCategories: GalleryCategory[] = [
       'Playas Dzilam.png',
       'Puerto Dzilam.png',
       'Puerto prrogreso, segundo mas largo del mundo.jpeg.webp',
-      'Suelo de piedra bajo la vegetacion.png',
       'Valladolid_iglesia.jpg',
     ],
   },
@@ -550,42 +548,7 @@ export const InfoPanel = ({ closeSignal }: InfoPanelProps) => {
         </div>
       </div>
 
-      {/* MODAL DEL PLANO */}
-      {isMapModalOpen && (
-        <div
-          className="fixed inset-0 z-[45] flex items-center justify-center bg-black/90 p-4 backdrop-blur-sm transition-opacity"
-          onClick={() => setIsMapModalOpen(false)}
-        >
-          <div className="relative h-auto max-h-[90vh] w-auto max-w-[90vw] overflow-hidden rounded-lg shadow-2xl">
-            <button
-              className="absolute right-4 top-4 z-[46] rounded-full bg-black/50 p-2 text-white hover:bg-black/70 backdrop-blur-md"
-              onClick={(e) => {
-                e.stopPropagation();
-                setIsMapModalOpen(false);
-              }}
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                strokeWidth={2}
-                stroke="currentColor"
-                className="w-6 h-6"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-
-            <Image
-              src="/assets/plano.png"
-              alt="Plano Master Plan Grande"
-              width={1600}
-              height={1200}
-              className="h-full w-full object-contain"
-            />
-          </div>
-        </div>
-      )}
+     
     </>
   );
 };

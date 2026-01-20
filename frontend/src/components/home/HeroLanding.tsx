@@ -7,12 +7,10 @@ export const HeroLanding = () => {
   const [isVideoReady, setIsVideoReady] = useState(false);
   const playerRef = useRef<any>(null);
 
-  // IDs de tus videos
   const VIDEO_DESKTOP = "PAQ7kcfRbRM";
   const VIDEO_MOBILE = "nk6mU1qpGNQ";
 
   useEffect(() => {
-    // 1. Cargar API de YouTube
     if (!(window as any).YT) {
       const tag = document.createElement('script');
       tag.src = "https://www.youtube.com/iframe_api";
@@ -20,7 +18,6 @@ export const HeroLanding = () => {
       firstScriptTag.parentNode?.insertBefore(tag, firstScriptTag);
     }
 
-    // 2. Inicializar el reproductor
     const initPlayer = () => {
       const currentVideoId = window.innerWidth < 768 ? VIDEO_MOBILE : VIDEO_DESKTOP;
       
@@ -37,11 +34,14 @@ export const HeroLanding = () => {
           showinfo: 0,
           iv_load_policy: 3,
           enablejsapi: 1,
+          disablekb: 1, // Deshabilitar teclado
         },
         events: {
+          onReady: (event: any) => {
+            event.target.playVideo();
+          },
           onStateChange: (event: any) => {
             if (event.data === (window as any).YT.PlayerState.PLAYING) {
-              // Esperamos un segundo extra para que suba la calidad/buffer
               setTimeout(() => setIsVideoReady(true), 1200);
             }
           },
@@ -54,11 +54,10 @@ export const HeroLanding = () => {
     } else {
       (window as any).onYouTubeIframeAPIReady = initPlayer;
     }
-
   }, []);
 
   return (
-    <section className="relative flex min-h-screen items-center justify-center overflow-hidden bg-black">
+    <section className="relative flex h-screen w-screen items-center justify-center overflow-hidden bg-black">
       
       {/* 🌀 SPINNER DE CARGA */}
       {!isVideoReady && (
@@ -68,21 +67,23 @@ export const HeroLanding = () => {
         </div>
       )}
 
-      {/* 🎥 REPRODUCTOR DINÁMICO */}
+      {/* 🎥 REPRODUCTOR FULLSCREEN */}
       <div
-        className={`absolute inset-0 z-0 pointer-events-none flex items-center justify-center transition-opacity duration-1000 ${isVideoReady ? 'opacity-100' : 'opacity-0'}`}
+        className={`absolute inset-0 z-0 pointer-events-none transition-opacity duration-1000 ${
+          isVideoReady ? 'opacity-100' : 'opacity-0'
+        }`}
       >
-        <div className="relative w-full max-w-[clamp(320px,90vw,1440px)] max-h-[clamp(180px,70vh,810px)] aspect-video">
+        <div className="relative h-full w-full overflow-hidden">
           <div
             id="youtube-player"
-            className="absolute inset-0 h-full w-full [&>iframe]:h-full [&>iframe]:w-full [&>iframe]:object-cover"
+            className="absolute top-1/2 left-1/2 h-[100vmax] w-[177.77vmax] -translate-x-1/2 -translate-y-1/2"
           />
         </div>
-        {/* Capa de contraste */}
+        {/* Capa de contraste / Overlay */}
         <div className="absolute inset-0 bg-black/20" />
       </div>
 
-      {/* Flecha con animación */}
+      {/* Botón de Scroll */}
       <Link
         href="#macro-terreno"
         className="group z-30 absolute bottom-10 left-1/2 -translate-x-1/2 rounded-full bg-white/80 p-3 shadow-md backdrop-blur transition hover:scale-105 active:scale-95"
