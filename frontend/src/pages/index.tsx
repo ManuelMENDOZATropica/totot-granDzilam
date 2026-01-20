@@ -128,10 +128,11 @@ export default function Home() {
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      const storedImage = window.localStorage.getItem(LAST_IMAGE_KEY);
-      if (storedImage) {
-        setFondoActual(storedImage);
-      }
+      const storedImage = window.localStorage.getItem(LAST_IMAGE_KEY) ?? '';
+      const sanitizedImage = storedImage.trim();
+      const isOversizedDataUri = sanitizedImage.startsWith('data:') && sanitizedImage.length > 4096;
+      if (!sanitizedImage || isOversizedDataUri) return;
+      setFondoActual(sanitizedImage);
     }
   }, []);
 
