@@ -199,12 +199,9 @@ export const translations: Record<Language, TranslationSchema> = {
           title: 'Sobre Gran Dzilam',
           highlight: 'Macroterrenos de inversión',
           paragraphs: [
-            'Gran Dzilam es un conjunto de macroterrenos ubicado en Dzilam de Bravo, Yucatán.',
-            'Son terrenos de propiedad privada listos para escriturar, ubicados sobre carretera con terreno plano y suelo de piedra. Ideales para inversionistas que buscan propiedades de oportunidad.',
-            'Rodeado de más de 10 proyectos en preventa en la misma vialidad, y más de 30 en sus alrededores, incluyendo residenciales y un club de golf a la orilla de la playa.',
-            'A 2.2 horas de Chichen Itza, XX minutos de la playa y 1.3 horas de Mérida, Gran Dzilam es una inversión emergente inteligente para quienes buscan desarrollar un proyecto con crecimiento exponencial en las próximas décadas.',
-            'Su comercialización es a través de Eslabón Inmobiliario, una inmobiliaria con XX años de experiencia en la venta de terrenos y desarrollos residenciales en la zona de Yucatán.',
-            'Si quieres conocer más información sobre Gran Dzilam consulta nuestro Blog informativo.',
+            'Gran Dzilam es un conjunto de macroterrenos pensado para inversionistas que buscan multiplicar sus inversiones a gran escala rodeado de más de 10 proyectos en preventa en la misma vialidad, y más de 30 en sus alrededores lo que garantizan gran plusvalía y crecimiento de la zona.',
+            'Gran Dzilam es una inversión inteligente con solo 14 terrenos para quienes buscan desarrollar un proyecto con crecimiento exponencial en las próximas décadas.',
+            'Es desarrollado por la empresa Quinta Real, quienes llevan más de 15 años en el sector de la construcción y comercialización.'
           ],
         },
         {
@@ -214,8 +211,8 @@ export const translations: Record<Language, TranslationSchema> = {
           title: 'Ubicación',
           highlight: 'Entorno de alta plusvalía',
           paragraphs: [
-            'Se encuentra en la costa norte del estado de Yucatán, es una de las pocas zonas vírgenes que quedan en Yucatán y una auténtica joya escondida que esta en la mira de inversionistas y desarrolladores.',
-            'Cuenta con acceso desde vialidad pavimentada con más de 100m lineales de frente. Se encuentra a 5 minutos de la carretera El Tajo.',
+            'Se encuentra en la costa norte del estado de Yucatán, es una de las pocas zonas vírgenes que quedan en Yucatán y una auténtica joya escondida que está en la mira de inversionistas y desarrolladores.',
+            'Cada terreno cuenta con acceso desde vialidad pavimentada con más de 100m lineales de frente. Se encuentra a 5 minutos de la carretera El Tajo y a 10 minutos del puerto de Dzilam de Bravo.',
             'Si quieres conocer más información sobre la zona en la cual se encuentra Gran Dzilam, y zonas de interés cercanas, visita nuestro Blog informativo.',
           ],
           mapTitle: 'Ubicación Gran Dzilam',
@@ -238,7 +235,6 @@ export const translations: Record<Language, TranslationSchema> = {
             { title: 'Propiedad privada', description: 'Terrenos seguros, listos para escriturar.' },
             { title: 'Acceso pavimentado', description: 'Terrenos a pie de pavimento, ubicados sobre carretera.' },
             { title: 'Dimensiones', description: 'Desde 8 hasta 17 hectáreas, dividido con mojoneras.' },
-            { title: 'Acceso a agua', description: 'Pozo de agua con infraestructura para instalar tubería.' },
             { title: 'Gran plusvalía', description: 'Zona con proyectos residenciales, comerciales y de golf.' },
             { title: 'Conexión', description: 'A minutos de la playa, Mérida y Chichén Itzá.' },
           ],
@@ -387,12 +383,9 @@ export const translations: Record<Language, TranslationSchema> = {
           title: 'About Gran Dzilam',
           highlight: 'Investment macrolots',
           paragraphs: [
-            'Gran Dzilam is a collection of macrolots located in Dzilam de Bravo, Yucatán.',
-            'These are privately owned parcels ready for title deeds, located on a main road with flat terrain and stone soil—ideal for investors seeking opportunity properties.',
-            'Surrounded by more than 10 presale projects on the same road and over 30 in the area, including residential projects and a beachfront golf club.',
-            'Just 2.2 hours from Chichen Itza, minutes from the beach, and 1.3 hours from Mérida, Gran Dzilam is a smart emerging investment for developing projects with long-term growth.',
-            'Marketed through Eslabón Inmobiliario, a real estate firm with decades of experience selling land and residential developments in Yucatán.',
-            'Visit our blog to learn more about Gran Dzilam.',
+            'Gran Dzilam is a collection of macrolots designed for investors seeking to multiply their investments on a large scale, surrounded by more than 10 pre-sale projects on the same road and over 30 in the surrounding area, guaranteeing great surplus value and growth.',
+            'Gran Dzilam is a smart investment with only 14 lots for those looking to develop a project with exponential growth in the coming decades.',
+            'Developed by Quinta Real, a company with over 15 years of experience in the construction and commercialization sector.'
           ],
         },
         {
@@ -402,9 +395,9 @@ export const translations: Record<Language, TranslationSchema> = {
           title: 'Location',
           highlight: 'High appreciation area',
           paragraphs: [
-            'Located on the northern coast of Yucatán, one of the few untouched areas left in the state and a true hidden gem for investors and developers.',
-            'Direct access from a paved road with more than 100 meters of frontage and just 5 minutes from the El Tajo highway.',
-            'Visit our blog to learn more about the area around Gran Dzilam and the nearby attractions.',
+            'Located on the northern coast of Yucatán, it is one of the few untouched areas left in the state and a true hidden gem for investors and developers.',
+            'Each lot has access from a paved road with more than 100 meters of frontage. It is 5 minutes from the El Tajo highway and 10 minutes from the port of Dzilam de Bravo.',
+            'Visit our blog for more information about the area around Gran Dzilam and nearby points of interest.',
           ],
           mapTitle: 'Gran Dzilam location',
         },
@@ -426,7 +419,6 @@ export const translations: Record<Language, TranslationSchema> = {
             { title: 'Private property', description: 'Secure land, ready for title deeds.' },
             { title: 'Paved access', description: 'Roadside lots located directly on the highway.' },
             { title: 'Dimensions', description: 'From 8 to 17 hectares, divided with markers.' },
-            { title: 'Water access', description: 'Water well with infrastructure ready for piping.' },
             { title: 'Great appreciation', description: 'Area with residential, commercial, and golf projects.' },
             { title: 'Connection', description: 'Minutes from the beach, Mérida, and Chichén Itzá.' },
           ],
@@ -555,7 +547,7 @@ export const translations: Record<Language, TranslationSchema> = {
     cookies: {
       title: 'Utilisation des cookies',
       description:
-        'Nous utilisons des cookies pour améliorer votre expérience et analyser votre interaction avec notre site. Vous pouvez accepter tous les cookies ou ne conserver que ceux qui sont essentiels au bon fonctionnement du site.',
+        'Nous utilisons des cookies pour améliorer votre expérience et analyser votre interaction avec nuestro site. Vous pouvez accepter tous les cookies ou ne conserver que ceux qui sont essentiels au bon fonctionnement du site.',
       actions: { essential: 'Accepter seulement l’essentiel', all: 'Tout accepter' },
       linkLabel: 'avis de confidentialité',
     },
@@ -570,12 +562,9 @@ export const translations: Record<Language, TranslationSchema> = {
           title: 'À propos de Gran Dzilam',
           highlight: 'Macrolots d’investissement',
           paragraphs: [
-            'Gran Dzilam est un ensemble de macrolots situé à Dzilam de Bravo, au Yucatán.',
-            'Des terrains privés prêts à être notariés, en bord de route avec un terrain plat et pierreux, idéals pour les investisseurs à la recherche d’opportunités.',
-            'Entouré de plus de 10 projets en prévente sur la même voie et de plus de 30 dans les environs, dont des résidences et un club de golf en bord de mer.',
-            'À 2,2 heures de Chichén Itzá, à quelques minutes de la plage et à 1,3 heure de Mérida, Gran Dzilam est un investissement émergent intelligent pour développer un projet à forte croissance.',
-            'Commercialisé par Eslabón Inmobiliario, une agence immobilière avec des décennies d’expérience dans la vente de terrains et de développements résidentiels au Yucatán.',
-            'Consultez notre blog pour en savoir plus sur Gran Dzilam.',
+            'Gran Dzilam est un ensemble de macrolots conçu pour les investisseurs cherchant à multiplier leurs investissements à grande échelle, entouré de plus de 10 projets en pré-vente sur la même voie et de plus de 30 aux alentours, garantissant une forte plus-value et croissance.',
+            'Gran Dzilam est un investissement intelligent avec seulement 14 terrains pour ceux qui souhaitent développer un projet avec une croissance exponentielle dans les prochaines décennies.',
+            'Développé par Quinta Real, une entreprise avec plus de 15 ans d’expérience dans le secteur de la construction et de la commercialisation.'
           ],
         },
         {
@@ -585,9 +574,9 @@ export const translations: Record<Language, TranslationSchema> = {
           title: 'Localisation',
           highlight: 'Zone à forte valeur',
           paragraphs: [
-            'Situé sur la côte nord du Yucatán, l’une des rares zones encore vierges et un véritable trésor pour les investisseurs et les promoteurs.',
-            'Accès direct depuis une route pavée avec plus de 100 mètres de façade et à seulement 5 minutes de la route El Tajo.',
-            'Visitez notre blog pour connaître la zone autour de Gran Dzilam et les points d’intérêt à proximité.',
+            'Situé sur la côte nord de l’État du Yucatán, c’est l’une des rares zones vierges restantes et un véritable joyau caché pour les investisseurs et promoteurs.',
+            'Chaque terrain dispose d’un accès par route pavée avec plus de 100 m de façade. Il se trouve à 5 minutes de l’autoroute El Tajo et à 10 minutes du port de Dzilam de Bravo.',
+            'Visitez notre blog pour plus d’informations sur la zone autour de Gran Dzilam et les points d’intérêt à proximité.',
           ],
           mapTitle: 'Localisation Gran Dzilam',
         },
@@ -601,7 +590,7 @@ export const translations: Record<Language, TranslationSchema> = {
         },
         {
           id: 'especificaciones',
-          label: 'Spécifications',
+          label: 'Spécificaciones',
           iconPath: '/assets/iconos/especificaciones.png',
           title: 'Spécifications',
           highlight: 'Prêt à développer',
@@ -609,7 +598,6 @@ export const translations: Record<Language, TranslationSchema> = {
             { title: 'Propriété privée', description: 'Terrains sécurisés, prêts pour l’acte notarié.' },
             { title: 'Accès pavé', description: 'Terrains en bord de route, directement sur la chaussée.' },
             { title: 'Dimensions', description: 'De 8 à 17 hectares, délimités par des bornes.' },
-            { title: 'Accès à l’eau', description: 'Puits d’eau avec infrastructure prête pour les tuyaux.' },
             { title: 'Forte valorisation', description: 'Zone avec des projets résidentiels, commerciaux et un golf.' },
             { title: 'Connexion', description: 'À quelques minutes de la plage, de Mérida et de Chichén Itzá.' },
           ],
