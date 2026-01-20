@@ -35,7 +35,7 @@ const galleryCategories: GalleryCategory[] = [
       'Perspectiva punto de fuga.png',
       'Perspectiva.png',
       'Vista superior.png',
-      
+
       'Malecón + Puerto.png',
       'Predios cercanos Dzilam_Mesa de trabajo 1.png',
       'Predios cercanos Dzilam_Mesa de trabajo 1 copia 2.png',
@@ -203,20 +203,7 @@ export const InfoPanel = ({ closeSignal }: InfoPanelProps) => {
         ))}
       </div>
 
-      <div
-        className="w-full overflow-hidden rounded-xl border border-slate-200 shadow-sm cursor-pointer transition-transform hover:scale-[1.01]"
-        onClick={() => setIsMapModalOpen(true)}
-        role="button"
-        tabIndex={0}
-      >
-        <Image
-          src="/assets/plano.png"
-          alt="Plano Master Plan"
-          width={800}
-          height={600}
-          className="h-auto w-full object-cover"
-        />
-      </div>
+      
 
       <p
         className="text-sm text-slate-500 text-center cursor-pointer hover:text-slate-700 hover:underline"
