@@ -5,12 +5,23 @@ import Link from 'next/link';
 
 export const HeroLanding = () => {
   const [isVideoReady, setIsVideoReady] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const playerRef = useRef<any>(null);
 
+  // IDs de tus videos
   const VIDEO_DESKTOP = "PAQ7kcfRbRM";
   const VIDEO_MOBILE = "nk6mU1qpGNQ";
 
   useEffect(() => {
+    // 1. Detectar si es móvil al cargar y si cambia el tamaño
+    const checkDevice = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    checkDevice();
+    window.addEventListener('resize', checkDevice);
+
+    // 2. Cargar API de YouTube
     if (!(window as any).YT) {
       const tag = document.createElement('script');
       tag.src = "https://www.youtube.com/iframe_api";
@@ -18,6 +29,7 @@ export const HeroLanding = () => {
       firstScriptTag.parentNode?.insertBefore(tag, firstScriptTag);
     }
 
+    // 3. Inicializar el reproductor
     const initPlayer = () => {
       const currentVideoId = window.innerWidth < 768 ? VIDEO_MOBILE : VIDEO_DESKTOP;
       
@@ -34,14 +46,11 @@ export const HeroLanding = () => {
           showinfo: 0,
           iv_load_policy: 3,
           enablejsapi: 1,
-          disablekb: 1, // Deshabilitar teclado
         },
         events: {
-          onReady: (event: any) => {
-            event.target.playVideo();
-          },
           onStateChange: (event: any) => {
             if (event.data === (window as any).YT.PlayerState.PLAYING) {
+              // Esperamos un segundo extra para que suba la calidad/buffer
               setTimeout(() => setIsVideoReady(true), 1200);
             }
           },
@@ -54,10 +63,12 @@ export const HeroLanding = () => {
     } else {
       (window as any).onYouTubeIframeAPIReady = initPlayer;
     }
+
+    return () => window.removeEventListener('resize', checkDevice);
   }, []);
 
   return (
-    <section className="relative flex h-screen w-screen items-center justify-center overflow-hidden bg-black">
+    <section className="relative flex min-h-screen items-center justify-center overflow-hidden bg-black">
       
       {/* 🌀 SPINNER DE CARGA */}
       {!isVideoReady && (
@@ -67,23 +78,21 @@ export const HeroLanding = () => {
         </div>
       )}
 
-      {/* 🎥 REPRODUCTOR FULLSCREEN */}
-      <div
-        className={`absolute inset-0 z-0 pointer-events-none transition-opacity duration-1000 ${
-          isVideoReady ? 'opacity-100' : 'opacity-0'
-        }`}
-      >
-        <div className="relative h-full w-full overflow-hidden">
-          <div
-            id="youtube-player"
-            className="absolute top-1/2 left-1/2 h-[100vmax] w-[177.77vmax] -translate-x-1/2 -translate-y-1/2"
-          />
-        </div>
-        {/* Capa de contraste / Overlay */}
+      {/* 🎥 REPRODUCTOR DINÁMICO */}
+      <div className={`absolute inset-0 z-0 pointer-events-none transition-opacity duration-1000 ${isVideoReady ? 'opacity-100' : 'opacity-0'}`}>
+        <div 
+          id="youtube-player" 
+          className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2
+            ${isMobile 
+              ? 'h-[100vh] w-[56.25vh] min-h-full min-w-[177.77vw]' // Proporción vertical para móvil
+              : 'h-[100vh] w-[177.77vh] min-w-full min-h-[56.25vw]' // Proporción horizontal para desktop
+            }`} 
+        />
+        {/* Capa de contraste */}
         <div className="absolute inset-0 bg-black/20" />
       </div>
 
-      {/* Botón de Scroll */}
+      {/* Flecha con animación */}
       <Link
         href="#macro-terreno"
         className="group z-30 absolute bottom-10 left-1/2 -translate-x-1/2 rounded-full bg-white/80 p-3 shadow-md backdrop-blur transition hover:scale-105 active:scale-95"

@@ -203,12 +203,7 @@ export const InfoPanel = ({ closeSignal }: InfoPanelProps) => {
 
       
 
-      <p
-        className="text-sm text-slate-500 text-center cursor-pointer hover:text-slate-700 hover:underline"
-        onClick={() => setIsMapModalOpen(true)}
-      >
-        {translations.infoPanel.viewLarge}
-      </p>
+   
     </div>
   );
 
