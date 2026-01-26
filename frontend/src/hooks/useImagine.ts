@@ -29,9 +29,22 @@ const sanitizePrompt = (value: string) => value.replace(/\s+/g, ' ').trim();
 const allowedSizes: ImagineSize[] = ['1024x1024', '1024x1536', '1536x1024', 'auto'];
 const allowedSizeSet = new Set<ImagineSize>(allowedSizes);
 
+const resolveImageUrl = (value: string) => {
+  if (value.startsWith('data:image')) {
+    return value;
+  }
+  if (value.startsWith('http://') || value.startsWith('https://')) {
+    return value;
+  }
+  if (value.startsWith('/')) {
+    return buildApiUrl(value);
+  }
+  return value;
+};
+
 export const getImagineImageSrc = (data: Pick<ImagineData, 'imageUrl' | 'imageBase64'> | null) => {
   if (!data) return null;
-  if (data.imageUrl) return data.imageUrl;
+  if (data.imageUrl) return resolveImageUrl(data.imageUrl);
   if (data.imageBase64) return `data:image/png;base64,${data.imageBase64}`;
   return null;
 };
