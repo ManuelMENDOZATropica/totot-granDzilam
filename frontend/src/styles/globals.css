@@ -97,6 +97,13 @@ html {
 body {
   @apply bg-white font-sans text-slate-900 antialiased;
   font-size: clamp(16px, 0.25vw + 15px, 18px);
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+#main-canvas {
+  backface-visibility: hidden;
+  -webkit-font-smoothing: antialiased;
 }
 
 h1,
