@@ -8,31 +8,30 @@ export default function App({ Component, pageProps }: AppProps) {
   useEffect(() => {
     const mainCanvas = document.getElementById('main-canvas');
 
-    const applyScale = () => {
+    const ajustarEscala = () => {
       if (!mainCanvas) {
         return;
       }
 
-      const scaleFactor = window.innerWidth / 1920;
+      const ratio = window.innerWidth / 1920;
 
-      mainCanvas.style.transform = `scale(${scaleFactor})`;
-      mainCanvas.style.transformOrigin = 'top center';
+      mainCanvas.style.transform = `scale(${ratio})`;
 
-      const originalHeight = mainCanvas.scrollHeight;
-      document.body.style.height = `${originalHeight * scaleFactor}px`;
+      const scaledHeight = mainCanvas.offsetHeight * ratio;
+      document.body.style.height = `${scaledHeight}px`;
       document.body.style.overflowX = 'hidden';
     };
 
-    applyScale();
+    ajustarEscala();
 
-    window.addEventListener('load', applyScale);
-    window.addEventListener('resize', applyScale);
-    window.addEventListener('pageshow', applyScale);
+    window.addEventListener('load', ajustarEscala);
+    window.addEventListener('resize', ajustarEscala);
+    window.addEventListener('pageshow', ajustarEscala);
 
     return () => {
-      window.removeEventListener('load', applyScale);
-      window.removeEventListener('resize', applyScale);
-      window.removeEventListener('pageshow', applyScale);
+      window.removeEventListener('load', ajustarEscala);
+      window.removeEventListener('resize', ajustarEscala);
+      window.removeEventListener('pageshow', ajustarEscala);
     };
   }, []);
 
