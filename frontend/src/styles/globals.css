@@ -92,17 +92,25 @@
 
 html {
   @apply scroll-smooth;
+  background-color: #1a0d0b;
 }
 
 body {
   @apply bg-white font-sans text-slate-900 antialiased;
   font-size: clamp(16px, 0.25vw + 15px, 18px);
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
 }
 
 #main-canvas {
+  width: 1920px;
   backface-visibility: hidden;
+  transform-origin: top center;
   -webkit-font-smoothing: antialiased;
 }
 
