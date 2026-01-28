@@ -70,7 +70,7 @@ export const InteractiveMap = ({ src, className, imageClassName }: InteractiveMa
 
   // 2. Definir Punto de Anclaje para Mobile (Centro 50%, Vertical 75%)
   const anchorX = MOBILE_VIEWBOX.width / 2;
-  const anchorY = (MOBILE_VIEWBOX.height * 3) / 4;
+  const anchorY = (MOBILE_VIEWBOX.height * 6) / 7;
 
   // 3. Transformación dinámica
   const mapTranslate = isMobileInteractiveView
@@ -122,7 +122,7 @@ export const InteractiveMap = ({ src, className, imageClassName }: InteractiveMa
             viewBox={viewBox}
             preserveAspectRatio={preserveAspectRatio}
           >
-            <g className="pointer-events-auto" transform={mapTranslate}>
+            <g className="pointer-events-auto" transform={`${mapTranslate} scale(2)`}>
               {lots.map((lot, index) => {
                 const points = mapPaths[index];
                 if (!points) return null;
