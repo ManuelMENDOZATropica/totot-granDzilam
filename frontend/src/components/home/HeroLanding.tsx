@@ -5,23 +5,13 @@ import Link from 'next/link';
 
 export const HeroLanding = () => {
   const [isVideoReady, setIsVideoReady] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
   const playerRef = useRef<any>(null);
 
-  // IDs de tus videos
   const VIDEO_DESKTOP = "PAQ7kcfRbRM";
   const VIDEO_MOBILE = "nk6mU1qpGNQ";
 
   useEffect(() => {
-    // 1. Detectar si es móvil al cargar y si cambia el tamaño
-    const checkDevice = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-
-    checkDevice();
-    window.addEventListener('resize', checkDevice);
-
-    // 2. Cargar API de YouTube
+    // Cargar API de YouTube
     if (!(window as any).YT) {
       const tag = document.createElement('script');
       tag.src = "https://www.youtube.com/iframe_api";
@@ -29,9 +19,9 @@ export const HeroLanding = () => {
       firstScriptTag.parentNode?.insertBefore(tag, firstScriptTag);
     }
 
-    // 3. Inicializar el reproductor
     const initPlayer = () => {
-      const currentVideoId = window.innerWidth < 768 ? VIDEO_MOBILE : VIDEO_DESKTOP;
+      const isMobile = window.innerWidth < 768;
+      const currentVideoId = isMobile ? VIDEO_MOBILE : VIDEO_DESKTOP;
 
       playerRef.current = new (window as any).YT.Player('youtube-player', {
         videoId: currentVideoId,
@@ -46,12 +36,16 @@ export const HeroLanding = () => {
           showinfo: 0,
           iv_load_policy: 3,
           enablejsapi: 1,
+          disablekb: 1,
+          origin: window.location.origin
         },
         events: {
+          onReady: (event: any) => {
+            event.target.playVideo();
+          },
           onStateChange: (event: any) => {
             if (event.data === (window as any).YT.PlayerState.PLAYING) {
-              // Esperamos un segundo extra para que suba la calidad/buffer
-              setTimeout(() => setIsVideoReady(true), 1200);
+              setTimeout(() => setIsVideoReady(true), 800);
             }
           },
         },
@@ -63,76 +57,74 @@ export const HeroLanding = () => {
     } else {
       (window as any).onYouTubeIframeAPIReady = initPlayer;
     }
-
-    return () => window.removeEventListener('resize', checkDevice);
   }, []);
 
   return (
-    <section className="relative flex min-h-screen items-center justify-center overflow-hidden bg-black">
+    <section className="relative flex h-screen w-full items-center justify-center overflow-hidden bg-black">
 
-      {/* 🌀 SPINNER DE CARGA */}
+      {/* 🌀 LOADING STATE */}
       {!isVideoReady && (
         <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-black">
-          <div className="h-12 w-12 animate-spin rounded-full border-4 border-white/10 border-t-white mb-4"></div>
-          <p className="text-white/40 text-[10px] uppercase tracking-[0.2em]">Cargando experiencia HD</p>
+          <div className="h-10 w-10 animate-spin rounded-full border-2 border-white/10 border-t-white mb-4"></div>
         </div>
       )}
 
-      {/* 🎥 REPRODUCTOR DINÁMICO */}
-      {/* 🎥 REPRODUCTOR DINÁMICO COMPLETAMENTE FULL SCREEN */}
+      {/* 🎥 CSS PARA FORZAR "OBJECT-COVER" EN IFRAME */}
       <style jsx global>{`
-        .video-container iframe {
+        .video-foreground {
           position: absolute;
-          top: 50%;
-          left: 50%;
-          transform: translate(-50%, -50%);
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
           pointer-events: none;
         }
 
-        /* DESKTOP (16:9) */
-        .video-desktop iframe {
-          height: 100vh;
-          width: 177.78vh; /* 16/9 * 100vh */
-        }
-        @media (min-aspect-ratio: 16/9) {
-          .video-desktop iframe {
+        /* Lógica para Desktop (16:9) */
+        @media (min-width: 768px) {
+          .video-foreground iframe {
+            position: absolute;
+            top: 50%;
+            left: 50%;
             width: 100vw;
-            height: 56.25vw; /* 9/16 * 100vw */
+            height: 56.25vw; /* 9/16 * 100 */
+            min-height: 100vh;
+            min-width: 177.78vh; /* 16/9 * 100 */
+            transform: translate(-50%, -50%);
           }
         }
 
-        /* MOBILE (9:16) */
-        .video-mobile iframe {
-          height: 100vh;
-          width: 56.25vh; /* 9/16 * 100vh */
-        }
-        @media (min-aspect-ratio: 9/16) {
-          .video-mobile iframe {
-            width: 100vw;
-            height: 177.78vw; /* 16/9 * 100vw (inverse of 9/16) */
+        /* Lógica para Mobile (9:16) */
+        @media (max-width: 767px) {
+          .video-foreground iframe {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 177.78vh; /* Forzamos ancho para cubrir alto */
+            height: 100vh;
+            min-width: 100vw;
+            min-height: 177.78vw; /* 16/9 para vertical */
+            transform: translate(-50%, -50%);
           }
         }
       `}</style>
 
-      <div className={`absolute inset-0 z-0 overflow-hidden transition-opacity duration-1000 ${isVideoReady ? 'opacity-100' : 'opacity-0'}`}>
-        <div className={`video-container absolute inset-0 size-full ${isMobile ? 'video-mobile' : 'video-desktop'}`}>
-          <div id="youtube-player" />
-        </div>
-        {/* Capa de contraste */}
-        <div className="absolute inset-0 bg-black/20" />
+      <div className={`video-foreground z-0 transition-opacity duration-1000 ${isVideoReady ? 'opacity-100' : 'opacity-0'}`}>
+        <div id="youtube-player" />
+        {/* Overlay para mejorar legibilidad y evitar clics */}
+        <div className="absolute inset-0 bg-black/30" />
       </div>
 
-      {/* Flecha con animación */}
+      {/* Contenido UI (Flecha) */}
       <Link
         href="#macro-terreno"
-        className="group z-30 absolute bottom-10 left-1/2 -translate-x-1/2 rounded-full bg-white/80 p-3 shadow-md backdrop-blur transition hover:scale-105 active:scale-95"
+        className="group z-30 absolute bottom-10 left-1/2 -translate-x-1/2 rounded-full bg-white/10 p-4 border border-white/20 backdrop-blur-md transition hover:bg-white/20"
       >
-        <span className="block h-8 w-8 text-gray-700 animate-bounce">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 9l7.5 7.5L19.5 9" />
-            <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 4.5L12 12 19.5 4.5" />
+        <div className="text-white animate-bounce">
+          <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
           </svg>
-        </span>
+        </div>
       </Link>
     </section>
   );
