@@ -225,7 +225,7 @@ export const PanelCotizacion = ({
             type="button"
             onClick={onDescargar}
             disabled={descargaEnProgreso}
-            className="flex-1 rounded-full bg-[#1C2533] px-4 py-3 text-sm font-medium text-white hover:bg-[#2d3b50] transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
+            className="flex-1 rounded-full bg-[#1C2533] px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-[#2d3b50] disabled:cursor-not-allowed disabled:opacity-70"
           >
             {descargaEnProgreso ? panelCopy.actions.downloading : panelCopy.actions.download}
           </button>
@@ -234,7 +234,7 @@ export const PanelCotizacion = ({
           <button
             type="button"
             onClick={onContactar}
-            className="flex-1 rounded-full border border-[#1C2533] px-4 py-3 text-sm font-medium text-[#1C2533] hover:bg-[#1C2533] hover:text-white transition-colors"
+            className="flex-1 rounded-full border border-[#1C2533] px-4 py-3 text-sm font-medium text-[#1C2533] transition-colors hover:bg-[#1C2533] hover:text-white"
           >
             {panelCopy.actions.contact}
           </button>

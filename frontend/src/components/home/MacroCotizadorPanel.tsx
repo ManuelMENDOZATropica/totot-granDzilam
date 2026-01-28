@@ -176,7 +176,44 @@ export const MacroCotizadorPanel = ({
 
           <div className="grid h-full w-full lg:grid-cols-[1fr_460px] bg-[#F3F1EC] overflow-hidden flex-1">
             <div className="relative h-full w-full p-4 lg:p-6">
-              <div className="relative h-full h-[96%] w-[70%] pl-[10%] overflow-hidden rounded-2xl bg-[#F3F1EC]">
+              <div className="lg:hidden">
+                <div className="rounded-2xl border border-[#E2E0DB] bg-[#F3F1EC] p-4 shadow-sm">
+                  <p className="mb-4 text-sm font-semibold text-[#1C2533]">Selecciona un lote</p>
+                  {loading ? (
+                    <div className="flex items-center justify-center gap-4 py-8 text-[#64748B]">
+                      <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#1C2533] border-t-transparent" />
+                      <p>{macroCopy.loading}</p>
+                    </div>
+                  ) : error ? (
+                    <div className="rounded-xl bg-red-50 p-4 text-center text-sm text-red-600">{error}</div>
+                  ) : lotes.length === 0 ? (
+                    <div className="rounded-xl bg-white p-4 text-center text-sm text-[#1C2533]">{macroCopy.empty}</div>
+                  ) : (
+                    <div className="grid grid-cols-2 gap-3">
+                      {lotes.map((lote, index) => {
+                        const loteNombre = lote.nombre || `Lote ${index + 1}`;
+                        const isSelected = selectedIds.includes(lote.id);
+                        return (
+                          <button
+                            key={lote.id || index}
+                            type="button"
+                            onClick={() => toggleLote(lote.id)}
+                            className={`rounded-xl border px-3 py-2 text-left text-sm font-medium transition-colors ${
+                              isSelected
+                                ? 'border-[#1C2533] bg-[#1C2533] text-white'
+                                : 'border-[#E2E0DB] bg-white text-[#1C2533] hover:bg-[#EBE9E4]'
+                            }`}
+                          >
+                            {loteNombre}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="relative hidden h-full h-[96%] w-[70%] overflow-hidden rounded-2xl bg-[#F3F1EC] pl-[10%] lg:block">
                 <Image
                   src="/assets/vistas/COTIZACION2.jpg"
                   alt="Mapa de referencia Gran Dzilam"
