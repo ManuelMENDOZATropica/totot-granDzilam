@@ -13,7 +13,7 @@ const DESKTOP_VIEWBOX = { width: 850, height: 680 };
 const MOBILE_VIEWBOX = { width: 380, height: 568 };
 const DESKTOP_TRANSLATE = { x: -312, y: -125 };
 
-// Coordenadas para la VISTA 1 (Ajustadas a tu imagen 1.png)
+// Coordenadas
 const LOT_PATHS_V1 = [
   "390,200 425,200 420,698.2 382,705",   // 1
   "423,200 460,200 455,686.5 420,696.2", // 2
@@ -27,7 +27,6 @@ const LOT_PATHS_V1 = [
   "705,200 741,200 737,617.3 702,626.1", // 10
   "742,200 777,200 771,608.5 738,617.3", // 11
   "778,200 813,200 807,599.8 773,607.5", // 12
-  // Lote 13 con quiebres en el lado derecho:
   "814,200 845,200 837,308 840,430 843,508 842,590 808,598.8", // 13
 ];
 
@@ -47,10 +46,9 @@ const LOT_PATHS_V1_MOBILE = [
   "363.91,267.06 377.76,267.06 374.19,357.27 375.53,459.18 376.87,524.33 376.42,592.82 361.22,600.17", // 13
 ];
 
-// INTERFAZ DE PROPS ACTUALIZADA
 interface InteractiveMapProps {
-  src: string;       // Recibe la imagen dinámica
-  className?: string; // Recibe las clases de opacidad y posición
+  src: string;
+  className?: string;
   imageClassName?: string;
 }
 
@@ -58,13 +56,12 @@ export const InteractiveMap = ({ src, className, imageClassName }: InteractiveMa
   const imageClasses = ['object-cover select-none', imageClassName].filter(Boolean).join(' ');
   const [lots, setLots] = useState<PublicLot[]>([]);
   const [hoveredLot, setHoveredLot] = useState<PublicLot | null>(null);
-  const [tooltipPos, setTooltipPos] = useState({ x: 0, y: 0 });
   const containerRef = useRef<HTMLDivElement | null>(null);
 
-  // Solo mostramos los polígonos si estamos en la vista 1
   const isDesktopInteractiveView = src.includes('1.png') || src.includes('1.jpg');
   const isMobileInteractiveView = src.includes('mobile1.png') || src.includes('mobile1.jpg');
   const isInteractiveView = isDesktopInteractiveView || isMobileInteractiveView;
+
   const viewBox = isMobileInteractiveView
     ? `0 0 ${MOBILE_VIEWBOX.width} ${MOBILE_VIEWBOX.height}`
     : `0 0 ${DESKTOP_VIEWBOX.width} ${DESKTOP_VIEWBOX.height}`;
@@ -77,28 +74,21 @@ export const InteractiveMap = ({ src, className, imageClassName }: InteractiveMa
     : `translate(${DESKTOP_TRANSLATE.x}, ${DESKTOP_TRANSLATE.y})`;
 
   useEffect(() => {
-    // Si no es la vista interactiva, no cargamos datos para ahorrar recursos
     if (!isInteractiveView) return;
-
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
-
     fetch(`${apiUrl}/api/lots`)
       .then((res) => res.json())
       .then((data) => {
-        if (data.items && Array.isArray(data.items)) {
-          setLots(data.items);
-        } else {
-          setLots([]);
-        }
+        if (data.items && Array.isArray(data.items)) setLots(data.items);
       })
       .catch((err) => console.error("Error cargando lotes:", err));
   }, [isInteractiveView]);
 
   const getFillColor = (estado: string) => {
     switch (estado) {
-      case 'disponible': return 'rgba(16, 185, 129, 0.4)';
-      case 'apartado': return 'rgba(234, 179, 8, 0.4)';
-      case 'vendido': return 'rgba(239, 68, 68, 0.4)';
+      case 'disponible': return 'rgba(16, 185, 129, 0.6)';
+      case 'apartado': return 'rgba(234, 179, 8, 0.6)';
+      case 'vendido': return 'rgba(239, 68, 68, 0.6)';
       default: return 'transparent';
     }
   };
@@ -107,26 +97,9 @@ export const InteractiveMap = ({ src, className, imageClassName }: InteractiveMa
     return new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(price);
   };
 
-  const handlePolygonEnter = (event: MouseEvent<SVGPolygonElement>, lot: PublicLot) => {
-    if (!isInteractiveView) return;
-    const polygonRect = event.currentTarget.getBoundingClientRect();
-    const containerRect = containerRef.current?.getBoundingClientRect();
-
-    if (containerRect) {
-      setTooltipPos({
-        x: polygonRect.left - containerRect.left + polygonRect.width / 2,
-        y: polygonRect.top - containerRect.top,
-      });
-    }
-
-    setHoveredLot(lot);
-  };
-
   return (
     <div className={className}>
       <div ref={containerRef} className="relative h-full w-full">
-
-        {/* 1. Imagen de Fondo Dinámica */}
         <Image
           src={src}
           alt="Mapa de lotes"
@@ -136,7 +109,6 @@ export const InteractiveMap = ({ src, className, imageClassName }: InteractiveMa
           sizes="100vw"
         />
 
-        {/* 2. SVG Superpuesto (Solo en vista 1) */}
         {isInteractiveView && (
           <svg
             className="absolute top-0 left-0 h-full w-full pointer-events-none z-[44]"
@@ -147,16 +119,18 @@ export const InteractiveMap = ({ src, className, imageClassName }: InteractiveMa
               {lots.map((lot, index) => {
                 const points = mapPaths[index];
                 if (!points) return null;
+                const isHovered = hoveredLot?.id === lot.id;
 
                 return (
                   <polygon
                     key={lot.id}
                     points={points}
-                    fill={hoveredLot?.id === lot.id ? getFillColor(lot.estado) : 'transparent'}
-                    stroke={hoveredLot?.id === lot.id ? "white" : "transparent)"}
-                    strokeWidth={hoveredLot?.id === lot.id ? "3" : "0"}
+                    /* CAMBIO 1: Fondo blanco con transparencia, stroke negro suave cuando no seleccionado */
+                    fill={isHovered ? getFillColor(lot.estado) : 'rgba(255, 255, 255, 0.1)'}
+                    stroke={isHovered ? "white" : "rgba(0, 0, 0, 0.5)"}
+                    strokeWidth={isHovered ? "3" : "1"}
                     className="cursor-pointer transition-all duration-300 ease-in-out"
-                    onMouseEnter={(event) => handlePolygonEnter(event, lot)}
+                    onMouseEnter={() => setHoveredLot(lot)}
                     onMouseLeave={() => setHoveredLot(null)}
                   />
                 );
@@ -165,32 +139,32 @@ export const InteractiveMap = ({ src, className, imageClassName }: InteractiveMa
           </svg>
         )}
 
-        {/* 3. Tooltip */}
+        {/* CAMBIO 2: Tooltip centrado horizontalmente y al 3/4 de la pantalla verticalmente */}
         {hoveredLot && isInteractiveView && (
           <div
-            className="absolute z-[60] pointer-events-none bg-white/95 backdrop-blur-sm p-4 rounded-xl shadow-xl border border-slate-200 w-56 animate-in fade-in zoom-in duration-150"
+            className="absolute z-[60] pointer-events-none bg-white/95 backdrop-blur-sm p-4 rounded-xl shadow-xl border border-slate-200 w-64 animate-in fade-in zoom-in duration-150"
             style={{
-              top: tooltipPos.y,
-              left: tooltipPos.x,
-              transform: 'translate(-50%, 50%)'
+              top: '75%',   /* 3/4 de la pantalla */
+              left: '50%',  /* Centro horizontal */
+              transform: 'translate(-50%, -50%)'
             }}
           >
-            <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-4 h-4 bg-white rotate-45 border-b border-r border-slate-200"></div>
+            <div className="text-slate-800 text-center space-y-2">
+              <h3 className="font-bold text-2xl text-slate-900 border-b border-slate-100 pb-1">
+                Lote {hoveredLot.id}
+              </h3>
 
-            <div className="text-slate-800 text-center space-y-1">
-              <h3 className="font-bold text-xl text-slate-900">{hoveredLot.id}</h3>
-
-              <div className="flex justify-between text-sm px-2 py-1 bg-slate-50 rounded">
-                <span className="text-slate-500">Superficie:</span>
-                <span className="font-semibold">{hoveredLot.superficieM2} m²</span>
+              <div className="flex justify-between text-sm px-2 py-1.5 bg-slate-50 rounded">
+                <span className="text-slate-500 font-medium">Superficie:</span>
+                <span className="font-bold text-slate-700">{hoveredLot.superficieM2} m²</span>
               </div>
 
-              <div className="flex justify-between text-sm px-2">
-                <span className="text-slate-500">Precio:</span>
-                <span className="font-semibold text-emerald-700">{formatPrice(hoveredLot.precio)}</span>
+              <div className="flex justify-between text-sm px-2 py-1.5">
+                <span className="text-slate-500 font-medium">Precio:</span>
+                <span className="font-bold text-emerald-700">{formatPrice(hoveredLot.precio)}</span>
               </div>
 
-              <div className={`mt-2 inline-block px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide border-0
+              <div className={`mt-2 block px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest border
                 ${hoveredLot.estado === 'disponible' ? 'bg-emerald-100 text-emerald-700 border-emerald-200' : ''}
                 ${hoveredLot.estado === 'apartado' ? 'bg-yellow-100 text-yellow-700 border-yellow-200' : ''}
                 ${hoveredLot.estado === 'vendido' ? 'bg-red-100 text-red-700 border-red-200' : ''}
