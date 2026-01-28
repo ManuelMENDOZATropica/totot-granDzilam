@@ -13,8 +13,15 @@ export default function App({ Component, pageProps }: AppProps) {
         return;
       }
 
-      const ratio = window.innerWidth / 1920;
+      const isMobile = window.innerWidth <= 1024;
 
+      if (isMobile) {
+        mainCanvas.style.transform = 'none';
+        document.body.style.height = 'auto';
+        return;
+      }
+
+      const ratio = window.innerWidth / 1920;
       mainCanvas.style.transform = `scale(${ratio})`;
 
       const scaledHeight = mainCanvas.offsetHeight * ratio;
