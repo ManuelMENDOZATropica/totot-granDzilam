@@ -17,7 +17,7 @@ export const HeroLanding = () => {
     const checkDevice = () => {
       setIsMobile(window.innerWidth < 768);
     };
-    
+
     checkDevice();
     window.addEventListener('resize', checkDevice);
 
@@ -32,7 +32,7 @@ export const HeroLanding = () => {
     // 3. Inicializar el reproductor
     const initPlayer = () => {
       const currentVideoId = window.innerWidth < 768 ? VIDEO_MOBILE : VIDEO_DESKTOP;
-      
+
       playerRef.current = new (window as any).YT.Player('youtube-player', {
         videoId: currentVideoId,
         playerVars: {
@@ -69,7 +69,7 @@ export const HeroLanding = () => {
 
   return (
     <section className="relative flex min-h-screen items-center justify-center overflow-hidden bg-black">
-      
+
       {/* 🌀 SPINNER DE CARGA */}
       {!isVideoReady && (
         <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-black">
@@ -79,15 +79,45 @@ export const HeroLanding = () => {
       )}
 
       {/* 🎥 REPRODUCTOR DINÁMICO */}
-      <div className={`absolute inset-0 z-0 pointer-events-none transition-opacity duration-1000 ${isVideoReady ? 'opacity-100' : 'opacity-0'}`}>
-        <div 
-          id="youtube-player" 
-          className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2
-            ${isMobile 
-              ? 'h-[100vh] w-[56.25vh] min-h-full min-w-[177.77vw]' // Proporción vertical para móvil
-              : 'h-[100vh] w-[177.77vh] min-w-full min-h-[56.25vw]' // Proporción horizontal para desktop
-            }`} 
-        />
+      {/* 🎥 REPRODUCTOR DINÁMICO COMPLETAMENTE FULL SCREEN */}
+      <style jsx global>{`
+        .video-container iframe {
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          pointer-events: none;
+        }
+
+        /* DESKTOP (16:9) */
+        .video-desktop iframe {
+          height: 100vh;
+          width: 177.78vh; /* 16/9 * 100vh */
+        }
+        @media (min-aspect-ratio: 16/9) {
+          .video-desktop iframe {
+            width: 100vw;
+            height: 56.25vw; /* 9/16 * 100vw */
+          }
+        }
+
+        /* MOBILE (9:16) */
+        .video-mobile iframe {
+          height: 100vh;
+          width: 56.25vh; /* 9/16 * 100vh */
+        }
+        @media (min-aspect-ratio: 9/16) {
+          .video-mobile iframe {
+            width: 100vw;
+            height: 177.78vw; /* 16/9 * 100vw (inverse of 9/16) */
+          }
+        }
+      `}</style>
+
+      <div className={`absolute inset-0 z-0 overflow-hidden transition-opacity duration-1000 ${isVideoReady ? 'opacity-100' : 'opacity-0'}`}>
+        <div className={`video-container absolute inset-0 size-full ${isMobile ? 'video-mobile' : 'video-desktop'}`}>
+          <div id="youtube-player" />
+        </div>
         {/* Capa de contraste */}
         <div className="absolute inset-0 bg-black/20" />
       </div>
