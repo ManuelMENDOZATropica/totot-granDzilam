@@ -11,9 +11,8 @@ interface PublicLot {
 
 const DESKTOP_VIEWBOX = { width: 850, height: 680 };
 const MOBILE_VIEWBOX = { width: 380, height: 568 };
-const DESKTOP_TRANSLATE = { x: -312, y: -125 };
 
-// Coordenadas Absolutas Desktop
+// Coordenadas Absolutas Desktop (Se dibujan tal cual)
 const LOT_PATHS_V1 = [
   "390,200 425,200 420,698.2 382,705",
   "423,200 460,200 455,686.5 420,696.2",
@@ -30,21 +29,21 @@ const LOT_PATHS_V1 = [
   "814,200 845,200 837,308 840,430 843,508 842,590 808,598.8",
 ];
 
-// Coordenadas Relativas Mobile (Centro en 0,0)
+// Coordenadas Relativas Mobile (Requieren transformación)
 const LOT_PATHS_MOBILE_RELATIVE = [
-  "-80.52,-41.59 -68.00,-41.59 -69.80,41.64 -83.38,42.78",   // 1
-  "-68.72,-41.59 -55.48,-41.59 -57.28,39.69 -69.80,41.31",   // 2
-  "-55.48,-41.59 -42.96,-41.59 -44.76,38.38 -57.28,40.02",   // 3
-  "-42.96,-41.59 -30.44,-41.59 -31.88,37.25 -44.76,38.55",   // 4
-  "-30.44,-41.59 -17.92,-41.59 -19.36,35.63 -32.24,37.08",   // 5
-  "-17.92,-41.59 -5.40,-41.59 -6.84,33.99 -19.72,35.63",     // 6
-  "-5.40,-41.59 7.10,-41.59 5.32,32.35 -6.84,33.99",         // 7
-  "7.10,-41.59 19.62,-41.59 18.20,31.05 6.04,32.35",         // 8
-  "19.62,-41.59 32.14,-41.59 30.36,29.43 18.56,30.88",       // 9
-  "32.14,-41.59 45.02,-41.59 43.58,28.13 31.08,29.60",       // 10
-  "45.38,-41.59 57.88,-41.59 55.74,26.66 43.94,28.13",       // 11
-  "58.24,-41.59 70.76,-41.59 68.62,25.20 56.46,26.49",       // 12
-  "71.12,-41.59 82.20,-41.59 79.36,-23.55 80.42,-3.17 81.50,9.87 81.14,23.57 68.98,25.04", // 13
+  "-80.52,-41.59 -68.00,-41.59 -69.80,41.64 -83.38,42.78",
+  "-68.72,-41.59 -55.48,-41.59 -57.28,39.69 -69.80,41.31",
+  "-55.48,-41.59 -42.96,-41.59 -44.76,38.38 -57.28,40.02",
+  "-42.96,-41.59 -30.44,-41.59 -31.88,37.25 -44.76,38.55",
+  "-30.44,-41.59 -17.92,-41.59 -19.36,35.63 -32.24,37.08",
+  "-17.92,-41.59 -5.40,-41.59 -6.84,33.99 -19.72,35.63",
+  "-5.40,-41.59 7.10,-41.59 5.32,32.35 -6.84,33.99",
+  "7.10,-41.59 19.62,-41.59 18.20,31.05 6.04,32.35",
+  "19.62,-41.59 32.14,-41.59 30.36,29.43 18.56,30.88",
+  "32.14,-41.59 45.02,-41.59 43.58,28.13 31.08,29.60",
+  "45.38,-41.59 57.88,-41.59 55.74,26.66 43.94,28.13",
+  "58.24,-41.59 70.76,-41.59 68.62,25.20 56.46,26.49",
+  "71.12,-41.59 82.20,-41.59 79.36,-23.55 80.42,-3.17 81.50,9.87 81.14,23.57 68.98,25.04",
 ];
 
 interface InteractiveMapProps {
@@ -63,19 +62,20 @@ export const InteractiveMap = ({ src, className, imageClassName }: InteractiveMa
   const isMobileInteractiveView = src.includes('mobile1.png') || src.includes('mobile1.jpg');
   const isInteractiveView = isDesktopInteractiveView || isMobileInteractiveView;
 
-  // 1. Definir Viewbox
+  // 1. Configuración de Viewbox
   const viewBox = isMobileInteractiveView
     ? `0 0 ${MOBILE_VIEWBOX.width} ${MOBILE_VIEWBOX.height}`
     : `0 0 ${DESKTOP_VIEWBOX.width} ${DESKTOP_VIEWBOX.height}`;
 
-  // 2. Definir Punto de Anclaje para Mobile (Centro 50%, Vertical 75%)
+  // 2. Lógica de Transformación
+  // Para Mobile: Desplazamos al punto de anclaje y escalamos.
+  // Para Desktop: No aplicamos ninguna transformación (puntos absolutos).
   const anchorX = MOBILE_VIEWBOX.width / 2;
   const anchorY = (MOBILE_VIEWBOX.height * 9) / 10;
 
-  // 3. Transformación dinámica
-  const mapTranslate = isMobileInteractiveView
-    ? `translate(${anchorX}, ${anchorY})`
-    : `translate(${DESKTOP_TRANSLATE.x}, ${DESKTOP_TRANSLATE.y})`;
+  const mapTransform = isMobileInteractiveView
+    ? `translate(${anchorX}, ${anchorY}) scale(2)`
+    : `translate(0, 0)`; // Sin escala para desktop
 
   const mapPaths = isMobileInteractiveView ? LOT_PATHS_MOBILE_RELATIVE : LOT_PATHS_V1;
   const preserveAspectRatio = isMobileInteractiveView ? 'xMidYMin meet' : 'none';
@@ -122,7 +122,7 @@ export const InteractiveMap = ({ src, className, imageClassName }: InteractiveMa
             viewBox={viewBox}
             preserveAspectRatio={preserveAspectRatio}
           >
-            <g className="pointer-events-auto" transform={`${mapTranslate} scale(2)`}>
+            <g className="pointer-events-auto" transform={mapTransform}>
               {lots.map((lot, index) => {
                 const points = mapPaths[index];
                 if (!points) return null;
@@ -134,7 +134,7 @@ export const InteractiveMap = ({ src, className, imageClassName }: InteractiveMa
                     points={points}
                     fill={isHovered ? getFillColor(lot.estado) : 'rgba(255, 255, 255, 0.1)'}
                     stroke={isHovered ? "white" : "rgba(0, 0, 0, 0.5)"}
-                    strokeWidth={isHovered ? "3" : "1"}
+                    strokeWidth={isHovered ? "2" : "1"}
                     className="cursor-pointer transition-all duration-300 ease-in-out"
                     onMouseEnter={() => setHoveredLot(lot)}
                     onMouseLeave={() => setHoveredLot(null)}
