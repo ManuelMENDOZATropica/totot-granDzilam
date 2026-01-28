@@ -124,11 +124,11 @@ export const MacroCotizadorPanel = ({
         onClick={handleToggleMain}
         className={`
           pointer-events-auto
-          group relative flex w-full items-center gap-4 
+          group relative flex w-full max-w-[520px] items-center gap-4 
           bg-[#F3F1EC] px-6 py-4 text-left outline-none 
           transition-all duration-300 hover:bg-[#EBE9E4]
           border border-[#E2E0DB] shadow-lg
-          z-[60] ml-[20%] sm:ml-0
+          z-[60] mx-auto sm:mx-0 sm:max-w-none
           ${panelMacroAbierto
             ? 'rounded-b-[20px] rounded-t-none border-t-0'
             : 'rounded-[100px]'
