@@ -129,8 +129,8 @@ export const MacroCotizadorPanel = ({
           transition-all duration-300 hover:bg-[#EBE9E4]
           border border-[#E2E0DB] shadow-lg
           z-[60] ml-[20%] sm:ml-0
-          ${panelMacroAbierto 
-            ? 'rounded-b-[20px] rounded-t-none border-t-0' 
+          ${panelMacroAbierto
+            ? 'rounded-b-[20px] rounded-t-none border-t-0'
             : 'rounded-[100px]'
           }
         `}
@@ -162,8 +162,8 @@ export const MacroCotizadorPanel = ({
           border-x border-t border-[#E2E0DB]
           shadow-xl
           relative
-          ${panelMacroAbierto 
-            ? 'max-h-[85vh] opacity-100 rounded-[20px] sm:rounded-t-[20px]' 
+          ${panelMacroAbierto
+            ? 'max-h-[85vh] opacity-100 rounded-[20px] sm:rounded-t-[20px]'
             : 'max-h-0 opacity-0 border-none'
           }
         `}
@@ -176,25 +176,25 @@ export const MacroCotizadorPanel = ({
 
           <div className="grid h-full w-full lg:grid-cols-[1fr_460px] bg-[#F3F1EC] overflow-hidden flex-1">
             <div className="relative h-full w-full p-4 lg:p-6">
-            <div className="relative h-full h-[96%] w-[70%] pl-[10%] overflow-hidden rounded-2xl bg-[#F3F1EC]">
-              <Image
-                src="/assets/vistas/COTIZACION2.jpg"
-                alt="Mapa de referencia Gran Dzilam"
-                fill
-                sizes="100vw"
-                className="object-cover"
-                priority={false}
-              />
+              <div className="relative h-full h-[96%] w-[70%] pl-[10%] overflow-hidden rounded-2xl bg-[#F3F1EC]">
+                <Image
+                  src="/assets/vistas/COTIZACION2.jpg"
+                  alt="Mapa de referencia Gran Dzilam"
+                  fill
+                  sizes="100vw"
+                  className="object-cover"
+                  priority={false}
+                />
 
                 {loading ? (
-                   <div className="flex h-full items-center justify-center gap-4 text-[#64748B]">
-                      <div className="h-10 w-10 animate-spin rounded-full border-4 border-[#1C2533] border-t-transparent" />
-                      <p>{macroCopy.loading}</p>
-                   </div>
+                  <div className="flex h-full items-center justify-center gap-4 text-[#64748B]">
+                    <div className="h-10 w-10 animate-spin rounded-full border-4 border-[#1C2533] border-t-transparent" />
+                    <p>{macroCopy.loading}</p>
+                  </div>
                 ) : error ? (
-                   <div className="flex h-full items-center justify-center p-8 text-center text-red-500">{error}</div>
+                  <div className="flex h-full items-center justify-center p-8 text-center text-red-500">{error}</div>
                 ) : lotes.length === 0 ? (
-                   <div className="flex h-full items-center justify-center text-[#1C2533]"><p>{macroCopy.empty}</p></div>
+                  <div className="flex h-full items-center justify-center text-[#1C2533]"><p>{macroCopy.empty}</p></div>
                 ) : (
                   <div className="absolute inset-0 h-full w-full overflow-hidden">
                     <MapaLotes lotes={lotes} seleccionados={selectedIds} onToggle={toggleLote} />
@@ -260,11 +260,11 @@ export const MacroCotizadorPanel = ({
 
       {/* === ÁREA DE IMPRESIÓN === */}
       <div id="cotizacion-print" className="hidden">
-        <div 
+        <div
           className="relative mx-auto h-full w-full overflow-hidden bg-[#fafafa]"
           // ESTO ES LO QUE HACE QUE SE IMPRIMA EL FONDO:
-          style={{ 
-            printColorAdjust: 'exact', 
+          style={{
+            printColorAdjust: 'exact',
             WebkitPrintColorAdjust: 'exact',
             backgroundColor: '#fafafa' // Refuerzo explícito
           }}
@@ -280,7 +280,7 @@ export const MacroCotizadorPanel = ({
 
           {/* Contenedor relativo que ocupa toda la hoja para posicionar hijos absolutos */}
           <div className="relative z-10 h-full w-full">
-            
+
             {/* 1. Header Fijo (Absoluto arriba derecha) */}
             <div className="absolute top-14 right-12 text-sm font-semibold text-[#1C2533]">
               Fecha: {fechaCotizacion}
@@ -366,7 +366,7 @@ export const MacroCotizadorPanel = ({
                   <li>Comunícate con nuestro equipo para confirmar precios y disponibilidad.</li>
                 </ul>
               </div>
-              
+
               {/* Texto Legal */}
               <p className="text-[10px] uppercase tracking-wide opacity-60 text-center border-t border-gray-300 w-full pt-2">
                 {macroCopy.disclaimer}
