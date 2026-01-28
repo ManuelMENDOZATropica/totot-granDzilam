@@ -8,31 +8,37 @@ export default function App({ Component, pageProps }: AppProps) {
   useEffect(() => {
     const mainCanvas = document.getElementById('main-canvas');
 
-    const applyScale = () => {
+    const ajustarEscala = () => {
       if (!mainCanvas) {
         return;
       }
 
-      const scaleFactor = window.innerWidth / 1920;
+      const isMobile = window.innerWidth <= 1024;
 
-      mainCanvas.style.transform = `scale(${scaleFactor})`;
-      mainCanvas.style.transformOrigin = 'top center';
+      if (isMobile) {
+        mainCanvas.style.transform = 'none';
+        document.body.style.height = 'auto';
+        return;
+      }
 
-      const originalHeight = mainCanvas.scrollHeight;
-      document.body.style.height = `${originalHeight * scaleFactor}px`;
+      const ratio = window.innerWidth / 1920;
+      mainCanvas.style.transform = `scale(${ratio})`;
+
+      const scaledHeight = mainCanvas.offsetHeight * ratio;
+      document.body.style.height = `${scaledHeight}px`;
       document.body.style.overflowX = 'hidden';
     };
 
-    applyScale();
+    ajustarEscala();
 
-    window.addEventListener('load', applyScale);
-    window.addEventListener('resize', applyScale);
-    window.addEventListener('pageshow', applyScale);
+    window.addEventListener('load', ajustarEscala);
+    window.addEventListener('resize', ajustarEscala);
+    window.addEventListener('pageshow', ajustarEscala);
 
     return () => {
-      window.removeEventListener('load', applyScale);
-      window.removeEventListener('resize', applyScale);
-      window.removeEventListener('pageshow', applyScale);
+      window.removeEventListener('load', ajustarEscala);
+      window.removeEventListener('resize', ajustarEscala);
+      window.removeEventListener('pageshow', ajustarEscala);
     };
   }, []);
 
