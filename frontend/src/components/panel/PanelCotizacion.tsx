@@ -220,24 +220,26 @@ export const PanelCotizacion = ({
         </div>
 
         {/* --- BOTONES DE ACCIÓN --- */}
-        <div className="mb-12 flex gap-4">
-          <button
-            type="button"
-            onClick={onDescargar}
-            disabled={descargaEnProgreso}
-            className="flex-1 rounded-full bg-[#1C2533] px-4 py-3 text-sm font-medium text-white hover:bg-[#2d3b50] transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
-          >
-            {descargaEnProgreso ? panelCopy.actions.downloading : panelCopy.actions.download}
-          </button>
+        <div className="sticky bottom-0 -mx-8 mt-8 border-t border-[#E2E0DB] bg-[#F3F1EC] px-8 py-6 lg:static lg:mx-0 lg:mt-0 lg:border-0 lg:bg-transparent lg:px-0 lg:py-0">
+          <div className="flex gap-4">
+            <button
+              type="button"
+              onClick={onDescargar}
+              disabled={descargaEnProgreso}
+              className="flex-1 rounded-full bg-[#1C2533] px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-[#2d3b50] disabled:cursor-not-allowed disabled:opacity-70"
+            >
+              {descargaEnProgreso ? panelCopy.actions.downloading : panelCopy.actions.download}
+            </button>
 
-          {/* BOTÓN RESTAURADO: Ejecuta la función del padre */}
-          <button
-            type="button"
-            onClick={onContactar}
-            className="flex-1 rounded-full border border-[#1C2533] px-4 py-3 text-sm font-medium text-[#1C2533] hover:bg-[#1C2533] hover:text-white transition-colors"
-          >
-            {panelCopy.actions.contact}
-          </button>
+            {/* BOTÓN RESTAURADO: Ejecuta la función del padre */}
+            <button
+              type="button"
+              onClick={onContactar}
+              className="flex-1 rounded-full border border-[#1C2533] px-4 py-3 text-sm font-medium text-[#1C2533] transition-colors hover:bg-[#1C2533] hover:text-white"
+            >
+              {panelCopy.actions.contact}
+            </button>
+          </div>
         </div>
 
       </div>
