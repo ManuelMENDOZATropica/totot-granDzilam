@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import { buildApiUrl } from '@/utils/api';
 
 export type ImagineStatus = 'idle' | 'loading' | 'success' | 'error';
@@ -20,9 +20,6 @@ interface ImagineResponse {
 }
 
 const buildImagineEndpoint = () => buildApiUrl('/api/imagine');
-
-const LAST_PROMPT_KEY = 'gran-dzilam-imagine:last-prompt';
-export const LAST_IMAGE_KEY = 'gran-dzilam-imagine:last-image';
 
 const sanitizePrompt = (value: string) => value.replace(/\s+/g, ' ').trim();
 
@@ -53,16 +50,7 @@ export const useImagine = () => {
   const [status, setStatus] = useState<ImagineStatus>('idle');
   const [result, setResult] = useState<ImagineData | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [lastPrompt, setLastPrompt] = useState('');
   const abortController = useRef<AbortController | null>(null);
-
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    const stored = window.localStorage.getItem(LAST_PROMPT_KEY);
-    if (stored) {
-      setLastPrompt(stored);
-    }
-  }, []);
 
   const endpoint = useMemo(buildImagineEndpoint, []);
 
@@ -127,27 +115,6 @@ export const useImagine = () => {
 
         setResult(payload.data);
         setStatus('success');
-        setLastPrompt(normalizedPrompt);
-
-        if (typeof window !== 'undefined') {
-          try {
-            window.localStorage.setItem(LAST_PROMPT_KEY, normalizedPrompt);
-          } catch {
-            // Ignore storage failures (e.g. Safari private mode).
-          }
-
-          try {
-            const storedImage = payload.data.imageUrl ?? '';
-            if (storedImage) {
-              window.localStorage.setItem(LAST_IMAGE_KEY, storedImage);
-            } else {
-              window.localStorage.removeItem(LAST_IMAGE_KEY);
-            }
-          } catch {
-            // Ignore storage failures (e.g. Safari private mode).
-          }
-        }
-
         return { ok: true, data: payload.data } as const;
       } catch (err) {
         if ((err as Error).name === 'AbortError') {
@@ -173,7 +140,6 @@ export const useImagine = () => {
     status,
     result,
     error,
-    lastPrompt,
     generate,
     reset,
   };
