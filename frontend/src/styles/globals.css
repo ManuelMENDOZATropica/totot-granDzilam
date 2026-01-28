@@ -115,8 +115,12 @@ body {
 }
 
 @media (max-width: 1024px) {
+  body {
+    align-items: stretch;
+  }
+
   #main-canvas {
-    width: 100%;
+    width: 100vw;
   }
 }
 
