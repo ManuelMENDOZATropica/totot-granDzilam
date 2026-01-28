@@ -2,11 +2,11 @@ import Head from 'next/head';
 import Image from 'next/image';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
-import { FormEvent, useEffect, useRef, useState } from 'react';
+import { FormEvent, useEffect, useState } from 'react';
 import { useCotizacion } from '@/hooks/useCotizacion';
 import { HeroLanding } from '@/components/home/HeroLanding';
 import { ChatbotWidget } from '@/components/chat/ChatbotWidget';
-import { LAST_IMAGE_KEY, getImagineImageSrc, useImagine } from '@/hooks/useImagine';
+import { getImagineImageSrc, useImagine } from '@/hooks/useImagine';
 import { useAuth } from '@/contexts/AuthContext';
 import { InfoPanel } from '@/components/info/InfoPanel';
 import { InteractiveMap } from '@/components/InteractiveMap';
@@ -83,7 +83,7 @@ export default function Home() {
     actualizarMeses,
   } = useCotizacion();
 
-  const { status, error: imagineError, generate, lastPrompt, result } = useImagine();
+  const { status, error: imagineError, generate, result } = useImagine();
   const { user } = useAuth();
   const { language, translations } = useLanguage();
 
@@ -91,7 +91,6 @@ export default function Home() {
   const [fontScale, setFontScale] = useState(1);
   const clampFontScale = (value: number) => Math.min(Math.max(value, 0.9), 1.2);
   const [prompt, setPrompt] = useState('');
-  const promptLoaded = useRef(false);
   const [panelMacroAbierto, setPanelMacroAbierto] = useState(false);
 
   const [showInterestModal, setShowInterestModal] = useState(false);
@@ -127,16 +126,6 @@ export default function Home() {
   }, [fontScale]);
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const storedImage = window.localStorage.getItem(LAST_IMAGE_KEY) ?? '';
-      const sanitizedImage = storedImage.trim();
-      const isOversizedDataUri = sanitizedImage.startsWith('data:') && sanitizedImage.length > 4096;
-      if (!sanitizedImage || isOversizedDataUri) return;
-      setFondoActual(sanitizedImage);
-    }
-  }, []);
-
-  useEffect(() => {
     const storedConsent = localStorage.getItem('cookieConsent');
     if (storedConsent === 'all' || storedConsent === 'essential') {
       setCookieConsent(storedConsent);
@@ -144,13 +133,6 @@ export default function Home() {
     }
     setShowCookieBanner(true);
   }, []);
-
-  useEffect(() => {
-    if (!promptLoaded.current && lastPrompt) {
-      setPrompt(lastPrompt);
-      promptLoaded.current = true;
-    }
-  }, [lastPrompt]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -202,7 +184,13 @@ export default function Home() {
   const handleImagineSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const size = isMobileViewport ? '1024x1536' : '1536x1024';
-    await generate(prompt, size);
+    const trimmedPrompt = prompt.trim();
+    const isVerticalPrompt = /vertical/i.test(trimmedPrompt);
+    const orientedPrompt =
+      isMobileViewport && trimmedPrompt && !isVerticalPrompt
+        ? `${trimmedPrompt} en formato vertical`
+        : prompt;
+    await generate(orientedPrompt, size);
   };
 
   const handleImagineShortcut = (value: string, index: number) => {
