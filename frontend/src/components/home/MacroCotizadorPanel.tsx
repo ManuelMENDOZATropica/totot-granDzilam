@@ -98,11 +98,8 @@ export const MacroCotizadorPanel = ({
 
   const handleFormSubmit = async (formData: { nombre: string; correo: string; telefono: string; interes: string }) => {
     await createContactSubmission(formData);
-
     setIsContactOpen(false);
-
     if (!downloadRequested) return;
-
     await new Promise((resolve) => setTimeout(resolve, 300));
     await generatePdf();
     setDownloadRequested(false);
@@ -148,7 +145,7 @@ export const MacroCotizadorPanel = ({
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M7 1V13M1 7H13" stroke="currentColor" strokeWidth="1" strokeLinecap="round" /></svg>
           )}
         </span>
-        <span className="font-serif  text-[22px] sm:text-[28px] font-normal text-[#1C2E3D] leading-none pb-1">
+        <span className="font-serif text-[22px] sm:text-[28px] font-normal text-[#1C2E3D] leading-none pb-1">
           {macroCopy.toggle}
         </span>
       </button>
@@ -157,63 +154,77 @@ export const MacroCotizadorPanel = ({
       <div
         className={`
           pointer-events-auto
-          overflow-hidden bg-[#F3F1EC] 
+          bg-[#F3F1EC] 
           transition-all duration-500 ease-in-out
           border-x border-t border-[#E2E0DB]
           shadow-xl
-          relative
+          relative flex flex-col
           ${panelMacroAbierto
-            ? 'max-h-[85vh] opacity-100 rounded-[20px] sm:rounded-t-[20px]'
-            : 'max-h-0 opacity-0 border-none'
+            ? 'max-h-[85vh] h-[85vh] sm:h-auto opacity-100 rounded-[20px] sm:rounded-t-[20px]'
+            : 'max-h-0 opacity-0 border-none overflow-hidden'
           }
         `}
       >
         {/* FONDO (MAPA + PANEL) */}
-        <div className="flex flex-col h-full w-full">
+        {/* !!! CHANGE 1: 'overflow-hidden' aquí es clave para que el scroll interno funcione */}
+        <div className="flex flex-col h-full w-full overflow-hidden">
           <p className="px-6 pt-4 pb-2 text-xs text-[#1C2533] lg:px-8 bg-[#F3F1EC] shrink-0">
             {macroCopy.disclaimer}
           </p>
 
-          <div className="grid h-full w-full lg:grid-cols-[1fr_460px] bg-[#F3F1EC] overflow-hidden flex-1">
-            <div className="relative h-full w-full p-4 lg:p-6">
-              <div className="lg:hidden">
-                <div className="rounded-2xl border border-[#E2E0DB] bg-[#F3F1EC] p-4 shadow-sm">
-                  <p className="mb-4 text-sm font-semibold text-[#1C2533]">Selecciona un lote</p>
-                  {loading ? (
-                    <div className="flex items-center justify-center gap-4 py-8 text-[#64748B]">
-                      <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#1C2533] border-t-transparent" />
-                      <p>{macroCopy.loading}</p>
-                    </div>
-                  ) : error ? (
-                    <div className="rounded-xl bg-red-50 p-4 text-center text-sm text-red-600">{error}</div>
-                  ) : lotes.length === 0 ? (
-                    <div className="rounded-xl bg-white p-4 text-center text-sm text-[#1C2533]">{macroCopy.empty}</div>
-                  ) : (
-                    <div className="grid grid-cols-2 gap-3">
-                      {lotes.map((lote, index) => {
-                        const loteNombre = lote.nombre || `Lote ${index + 1}`;
-                        const isSelected = selectedIds.includes(lote.id);
-                        return (
-                          <button
-                            key={lote.id || index}
-                            type="button"
-                            onClick={() => toggleLote(lote.id)}
-                            className={`rounded-xl border px-3 py-2 text-left text-sm font-medium transition-colors ${
-                              isSelected
-                                ? 'border-[#1C2533] bg-[#1C2533] text-white'
-                                : 'border-[#E2E0DB] bg-white text-[#1C2533] hover:bg-[#EBE9E4]'
-                            }`}
-                          >
-                            {loteNombre}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  )}
+          <div className="flex flex-col lg:grid h-full w-full lg:grid-cols-[1fr_460px] bg-[#F3F1EC] flex-1 min-h-0">
+
+            {/* SECCIÓN IZQUIERDA (Lista móvil / Mapa desktop) */}
+            {/* !!! CHANGE 2: 
+                - 'shrink-0': No permitas que esto se encoja más de lo debido.
+                - 'max-h-[30vh]': Limitamos la altura al 30% de la pantalla en móvil.
+                - 'min-h-0': Permite flexbox calcular correctamente el overflow.
+            */}
+            <div className="relative w-full p-4 lg:p-6 shrink-0 flex flex-col min-h-0 max-h-[30vh] lg:max-h-none lg:h-full">
+
+              {/* LISTA DE LOTES (SOLO MÓVIL) */}
+              <div className="lg:hidden h-full flex flex-col min-h-0">
+                <div className="rounded-2xl border border-[#E2E0DB] bg-[#F3F1EC] p-4 shadow-sm flex flex-col h-full">
+                  <p className="mb-4 text-sm font-semibold text-[#1C2533] shrink-0">Selecciona un lote</p>
+
+                  {/* Contenedor con scroll para los botones */}
+                  <div className="flex-1 overflow-y-auto overlay-scrollbar pr-1 min-h-0">
+                    {loading ? (
+                      <div className="flex items-center justify-center gap-4 py-8 text-[#64748B]">
+                        <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#1C2533] border-t-transparent" />
+                        <p>{macroCopy.loading}</p>
+                      </div>
+                    ) : error ? (
+                      <div className="rounded-xl bg-red-50 p-4 text-center text-sm text-red-600">{error}</div>
+                    ) : lotes.length === 0 ? (
+                      <div className="rounded-xl bg-white p-4 text-center text-sm text-[#1C2533]">{macroCopy.empty}</div>
+                    ) : (
+                      <div className="grid grid-cols-2 gap-3 pb-2">
+                        {lotes.map((lote, index) => {
+                          const loteNombre = lote.nombre || `Lote ${index + 1}`;
+                          const isSelected = selectedIds.includes(lote.id);
+                          return (
+                            <button
+                              key={lote.id || index}
+                              type="button"
+                              onClick={() => toggleLote(lote.id)}
+                              className={`rounded-xl border px-3 py-2 text-left text-sm font-medium transition-colors ${isSelected
+                                  ? 'border-[#1C2533] bg-[#1C2533] text-white'
+                                  : 'border-[#E2E0DB] bg-white text-[#1C2533] hover:bg-[#EBE9E4]'
+                                }`}
+                            >
+                              {loteNombre}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
 
-              <div className="relative hidden h-full h-[96%] w-[70%] overflow-hidden rounded-2xl bg-[#F3F1EC] pl-[10%] lg:block">
+              {/* MAPA (SOLO DESKTOP) */}
+              <div className="relative hidden h-full w-full overflow-hidden rounded-2xl bg-[#F3F1EC] lg:block">
                 <Image
                   src="/assets/vistas/COTIZACION2.jpg"
                   alt="Mapa de referencia Gran Dzilam"
@@ -222,7 +233,7 @@ export const MacroCotizadorPanel = ({
                   className="object-cover"
                   priority={false}
                 />
-
+                {/* ... (Lógica de loading/error del mapa igual que antes) ... */}
                 {loading ? (
                   <div className="flex h-full items-center justify-center gap-4 text-[#64748B]">
                     <div className="h-10 w-10 animate-spin rounded-full border-4 border-[#1C2533] border-t-transparent" />
@@ -240,27 +251,35 @@ export const MacroCotizadorPanel = ({
               </div>
             </div>
 
-            <div className="h-full border-l border-[#E2E0DB] bg-[#F3F1EC] overflow-y-auto overlay-scrollbar">
-              <PanelCotizacion
-                lotesSeleccionados={selectedLots}
-                porcentajeEnganche={porcentajeEnganche}
-                meses={meses}
-                totales={totales}
-                configuracion={configuracion}
-                configuracionCargando={configuracionCargando}
-                onPorcentajeChange={onPorcentajeChange}
-                onMesesChange={onMesesChange}
-                onLimpiar={onLimpiar}
-                onCerrar={onToggle}
-                onContactar={handleContactRequest}
-                onDescargar={handleDownloadRequest}
-                descargaEnProgreso={isGeneratingPdf}
-              />
+            {/* SECCIÓN DERECHA (Controles) */}
+            {/* !!! CHANGE 3: 
+                - 'flex-1': Toma TODO el espacio restante.
+                - 'overflow-y-auto': Si el contenido es alto, haz scroll AQUI.
+            */}
+            <div className="flex-1 lg:h-full border-l border-[#E2E0DB] bg-[#F3F1EC] overflow-y-auto overlay-scrollbar min-h-0">
+              {/* Agregamos padding inferior extra para asegurar que se vea el último botón */}
+              <div className="pb-10 lg:pb-0 h-full">
+                <PanelCotizacion
+                  lotesSeleccionados={selectedLots}
+                  porcentajeEnganche={porcentajeEnganche}
+                  meses={meses}
+                  totales={totales}
+                  configuracion={configuracion}
+                  configuracionCargando={configuracionCargando}
+                  onPorcentajeChange={onPorcentajeChange}
+                  onMesesChange={onMesesChange}
+                  onLimpiar={onLimpiar}
+                  onCerrar={onToggle}
+                  onContactar={handleContactRequest}
+                  onDescargar={handleDownloadRequest}
+                  descargaEnProgreso={isGeneratingPdf}
+                />
+              </div>
             </div>
           </div>
         </div>
 
-        {/* OVERLAY DEL FORMULARIO */}
+        {/* OVERLAY DEL FORMULARIO (Sin cambios mayores, solo asegurando z-index) */}
         <div
           className={`
             absolute inset-0 z-[100]
@@ -297,13 +316,13 @@ export const MacroCotizadorPanel = ({
 
       {/* === ÁREA DE IMPRESIÓN === */}
       <div id="cotizacion-print" className="hidden">
+        {/* ... (Todo el código de impresión se mantiene igual) ... */}
         <div
           className="relative mx-auto h-full w-full overflow-hidden bg-[#fafafa]"
-          // ESTO ES LO QUE HACE QUE SE IMPRIMA EL FONDO:
           style={{
             printColorAdjust: 'exact',
             WebkitPrintColorAdjust: 'exact',
-            backgroundColor: '#fafafa' // Refuerzo explícito
+            backgroundColor: '#fafafa'
           }}
         >
           <Image
@@ -315,23 +334,17 @@ export const MacroCotizadorPanel = ({
             className="object-cover"
           />
 
-          {/* Contenedor relativo que ocupa toda la hoja para posicionar hijos absolutos */}
           <div className="relative z-10 h-full w-full">
-
-            {/* 1. Header Fijo (Absoluto arriba derecha) */}
             <div className="absolute top-14 right-12 text-sm font-semibold text-[#1C2533]">
               Fecha: {fechaCotizacion}
             </div>
 
-            {/* 2. Contenido Principal con Padding Inferior grande para no chocar con footer */}
             <div className="px-12 pt-[20%] pb-48 h-full flex flex-col gap-5 text-[#1C2533]">
-              {/* Título */}
               <div>
                 <h2 className="font-serif text-2xl">Cotización de lotes</h2>
                 <p className="text-[#475569]">Estimación en MXN generada automáticamente.</p>
               </div>
 
-              {/* Lista de lotes */}
               <div className="space-y-2 border-b border-gray-200 pb-4">
                 {selectedLots.length === 0 ? (
                   <p className="text-[#475569]">No se seleccionaron lotes para esta cotización.</p>
@@ -354,7 +367,6 @@ export const MacroCotizadorPanel = ({
                 )}
               </div>
 
-              {/* Totales y Financiamiento */}
               <div className="flex flex-col gap-3 pt-2">
                 <div className="space-y-1">
                   <div className="flex justify-between">
@@ -392,9 +404,7 @@ export const MacroCotizadorPanel = ({
               </div>
             </div>
 
-            {/* 3. Footer Fijo (Absoluto abajo) */}
             <div className="mb-[20%] absolute bottom-12 left-12 right-12 text-[#475569] flex flex-col items-center">
-              {/* Notas importantes */}
               <div className="w-full text-[12px] leading-relaxed mb-4 text-left">
                 <p className="font-semibold text-[#1C2533]">Notas importantes</p>
                 <ul className="mt-1 list-disc space-y-0.5 pl-5">
@@ -403,13 +413,10 @@ export const MacroCotizadorPanel = ({
                   <li>Comunícate con nuestro equipo para confirmar precios y disponibilidad.</li>
                 </ul>
               </div>
-
-              {/* Texto Legal */}
               <p className="text-[10px] uppercase tracking-wide opacity-60 text-center border-t border-gray-300 w-full pt-2">
                 {macroCopy.disclaimer}
               </p>
             </div>
-
           </div>
         </div>
       </div>
