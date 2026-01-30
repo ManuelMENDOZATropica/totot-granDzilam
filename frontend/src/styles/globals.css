@@ -126,7 +126,7 @@ body {
 
 #main-canvas {
   /* CORRECCIÓN: Evitamos ancho fijo de 1920px en mobile */
-  width: 100%;
+  width: 1920px;
   max-width: 1920px;
   margin: 0 auto;
   backface-visibility: hidden;
