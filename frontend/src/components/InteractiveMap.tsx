@@ -66,7 +66,7 @@ export const InteractiveMap = ({ src, className, imageClassName }: { src: string
       .catch((err) => console.error('Error cargando lotes:', err));
   }, [isInteractive]);
 
-  const handleLotInteraction = (event: MouseEvent<SVGPolygonElement>, lot: PublicLot) => {
+  const handleInteraction = (event: MouseEvent<SVGPolygonElement>, lot: PublicLot) => {
     if (!isMobileView) {
       const polygonRect = event.currentTarget.getBoundingClientRect();
       const containerRect = containerRef.current?.getBoundingClientRect();
@@ -90,11 +90,7 @@ export const InteractiveMap = ({ src, className, imageClassName }: { src: string
         <Image src={src} alt="Mapa" fill priority className={`object-cover select-none ${imageClassName}`} sizes="100vw" />
 
         {isInteractive && (
-          <svg
-            className="absolute top-0 left-0 h-full w-full pointer-events-none z-[44]"
-            viewBox={viewBox}
-            preserveAspectRatio={isMobileView ? 'xMidYMin meet' : 'none'}
-          >
+          <svg className="absolute top-0 left-0 h-full w-full pointer-events-none z-[44]" viewBox={viewBox} preserveAspectRatio={isMobileView ? 'xMidYMin meet' : 'none'}>
             <g className="pointer-events-auto" transform={mapTransform}>
               {lots.map((lot, index) => (
                 <polygon
@@ -103,13 +99,13 @@ export const InteractiveMap = ({ src, className, imageClassName }: { src: string
                   fill={hoveredLot?.id === lot.id ?
                     (lot.estado === 'disponible' ? 'rgba(16, 185, 129, 0.5)' : lot.estado === 'apartado' ? 'rgba(234, 179, 8, 0.5)' : 'rgba(239, 68, 68, 0.5)')
                     : 'transparent'}
-                  // Borde blanco siempre presente en mobile cuando se selecciona
+                  // Borde blanco sutil en mobile para el seleccionado
                   stroke={hoveredLot?.id === lot.id ? 'white' : 'transparent'}
                   strokeWidth={hoveredLot?.id === lot.id ? (isMobileView ? '1.5' : '3') : '0'}
-                  className="cursor-pointer transition-all duration-200"
-                  onMouseEnter={(e) => !isMobileView && handleLotInteraction(e, lot)}
+                  className="cursor-pointer transition-colors duration-200"
+                  onMouseEnter={(e) => !isMobileView && handleInteraction(e, lot)}
                   onMouseLeave={() => !isMobileView && setHoveredLot(null)}
-                  onClick={(e) => isMobileView && handleLotInteraction(e, lot)}
+                  onClick={(e) => isMobileView && handleInteraction(e, lot)}
                 />
               ))}
             </g>
@@ -118,60 +114,63 @@ export const InteractiveMap = ({ src, className, imageClassName }: { src: string
 
         {hoveredLot && (
           <div
-            className={`absolute z-[60] bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl border border-slate-200 animate-in fade-in duration-300
+            className={`absolute z-[60] bg-white/95 backdrop-blur-md rounded-xl shadow-2xl border border-slate-200 transition-all duration-300 ease-out flex flex-col items-center
               ${isMobileView
-                ? 'top-6 left-1/2 -translate-x-1/2 w-[90%] max-w-[340px] p-3'
-                : 'w-64 p-4'
+                ? 'top-6 left-1/2 -translate-x-1/2 w-[85%] max-w-[300px] p-3' // Mobile: Fijo arriba
+                : 'w-64 p-4' // Desktop: Flotante original
               }`}
             style={!isMobileView ? {
               top: tooltipPos.y,
               left: tooltipPos.x,
-              transform: 'translate(-50%, -115%)'
+              transform: 'translate(-50%, -110%)',
+              pointerEvents: 'none'
             } : {}}
           >
+            {/* Botón X solo para mobile */}
             {isMobileView && (
               <button
                 onClick={() => setHoveredLot(null)}
-                className="absolute -top-2 -right-2 bg-slate-800 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs shadow-lg"
+                className="absolute -top-2 -right-2 bg-slate-800 text-white rounded-full w-6 h-6 flex items-center justify-center text-[10px] shadow-lg"
               >
                 ✕
               </button>
             )}
 
-            <div className="text-slate-800 space-y-2">
-              <div className="flex justify-between items-end border-b border-slate-100 pb-2">
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Información del Lote</span>
-                <h3 className="font-black text-2xl leading-none">#{hoveredLot.id}</h3>
+            <div className={`text-slate-800 text-center w-full ${isMobileView ? 'space-y-1' : 'space-y-2'}`}>
+              <div className="flex justify-between items-center border-b border-slate-100 pb-1 mb-1">
+                <h3 className={`font-bold ${isMobileView ? 'text-lg' : 'text-xl'}`}>Lote {hoveredLot.id}</h3>
               </div>
 
-              <div className="grid grid-cols-2 gap-2 pt-1">
-                <div className="bg-slate-50 p-2 rounded-lg text-center text-slate-700">
-                  <p className="text-[9px] text-slate-500 uppercase">Superficie</p>
-                  <p className="font-bold text-sm">{hoveredLot.superficieM2} m²</p>
-                </div>
-                <div className="bg-slate-50 p-2 rounded-lg text-center border-b-2 text-slate-700"
-                  style={{ borderColor: hoveredLot.estado === 'disponible' ? '#10b981' : hoveredLot.estado === 'apartado' ? '#eab308' : '#ef4444' }}>
-                  <p className="text-[9px] text-slate-500 uppercase">Estado</p>
-                  <p className={`font-black text-[10px] uppercase ${hoveredLot.estado === 'disponible' ? 'text-emerald-600' :
-                      hoveredLot.estado === 'apartado' ? 'text-amber-600' : 'text-red-600'
-                    }`}>
-                    {hoveredLot.estado}
-                  </p>
-                </div>
+              <div className="flex justify-between text-[11px] sm:text-xs">
+                <span className="text-slate-500 font-medium">Superficie:</span>
+                <span className="font-bold text-slate-700">{hoveredLot.superficieM2} m²</span>
               </div>
 
-              <div className="flex justify-between items-center bg-slate-900 p-3 rounded-xl">
-                <span className="text-white/70 text-[10px] uppercase font-bold">Precio</span>
-                <span className="text-white font-bold text-lg">{formatPrice(hoveredLot.precio)}</span>
+              <div className="flex justify-between text-[11px] sm:text-xs">
+                <span className="text-slate-500 font-medium">Precio:</span>
+                <span className="font-bold text-emerald-600">{formatPrice(hoveredLot.precio)}</span>
+              </div>
+
+              <div className={`mt-2 py-1 rounded-lg font-black uppercase tracking-wider ${isMobileView ? 'text-[9px]' : 'text-[10px]'} 
+                ${hoveredLot.estado === 'disponible' ? 'bg-emerald-500 text-white' :
+                  hoveredLot.estado === 'apartado' ? 'bg-amber-500 text-white' : 'bg-red-500 text-white'
+                }`}>
+                {hoveredLot.estado}
               </div>
             </div>
 
+            {/* Flechita inferior solo en Desktop */}
             {!isMobileView && (
-              <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-4 h-4 bg-white rotate-45 border-b border-r border-slate-200"></div>
+              <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-white/95 rotate-45 border-r border-b border-slate-200"></div>
             )}
           </div>
         )}
       </div>
+
+      {/* Overlay para cerrar en mobile tocando fuera */}
+      {isMobileView && hoveredLot && (
+        <div className="fixed inset-0 z-[50]" onClick={() => setHoveredLot(null)} />
+      )}
     </div>
   );
 };
