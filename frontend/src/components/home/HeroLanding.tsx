@@ -113,10 +113,8 @@ export const HeroLanding = () => {
             position: absolute;
             top: 50%;
             left: 50%;
-            width: 177.78vh; /* Forzamos ancho para cubrir alto */
-            height: 100vh;
-            min-width: 100vw;
-            min-height: 177.78vw; /* 16/9 para vertical */
+            width: max(100vw, 177.78vh);
+            height: max(100vh, 56.25vw);
             transform: translate(-50%, -50%);
           }
         }
