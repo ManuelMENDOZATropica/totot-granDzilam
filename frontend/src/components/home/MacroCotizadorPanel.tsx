@@ -209,8 +209,8 @@ export const MacroCotizadorPanel = ({
                               type="button"
                               onClick={() => toggleLote(lote.id)}
                               className={`rounded-xl border px-3 py-2 text-left text-sm font-medium transition-colors ${isSelected
-                                  ? 'border-[#1C2533] bg-[#1C2533] text-white'
-                                  : 'border-[#E2E0DB] bg-white text-[#1C2533] hover:bg-[#EBE9E4]'
+                                ? 'border-[#1C2533] bg-[#1C2533] text-white'
+                                : 'border-[#E2E0DB] bg-white text-[#1C2533] hover:bg-[#EBE9E4]'
                                 }`}
                             >
                               {loteNombre}
@@ -226,7 +226,7 @@ export const MacroCotizadorPanel = ({
               {/* MAPA (SOLO DESKTOP) */}
               <div className="relative hidden h-full w-full overflow-hidden rounded-2xl bg-[#F3F1EC] lg:block">
                 <Image
-                  src="/assets/vistas/COTIZACION2.jpg"
+                  src="/assets/vistas/COTIZACION2.png"
                   alt="Mapa de referencia Gran Dzilam"
                   fill
                   sizes="100vw"
