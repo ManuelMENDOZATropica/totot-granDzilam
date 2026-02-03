@@ -123,32 +123,13 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-@media (min-width: 1025px) {
-  body {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
-}
-
 #main-canvas {
-  /* CORRECCIÓN: Evitamos ancho fijo de 1920px en mobile */
-  width: 1920px;
+  width: 100%;
   max-width: 1920px;
   margin: 0 auto;
   backface-visibility: hidden;
-  transform-origin: top center;
   -webkit-font-smoothing: antialiased;
   position: relative;
-}
-
-@media (max-width: 1024px) {
-  #main-canvas {
-    width: 100vw;
-    max-width: 100vw;
-    /* Evita que transformaciones externas muevan el canvas del centro */
-    transform: none !important;
-  }
 }
 
 h1,
