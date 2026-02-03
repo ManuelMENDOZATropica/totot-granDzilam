@@ -92,7 +92,7 @@ export const MapaLotes = ({ lotes, seleccionados, onToggle }: MapaLotesProps) =>
   return (
     <div
       ref={containerRef}
-      className="relative flex h-full min-h-[600px] w-full items-center justify-center overflow-hidden bg-slate-50/30 p-4"
+      className="relative flex h-full min-h-[600px] w-full items-center justify-center overflow-hidden bg-slate-0 p-4"
     >
       {/* Ajuste de viewBox:
           Inicia en X=370 para dar aire al primer lote (382).
