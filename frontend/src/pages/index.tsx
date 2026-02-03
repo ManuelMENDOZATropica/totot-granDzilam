@@ -309,12 +309,15 @@ export default function Home() {
   const idealOffset = Math.max(0, activeIndex - 2);
   const scrollOffset = Math.min(idealOffset, maxScrollIndex);
 
+
+
   return (
     <>
       <Head>
         <title>{translations.home.meta.title}</title>
         <meta name="description" content={translations.home.meta.description} />
       </Head>
+
 
       <main className="min-h-screen bg-white text-slate-900 scroll-smooth">
         <HeroLanding />
@@ -330,9 +333,9 @@ export default function Home() {
             src={fondoActual}
             imageClassName={isMobileViewport ? 'object-contain object-top' : 'object-cover'}
             className={`absolute inset-0 z-1 transition-opacity duration-500 
-              ${fading ? 'opacity-0' : 'opacity-100'}
-              ${isMobileViewport ? 'bg-slate-900' : ''}
-            `}
+                ${fading ? 'opacity-0' : 'opacity-100'}
+                ${isMobileViewport ? 'bg-slate-900' : ''}
+              `}
           />
 
           <InfoPanel closeSignal={infoPanelReset} />
@@ -618,6 +621,7 @@ export default function Home() {
       {showCookieBanner ? <CookieBanner onChoice={handleCookieChoice} /> : null}
 
       <ChatbotWidget />
+
     </>
   );
 }

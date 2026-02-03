@@ -86,11 +86,24 @@ export const HeroLanding = () => {
             position: absolute;
             top: 50%;
             left: 50%;
-            width: 100vw;
-            height: 56.25vw; /* 9/16 * 100 */
-            min-height: 100vh;
-            min-width: 177.78vh; /* 16/9 * 100 */
-            transform: translate(-50%, -50%);
+            transform: translate(-50%, -50%) scale(1.05); /* Escala de seguridad */
+            pointer-events: none;
+          }
+
+          /* Pantalla más ancha que 16:9 -> Ajustar al ancho, altura automática proporcional */
+          @media (min-aspect-ratio: 1777/1000) {
+             .video-foreground iframe {
+                width: 100vw;
+                height: 56.25vw; /* 100 * 9 / 16 */
+             }
+          }
+
+          /* Pantalla más alta que 16:9 -> Ajustar al alto, ancho automático proporcional */
+          @media (max-aspect-ratio: 1777/1000) {
+            .video-foreground iframe {
+              height: 100vh;
+              width: 177.78vh; /* 100 * 16 / 9 */
+            }
           }
         }
 
