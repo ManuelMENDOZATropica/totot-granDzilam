@@ -7,27 +7,27 @@ interface MapaLotesProps {
   onToggle: (id: string) => void;
 }
 
-// Estilos refinados para coincidir con la paleta "Luxury/Architectural"
 const estadoStyles: Record<
   Lote['estado'],
   { fill: string; stroke: string; label: string }
 > = {
   disponible: {
-    fill: '#6A8035', // Verde Olivo (como en la imagen original)
+    fill: '#6A8035',
     stroke: '#485822',
     label: 'Disponible',
   },
   apartado: {
-    fill: '#D97706', // Ámbar
+    fill: '#D97706',
     stroke: '#92400E',
     label: 'Apartado',
   },
   vendido: {
-    fill: '#9F1239', // Rose/Vino
+    fill: '#9F1239',
     stroke: '#881337',
     label: 'Vendido',
   },
 };
+
 const LOT_PATHS = [
   "390,200 425,200 420,695.5 382,705",   // 1
   "423,200 460,200 455,686.8 420,695.5", // 2
@@ -37,21 +37,18 @@ const LOT_PATHS = [
   "565,200 600,200 596,651.5 561,660.3", // 6
   "600,200 635,200 630,643.0 596,651.5", // 7
   "635,200 670,200 666,634.0 630,643.0", // 8
-  "670,200 705,200 702,625.0 666,634.0", // 9 (Ajuste leve en X inferior para continuidad)
+  "670,200 705,200 702,625.0 666,634.0", // 9
   "705,200 741,200 738,616.0 702,625.0", // 10
   "742,200 777,200 773,607.3 738,616.0", // 11
   "778,200 813,200 808,598.5 773,607.3", // 12
-  // Lote 13 (Conserva los quiebres a la derecha, pero la base está alineada)
   "814,200 845,200 837,308 840,430 843,508 842,590 808,598.5", // 13
 ];
+
 export const MapaLotes = ({ lotes, seleccionados, onToggle }: MapaLotesProps) => {
   const [hoveredId, setHoveredId] = useState<string | null>(null);
-  
-  // Estado para el mensaje flotante de error/aviso
   const [alerta, setAlerta] = useState<{ x: number; y: number; mensaje: string; tipo: 'vendido' | 'apartado' } | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Limpiar alerta después de unos segundos
   useEffect(() => {
     if (alerta) {
       const timer = setTimeout(() => setAlerta(null), 2500);
@@ -60,22 +57,18 @@ export const MapaLotes = ({ lotes, seleccionados, onToggle }: MapaLotesProps) =>
   }, [alerta]);
 
   const handleLotClick = (e: React.MouseEvent, lote: Lote) => {
-    e.stopPropagation(); // Evitar burbujeo
-    
+    e.stopPropagation();
     if (lote.estado === 'disponible') {
       onToggle(lote.id);
-      setAlerta(null); // Limpiar alertas si selecciono uno bueno
+      setAlerta(null);
     } else {
-      // Calcular posición relativa al contenedor para mostrar el tooltip
       if (containerRef.current) {
         const rect = containerRef.current.getBoundingClientRect();
         const x = e.clientX - rect.left;
         const y = e.clientY - rect.top;
-
-        const mensaje = lote.estado === 'vendido' 
-          ? 'Este lote ya ha sido vendido.' 
+        const mensaje = lote.estado === 'vendido'
+          ? 'Este lote ya ha sido vendido.'
           : 'Este lote se encuentra apartado temporalmente.';
-
         setAlerta({ x, y, mensaje, tipo: lote.estado });
       }
     }
@@ -83,117 +76,91 @@ export const MapaLotes = ({ lotes, seleccionados, onToggle }: MapaLotesProps) =>
 
   const getFill = (lote: Lote, seleccionado: boolean, hovered: boolean) => {
     const style = estadoStyles[lote.estado];
-    
-    // 1. Estados no disponibles (siempre visibles, pero tenues)
-    if (lote.estado !== 'disponible') {
-      return hovered ? style.fill : `${style.fill}66`; // 66 es aprox 40% opacidad hex
-    }
-
-    // 2. Disponible y Seleccionado (Color sólido fuerte, como la imagen)
+    if (lote.estado !== 'disponible') return hovered ? style.fill : `${style.fill}66`;
     if (seleccionado) return style.fill;
-
-    // 3. Disponible y Hover (Color sólido medio)
-    if (hovered) return `${style.fill}CC`; // 80% opacidad
-
-    // 4. Disponible sin interacción (Transparente o muy sutil)
+    if (hovered) return `${style.fill}CC`;
     return 'transparent';
   };
 
   const getStroke = (lote: Lote, seleccionado: boolean, hovered: boolean) => {
     const style = estadoStyles[lote.estado];
-    
-    // Si está seleccionado, borde muy oscuro
-    if (seleccionado) return '#1C2533'; 
-
-    // Si es hovered o no disponible, usar su color de borde
+    if (seleccionado) return '#1C2533';
     if (hovered || lote.estado !== 'disponible') return style.stroke;
-
-    // Por defecto (disponible sin hover), borde sutil para mostrar el contorno
-    return '#A1A1AA'; 
+    return '#A1A1AA';
   };
 
   return (
     <div
       ref={containerRef}
-      className="relative w-full overflow-hidden z-[99]"
+      className="relative flex h-full min-h-[600px] w-full items-center justify-center overflow-hidden bg-slate-50/30 p-4"
     >
-      
-      {/* --- SVG MAPA --- */}
-      <div className="flex aspect-[5/4] w-full items-center justify-center">
-        <svg 
-          className="h-full w-full touch-pan-x touch-pan-y" 
-          viewBox="0 0 1000 800" 
-          preserveAspectRatio="xMidYMid meet"
-        >
-          {/* Sombra suave para dar profundidad al "suelo" */}
-          <defs>
-            <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
-              <feGaussianBlur stdDeviation="5" result="blur" />
-              <feComposite in="SourceGraphic" in2="blur" operator="over" />
-            </filter>
-          </defs>
+      {/* Ajuste de viewBox:
+          Inicia en X=370 para dar aire al primer lote (382).
+          Inicia en Y=180 para dar aire arriba (200).
+          Ancho 500 y Alto 550 cubre perfectamente todo el desarrollo.
+      */}
+      <svg
+        className="h-full max-h-[90vh] w-full transition-transform duration-500"
+        viewBox="370 180 500 550"
+        preserveAspectRatio="xMidYMid meet"
+      >
+        <defs>
+          <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+            <feGaussianBlur stdDeviation="3" result="blur" />
+            <feComposite in="SourceGraphic" in2="blur" operator="over" />
+          </filter>
+        </defs>
 
-          <g transform="translate(-117, -30)">
-            {lotes.map((lote, index) => {
-              const points = LOT_PATHS[index];
-              if (!points) return null;
+        <g>
+          {lotes.map((lote, index) => {
+            const points = LOT_PATHS[index];
+            if (!points) return null;
 
-              const seleccionado = seleccionados.includes(lote.id);
-              const esHovered = hoveredId === lote.id;
-              
-              return (
-                <g key={lote.id}>
-                  <polygon
-                    points={points}
-                    fill={getFill(lote, seleccionado, esHovered)}
-                    stroke={getStroke(lote, seleccionado, esHovered)}
-                    strokeWidth={seleccionado ? 3 : 1.5}
-                    // Animación suave de colores
-                    className="transition-all duration-300 ease-out"
-                    style={{
-                      cursor: lote.estado === 'disponible' ? 'pointer' : 'not-allowed',
-                      // Si está seleccionado, añadimos una pequeña sombra proyectada SVG (filter)
-                      filter: seleccionado ? 'drop-shadow(3px 5px 4px rgba(0,0,0,0.2))' : 'none'
-                    }}
-                    
-                    // Eventos
-                    onClick={(e) => handleLotClick(e, lote)}
-                    onMouseEnter={() => setHoveredId(lote.id)}
-                    onMouseLeave={() => setHoveredId(null)}
-                  />
-                  
-                </g>
-              );
-            })}
-          </g>
-        </svg>
-      </div>
+            const seleccionado = seleccionados.includes(lote.id);
+            const esHovered = hoveredId === lote.id;
 
-      {/* --- TOOLTIP / LEYENDA FLOTANTE AL CLICK --- */}
+            return (
+              <polygon
+                key={lote.id}
+                points={points}
+                fill={getFill(lote, seleccionado, esHovered)}
+                stroke={getStroke(lote, seleccionado, esHovered)}
+                strokeWidth={seleccionado ? 3 : 1.2}
+                className="transition-all duration-300 ease-in-out"
+                style={{
+                  cursor: lote.estado === 'disponible' ? 'pointer' : 'not-allowed',
+                  filter: seleccionado ? 'url(#glow)' : 'none',
+                }}
+                onClick={(e) => handleLotClick(e, lote)}
+                onMouseEnter={() => setHoveredId(lote.id)}
+                onMouseLeave={() => setHoveredId(null)}
+              />
+            );
+          })}
+        </g>
+      </svg>
+
+      {/* --- ALERTA FLOTANTE --- */}
       {alerta && (
-        <div 
-          className="absolute z-10 flex max-w-[200px] flex-col gap-1 rounded-lg bg-white p-3 shadow-xl ring-1 ring-black/5 animate-in fade-in zoom-in-95 duration-200"
-          style={{ 
-            left: Math.min(alerta.x, (containerRef.current?.offsetWidth || 500) - 210), // Evitar que se salga a la derecha
-            top: alerta.y - 80 // Mostrar un poco arriba del click
+        <div
+          className="absolute z-[100] flex max-w-[200px] flex-col gap-1 rounded-lg bg-white p-3 shadow-2xl ring-1 ring-black/5 animate-in fade-in zoom-in-95 duration-200"
+          style={{
+            left: Math.min(alerta.x, (containerRef.current?.offsetWidth || 500) - 210),
+            top: alerta.y - 90
           }}
         >
-          <div className="flex items-center gap-2 border-b border-slate-100 pb-2">
-             <span className={`h-2 w-2 rounded-full ${alerta.tipo === 'vendido' ? 'bg-rose-600' : 'bg-amber-500'}`} />
-             <span className="text-xs font-bold uppercase tracking-wider text-slate-900">
-               {alerta.tipo}
-             </span>
+          <div className="flex items-center gap-2 border-b border-slate-100 pb-1.5">
+            <span className={`h-2 w-2 rounded-full ${alerta.tipo === 'vendido' ? 'bg-rose-600' : 'bg-amber-500'}`} />
+            <span className="text-[10px] font-bold uppercase tracking-widest text-slate-900">
+              {alerta.tipo}
+            </span>
           </div>
-          <p className="text-xs leading-relaxed text-slate-600">
+          <p className="text-[11px] leading-tight text-slate-600">
             {alerta.mensaje}
           </p>
-          {/* Triángulo indicador (flechita abajo) */}
-          <div className="absolute -bottom-2 left-4 h-4 w-4 rotate-45 bg-white" />
+          <div className="absolute -bottom-1 left-4 h-2 w-2 rotate-45 bg-white shadow-sm" />
         </div>
       )}
-
-    
-
     </div>
   );
 };

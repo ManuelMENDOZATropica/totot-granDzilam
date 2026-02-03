@@ -11,7 +11,6 @@ export const HeroLanding = () => {
   const VIDEO_MOBILE = "nk6mU1qpGNQ";
 
   useEffect(() => {
-    // Cargar API de YouTube
     if (!(window as any).YT) {
       const tag = document.createElement('script');
       tag.src = "https://www.youtube.com/iframe_api";
@@ -60,7 +59,10 @@ export const HeroLanding = () => {
   }, []);
 
   return (
-    <section className="relative flex h-screen w-full items-center justify-center overflow-hidden bg-black">
+    /* Forzamos w-screen y corregimos posición para ignorar el contenedor de 1920px. 
+       Si el padre limita el ancho, 'left-1/2 -translate-x-1/2 w-screen' lo centra al viewport real.
+    */
+    <section className="relative h-screen w-screen left-1/2 -translate-x-1/2 overflow-hidden bg-black">
 
       {/* 🌀 LOADING STATE */}
       {!isVideoReady && (
@@ -69,7 +71,7 @@ export const HeroLanding = () => {
         </div>
       )}
 
-      {/* 🎥 CSS PARA FORZAR "OBJECT-COVER" EN IFRAME */}
+      {/* 🎥 CSS PARA "OBJECT-COVER" REAL */}
       <style jsx global>{`
         .video-foreground {
           position: absolute;
@@ -80,50 +82,34 @@ export const HeroLanding = () => {
           pointer-events: none;
         }
 
-        /* Lógica para Desktop (16:9) */
-        @media (min-width: 768px) {
-          .video-foreground iframe {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%) scale(1.05); /* Escala de seguridad */
-            pointer-events: none;
-          }
-
-          /* Pantalla más ancha que 16:9 -> Ajustar al ancho, altura automática proporcional */
-          @media (min-aspect-ratio: 1777/1000) {
-             .video-foreground iframe {
-                width: 100vw;
-                height: 56.25vw; /* 100 * 9 / 16 */
-             }
-          }
-
-          /* Pantalla más alta que 16:9 -> Ajustar al alto, ancho automático proporcional */
-          @media (max-aspect-ratio: 1777/1000) {
-            .video-foreground iframe {
-              height: 100vh;
-              width: 177.78vh; /* 100 * 16 / 9 */
-            }
-          }
+        .video-foreground iframe {
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%) scale(1.1); /* Escala extra para evitar fugas de luz */
+          width: 100vw;
+          height: 56.25vw; /* 16:9 */
+          min-height: 100vh;
+          min-width: 177.77vh; /* 16:9 */
         }
 
-        /* Lógica para Mobile (9:16) */
-        @media (max-width: 767px) {
+        /* Ajustes de Aspect Ratio para asegurar que siempre cubra */
+        @media (min-aspect-ratio: 16/9) {
           .video-foreground iframe {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: max(100vw, 177.78vh);
-            height: max(100vh, 56.25vw);
-            transform: translate(-50%, -50%);
+            height: 56.25vw;
+          }
+        }
+        @media (max-aspect-ratio: 16/9) {
+          .video-foreground iframe {
+            width: 177.77vh;
           }
         }
       `}</style>
 
       <div className={`video-foreground z-0 transition-opacity duration-1000 ${isVideoReady ? 'opacity-100' : 'opacity-0'}`}>
-        <div id="youtube-player" />
-        {/* Overlay para mejorar legibilidad y evitar clics */}
-        <div className="absolute inset-0 bg-black/30" />
+        <div id="youtube-player" className="w-full h-full" />
+        {/* Overlay para contraste y evitar clics en el video */}
+        <div className="absolute inset-0 bg-black/30 pointer-events-none" />
       </div>
 
       {/* Contenido UI (Flecha) */}
