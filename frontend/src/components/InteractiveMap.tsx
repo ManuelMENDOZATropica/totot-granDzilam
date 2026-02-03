@@ -66,7 +66,6 @@ export const InteractiveMap = ({ src, className, imageClassName }: { src: string
       .catch((err) => console.error('Error cargando lotes:', err));
   }, [isInteractive]);
 
-  // Manejo de clic/hover
   const handleLotInteraction = (event: MouseEvent<SVGPolygonElement>, lot: PublicLot) => {
     if (!isMobileView) {
       const polygonRect = event.currentTarget.getBoundingClientRect();
@@ -104,8 +103,9 @@ export const InteractiveMap = ({ src, className, imageClassName }: { src: string
                   fill={hoveredLot?.id === lot.id ?
                     (lot.estado === 'disponible' ? 'rgba(16, 185, 129, 0.5)' : lot.estado === 'apartado' ? 'rgba(234, 179, 8, 0.5)' : 'rgba(239, 68, 68, 0.5)')
                     : 'transparent'}
+                  // Borde blanco siempre presente en mobile cuando se selecciona
                   stroke={hoveredLot?.id === lot.id ? 'white' : 'transparent'}
-                  strokeWidth={hoveredLot?.id === lot.id ? '2' : '0'}
+                  strokeWidth={hoveredLot?.id === lot.id ? (isMobileView ? '1.5' : '3') : '0'}
                   className="cursor-pointer transition-all duration-200"
                   onMouseEnter={(e) => !isMobileView && handleLotInteraction(e, lot)}
                   onMouseLeave={() => !isMobileView && setHoveredLot(null)}
@@ -118,17 +118,17 @@ export const InteractiveMap = ({ src, className, imageClassName }: { src: string
 
         {hoveredLot && (
           <div
-            className={`absolute z-[60] bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl border border-slate-200 animate-in fade-in slide-in-from-top-4 duration-300
+            className={`absolute z-[60] bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl border border-slate-200 animate-in fade-in duration-300
               ${isMobileView
-                ? 'fixed top-6 left-1/2 -translate-x-1/2 w-[90%] max-w-[320px] p-3'
-                : 'absolute w-64 p-4'}`}
+                ? 'top-6 left-1/2 -translate-x-1/2 w-[90%] max-w-[340px] p-3'
+                : 'w-64 p-4'
+              }`}
             style={!isMobileView ? {
               top: tooltipPos.y,
               left: tooltipPos.x,
-              transform: 'translate(-50%, -120%)'
+              transform: 'translate(-50%, -115%)'
             } : {}}
           >
-            {/* Botón cerrar solo en mobile */}
             {isMobileView && (
               <button
                 onClick={() => setHoveredLot(null)}
@@ -140,18 +140,19 @@ export const InteractiveMap = ({ src, className, imageClassName }: { src: string
 
             <div className="text-slate-800 space-y-2">
               <div className="flex justify-between items-end border-b border-slate-100 pb-2">
-                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Detalles del Lote</span>
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Información del Lote</span>
                 <h3 className="font-black text-2xl leading-none">#{hoveredLot.id}</h3>
               </div>
 
               <div className="grid grid-cols-2 gap-2 pt-1">
-                <div className="bg-slate-50 p-2 rounded-lg text-center">
-                  <p className="text-[10px] text-slate-500 uppercase">Superficie</p>
+                <div className="bg-slate-50 p-2 rounded-lg text-center text-slate-700">
+                  <p className="text-[9px] text-slate-500 uppercase">Superficie</p>
                   <p className="font-bold text-sm">{hoveredLot.superficieM2} m²</p>
                 </div>
-                <div className="bg-slate-50 p-2 rounded-lg text-center">
-                  <p className="text-[10px] text-slate-500 uppercase">Estado</p>
-                  <p className={`font-bold text-[10px] uppercase ${hoveredLot.estado === 'disponible' ? 'text-emerald-600' :
+                <div className="bg-slate-50 p-2 rounded-lg text-center border-b-2 text-slate-700"
+                  style={{ borderColor: hoveredLot.estado === 'disponible' ? '#10b981' : hoveredLot.estado === 'apartado' ? '#eab308' : '#ef4444' }}>
+                  <p className="text-[9px] text-slate-500 uppercase">Estado</p>
+                  <p className={`font-black text-[10px] uppercase ${hoveredLot.estado === 'disponible' ? 'text-emerald-600' :
                       hoveredLot.estado === 'apartado' ? 'text-amber-600' : 'text-red-600'
                     }`}>
                     {hoveredLot.estado}
@@ -160,12 +161,11 @@ export const InteractiveMap = ({ src, className, imageClassName }: { src: string
               </div>
 
               <div className="flex justify-between items-center bg-slate-900 p-3 rounded-xl">
-                <span className="text-white/70 text-xs">Inversión:</span>
+                <span className="text-white/70 text-[10px] uppercase font-bold">Precio</span>
                 <span className="text-white font-bold text-lg">{formatPrice(hoveredLot.precio)}</span>
               </div>
             </div>
 
-            {/* Triangulito solo en desktop */}
             {!isMobileView && (
               <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-4 h-4 bg-white rotate-45 border-b border-r border-slate-200"></div>
             )}
