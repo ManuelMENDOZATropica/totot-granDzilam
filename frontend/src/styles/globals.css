@@ -116,12 +116,19 @@ body {
   font-size: clamp(16px, 0.25vw + 15px, 18px);
   margin: 0;
   padding: 0;
-  /* CORRECCIÓN: Se eliminó flex y align-items center que desplazaban el contenido absoluto */
   width: 100%;
   min-height: 100vh;
   overflow-x: hidden;
   position: relative;
   -webkit-font-smoothing: antialiased;
+}
+
+@media (min-width: 1025px) {
+  body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
 }
 
 #main-canvas {

@@ -64,9 +64,15 @@ export const InteractiveMap = ({ src, className, imageClassName }: { src: string
     if (!isInteractive) return;
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
     fetch(`${apiUrl}/api/lots`)
-      .then(res => res.json())
-      .then(data => data.items && setLots(data.items))
-      .catch(err => console.error("Error cargando lotes:", err));
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.items && Array.isArray(data.items)) {
+          setLots(data.items);
+        } else {
+          setLots([]);
+        }
+      })
+      .catch((err) => console.error('Error cargando lotes:', err));
   }, [isInteractive]);
 
   const handlePolygonEnter = (event: MouseEvent<SVGPolygonElement>, lot: PublicLot) => {
@@ -90,6 +96,10 @@ export const InteractiveMap = ({ src, className, imageClassName }: { src: string
     return 'transparent';
   };
 
+  const formatPrice = (price: number) => {
+    return new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(price);
+  };
+
   return (
     <div className={className}>
       <div ref={containerRef} className="relative h-full w-full overflow-hidden">
@@ -102,18 +112,34 @@ export const InteractiveMap = ({ src, className, imageClassName }: { src: string
             preserveAspectRatio={isMobileView ? 'xMidYMin meet' : 'none'}
           >
             <g className="pointer-events-auto" transform={mapTransform}>
-              {lots.map((lot, index) => (
-                <polygon
-                  key={lot.id}
-                  points={mapPaths[index]}
-                  fill={hoveredLot?.id === lot.id ? getFillColor(lot.estado) : (isMobileView ? 'rgba(255, 255, 255, 0.1)' : 'transparent')}
-                  stroke={hoveredLot?.id === lot.id ? "white" : (isMobileView ? "rgba(0, 0, 0, 0.5)" : "transparent")}
-                  strokeWidth={hoveredLot?.id === lot.id ? (isMobileView ? "2" : "3") : "0"}
-                  className="cursor-pointer transition-all duration-300"
-                  onMouseEnter={(e) => handlePolygonEnter(e, lot)}
-                  onMouseLeave={() => setHoveredLot(null)}
-                />
-              ))}
+              {lots.map((lot, index) => {
+                const points = mapPaths[index];
+                if (!points) return null;
+                return (
+                  <polygon
+                    key={lot.id}
+                    points={points}
+                    fill={
+                      hoveredLot?.id === lot.id
+                        ? getFillColor(lot.estado)
+                        : isMobileView
+                        ? 'rgba(255, 255, 255, 0.1)'
+                        : 'transparent'
+                    }
+                    stroke={
+                      hoveredLot?.id === lot.id
+                        ? 'white'
+                        : isMobileView
+                        ? 'rgba(0, 0, 0, 0.5)'
+                        : 'transparent'
+                    }
+                    strokeWidth={hoveredLot?.id === lot.id ? (isMobileView ? '2' : '3') : '0'}
+                    className="cursor-pointer transition-all duration-300"
+                    onMouseEnter={(e) => handlePolygonEnter(e, lot)}
+                    onMouseLeave={() => setHoveredLot(null)}
+                  />
+                );
+              })}
             </g>
           </svg>
         )}
@@ -124,9 +150,13 @@ export const InteractiveMap = ({ src, className, imageClassName }: { src: string
             style={{
               top: tooltipPos.y,
               left: tooltipPos.x,
-              transform: isMobileView ? 'translate(-50%, -50%)' : 'translate(-50%, -110%)'
+              transform: isMobileView ? 'translate(-50%, -50%)' : 'translate(-50%, 50%)'
             }}
           >
+            {!isMobileView && (
+              <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-4 h-4 bg-white rotate-45 border-b border-r border-slate-200"></div>
+            )}
+
             <div className="text-slate-800 text-center space-y-2">
               <h3 className="font-bold text-2xl">Lote {hoveredLot.id}</h3>
               <div className="flex justify-between text-sm px-2 py-1.5 bg-slate-50 rounded">
@@ -135,9 +165,7 @@ export const InteractiveMap = ({ src, className, imageClassName }: { src: string
               </div>
               <div className="flex justify-between text-sm px-2">
                 <span className="text-slate-500">Precio:</span>
-                <span className="font-bold text-emerald-700">
-                  {new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(hoveredLot.precio)}
-                </span>
+                <span className="font-bold text-emerald-700">{formatPrice(hoveredLot.precio)}</span>
               </div>
               <div className={`mt-2 block py-1.5 rounded-full text-xs font-black uppercase ${hoveredLot.estado === 'disponible' ? 'bg-emerald-100 text-emerald-700' :
                   hoveredLot.estado === 'apartado' ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700'
