@@ -71,9 +71,10 @@ export const InteractiveMap = ({ src, className, imageClassName }: { src: string
       const polygonRect = event.currentTarget.getBoundingClientRect();
       const containerRect = containerRef.current?.getBoundingClientRect();
       if (containerRect) {
+        // X sigue siendo el centro horizontal del lote para Desktop
         setTooltipPos({
           x: polygonRect.left - containerRect.left + polygonRect.width / 2,
-          y: polygonRect.top - containerRect.top,
+          y: 0, // No la usaremos para posicionamiento vertical si queremos centro fijo
         });
       }
     }
@@ -99,7 +100,6 @@ export const InteractiveMap = ({ src, className, imageClassName }: { src: string
                   fill={hoveredLot?.id === lot.id ?
                     (lot.estado === 'disponible' ? 'rgba(16, 185, 129, 0.5)' : lot.estado === 'apartado' ? 'rgba(234, 179, 8, 0.5)' : 'rgba(239, 68, 68, 0.5)')
                     : 'transparent'}
-                  // Borde blanco sutil en mobile para el seleccionado
                   stroke={hoveredLot?.id === lot.id ? 'white' : 'transparent'}
                   strokeWidth={hoveredLot?.id === lot.id ? (isMobileView ? '1.5' : '3') : '0'}
                   className="cursor-pointer transition-colors duration-200"
@@ -116,17 +116,15 @@ export const InteractiveMap = ({ src, className, imageClassName }: { src: string
           <div
             className={`absolute z-[60] bg-white/95 backdrop-blur-md rounded-xl shadow-2xl border border-slate-200 transition-all duration-300 ease-out flex flex-col items-center
               ${isMobileView
-                ? 'top-6 left-1/2 -translate-x-1/2 w-[85%] max-w-[300px] p-3' // Mobile: Fijo arriba
-                : 'w-64 p-4' // Desktop: Flotante original
+                ? 'top-6 left-1/2 -translate-x-1/2 w-[85%] max-w-[300px] p-3'
+                : 'w-64 p-4 top-1/2 -translate-y-1/2' // Desktop centrado verticalmente
               }`}
             style={!isMobileView ? {
-              top: tooltipPos.y,
               left: tooltipPos.x,
-              transform: 'translate(-50%, -110%)',
+              transform: 'translate(-50%, -50%)', // Centra el tooltip respecto a X y Y
               pointerEvents: 'none'
             } : {}}
           >
-            {/* Botón X solo para mobile */}
             {isMobileView && (
               <button
                 onClick={() => setHoveredLot(null)}
@@ -158,16 +156,10 @@ export const InteractiveMap = ({ src, className, imageClassName }: { src: string
                 {hoveredLot.estado}
               </div>
             </div>
-
-            {/* Flechita inferior solo en Desktop */}
-            {!isMobileView && (
-              <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-white/95 rotate-45 border-r border-b border-slate-200"></div>
-            )}
           </div>
         )}
       </div>
 
-      {/* Overlay para cerrar en mobile tocando fuera */}
       {isMobileView && hoveredLot && (
         <div className="fixed inset-0 z-[50]" onClick={() => setHoveredLot(null)} />
       )}
