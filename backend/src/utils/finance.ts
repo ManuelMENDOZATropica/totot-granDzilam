@@ -26,7 +26,7 @@ const DEFAULT_CONSTRAINTS: FinanceConstraints = {
   minEnganche: 10,
   maxEnganche: 80,
   minMeses: 6,
-  maxMeses: 60,
+  maxMeses: 50,
 };
 
 const clamp = (value: number, min: number, max: number) => {

@@ -19,7 +19,7 @@ test('calculateFinance clamps porcentaje and months into expected range', () => 
   const result = calculateFinance({ totalSeleccionado: 1000000, porcentajeEnganche: 5, meses: 120 });
 
   assert.equal(result.porcentajeEnganche, 10);
-  assert.equal(result.meses, 60);
+  assert.equal(result.meses, 50);
 });
 
 test('calculateFinance calculates finance values correctly', () => {
