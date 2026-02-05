@@ -71,10 +71,9 @@ export const InteractiveMap = ({ src, className, imageClassName }: { src: string
       const polygonRect = event.currentTarget.getBoundingClientRect();
       const containerRect = containerRef.current?.getBoundingClientRect();
       if (containerRect) {
-        // X sigue siendo el centro horizontal del lote para Desktop
         setTooltipPos({
           x: polygonRect.left - containerRect.left + polygonRect.width / 2,
-          y: 0, // No la usaremos para posicionamiento vertical si queremos centro fijo
+          y: 0,
         });
       }
     }
@@ -91,7 +90,11 @@ export const InteractiveMap = ({ src, className, imageClassName }: { src: string
         <Image src={src} alt="Mapa" fill priority className={`object-cover select-none ${imageClassName}`} sizes="100vw" />
 
         {isInteractive && (
-          <svg className="absolute top-0 left-0 h-full w-full pointer-events-none z-[44]" viewBox={viewBox} preserveAspectRatio={isMobileView ? 'xMidYMin meet' : 'none'}>
+          <svg
+            className="absolute top-0 left-0 h-full w-full pointer-events-none z-[44]"
+            viewBox={viewBox}
+            preserveAspectRatio={isMobileView ? 'xMidYMin meet' : 'none'}
+          >
             <g className="pointer-events-auto" transform={mapTransform}>
               {lots.map((lot, index) => (
                 <polygon
@@ -100,9 +103,16 @@ export const InteractiveMap = ({ src, className, imageClassName }: { src: string
                   fill={hoveredLot?.id === lot.id ?
                     (lot.estado === 'disponible' ? 'rgba(16, 185, 129, 0.5)' : lot.estado === 'apartado' ? 'rgba(234, 179, 8, 0.5)' : 'rgba(239, 68, 68, 0.5)')
                     : 'transparent'}
-                  stroke={hoveredLot?.id === lot.id ? 'white' : 'transparent'}
-                  strokeWidth={hoveredLot?.id === lot.id ? (isMobileView ? '1.5' : '3') : '0'}
-                  className="cursor-pointer transition-colors duration-200"
+                  // Borde siempre blanco
+                  stroke="white"
+                  // Grosor dinámico: más grueso si está seleccionado, sutil si no
+                  strokeWidth={hoveredLot?.id === lot.id
+                    ? (isMobileView ? '2' : '4')
+                    : (isMobileView ? '0.8' : '1.5')
+                  }
+                  // Opacidad del borde para que no sature el mapa cuando no hay selección
+                  strokeOpacity={hoveredLot?.id === lot.id ? '1' : '0.6'}
+                  className="cursor-pointer transition-all duration-200 ease-in-out"
                   onMouseEnter={(e) => !isMobileView && handleInteraction(e, lot)}
                   onMouseLeave={() => !isMobileView && setHoveredLot(null)}
                   onClick={(e) => isMobileView && handleInteraction(e, lot)}
@@ -117,11 +127,11 @@ export const InteractiveMap = ({ src, className, imageClassName }: { src: string
             className={`absolute z-[60] bg-white/95 backdrop-blur-md rounded-xl shadow-2xl border border-slate-200 transition-all duration-300 ease-out flex flex-col items-center
               ${isMobileView
                 ? 'top-6 left-1/2 -translate-x-1/2 w-[85%] max-w-[300px] p-3'
-                : 'w-64 p-4 top-1/2 -translate-y-1/2' // Desktop centrado verticalmente
+                : 'w-64 p-4 top-1/2 -translate-y-1/2'
               }`}
             style={!isMobileView ? {
               left: tooltipPos.x,
-              transform: 'translate(-50%, -50%)', // Centra el tooltip respecto a X y Y
+              transform: 'translate(-50%, -50%)',
               pointerEvents: 'none'
             } : {}}
           >

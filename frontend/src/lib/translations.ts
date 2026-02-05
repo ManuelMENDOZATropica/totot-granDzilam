@@ -303,8 +303,8 @@ export const translations: Record<Language, TranslationSchema> = {
     contact: {
       emailLabel: 'Correo electrónico',
       phoneLabel: 'Teléfono',
-      emailValue: 'grandzilam@info.com',
-      phoneValue: '+00 00 000 000',
+      emailValue: 'admin@grandzilma.com',
+      phoneValue: '+52 1 999 233 3396',
       helper: {
         idle: 'Deja tu información y nos pondremos en contacto:',
         submitted: '¡Gracias! Nos pondremos en contacto contigo.',
@@ -482,8 +482,8 @@ export const translations: Record<Language, TranslationSchema> = {
     contact: {
       emailLabel: 'Email',
       phoneLabel: 'Phone',
-      emailValue: 'grandzilam@info.com',
-      phoneValue: '+00 00 000 000',
+      emailValue: 'admin@grandzilma.com',
+      phoneValue: '+52 1 999 233 3396',
       helper: {
         idle: 'Leave your info and we will get in touch:',
         submitted: 'Thank you! We will contact you shortly.',
@@ -666,8 +666,8 @@ export const translations: Record<Language, TranslationSchema> = {
     contact: {
       emailLabel: 'Courriel',
       phoneLabel: 'Téléphone',
-      emailValue: 'grandzilam@info.com',
-      phoneValue: '+00 00 000 000',
+      emailValue: 'admin@grandzilma.com',
+      phoneValue: '+52 1 999 233 3396',
       helper: {
         idle: 'Laissez vos informations et nous vous contacterons :',
         submitted: 'Merci ! Nous vous contacterons bientôt.',
