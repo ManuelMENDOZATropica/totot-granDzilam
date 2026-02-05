@@ -201,18 +201,17 @@ h6 {
   }
 
   #cotizacion-print {
-    position: fixed;
+    position: absolute;
     top: 0;
     left: 0;
-    right: 0;
-    bottom: 0;
-    width: 100vw;
-    height: 100vh;
+    width: 210mm;
+    height: 297mm;
     z-index: 9999;
     margin: 0;
     padding: 0;
     display: block !important;
     background-color: white;
+    overflow: hidden;
     page-break-before: avoid;
     page-break-after: avoid;
     page-break-inside: avoid;
