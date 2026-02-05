@@ -104,7 +104,7 @@ export const InteractiveMap = ({ src, className, imageClassName }: { src: string
                     (lot.estado === 'disponible' ? 'rgba(16, 185, 129, 0.5)' : lot.estado === 'apartado' ? 'rgba(234, 179, 8, 0.5)' : 'rgba(239, 68, 68, 0.5)')
                     : 'transparent'}
                   // Borde siempre blanco
-                  stroke="white"
+                  stroke={isMobileView ? 'white' : 'none'}
                   // Grosor dinámico: más grueso si está seleccionado, sutil si no
                   strokeWidth={hoveredLot?.id === lot.id
                     ? (isMobileView ? '2' : '4')
