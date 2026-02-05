@@ -1,5 +1,6 @@
 import Image from 'next/image';
-import { useState } from 'react';
+import { createPortal } from 'react-dom';
+import { useEffect, useState } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { formatearMoneda } from '@/lib/formatoMoneda';
 import { MapaLotes } from '@/components/mapa/MapaLotes';
@@ -53,6 +54,11 @@ export const MacroCotizadorPanel = ({
   const [isContactOpen, setIsContactOpen] = useState(false);
   const [downloadRequested, setDownloadRequested] = useState(false);
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+  const [printRoot, setPrintRoot] = useState<HTMLElement | null>(null);
+
+  useEffect(() => {
+    setPrintRoot(document.body);
+  }, []);
 
   const formatCurrency = (valor: number) => formatearMoneda(valor, 'MXN');
   const formatArea = (valor: number) =>
@@ -314,112 +320,113 @@ export const MacroCotizadorPanel = ({
         </div>
       </div>
 
-      {/* === ÁREA DE IMPRESIÓN === */}
-      <div id="cotizacion-print" className="hidden">
-        {/* ... (Todo el código de impresión se mantiene igual) ... */}
-        <div
-          className="relative mx-auto h-full w-full overflow-hidden bg-[#fafafa]"
-          style={{
-            printColorAdjust: 'exact',
-            WebkitPrintColorAdjust: 'exact',
-            backgroundColor: '#fafafa'
-          }}
-        >
-          <Image
-            src="/assets/HOJA MEMBRETADA.png"
-            alt="Hoja membretada Gran Dzilam"
-            fill
-            priority
-            sizes="100vw"
-            className="object-cover"
-          />
+      {printRoot && createPortal(
+        <div id="cotizacion-print" className="hidden">
+          <div
+            className="relative mx-auto h-full w-full overflow-hidden bg-[#fafafa]"
+            style={{
+              printColorAdjust: 'exact',
+              WebkitPrintColorAdjust: 'exact',
+              backgroundColor: '#fafafa'
+            }}
+          >
+            <Image
+              src="/assets/HOJA MEMBRETADA.png"
+              alt="Hoja membretada Gran Dzilam"
+              fill
+              priority
+              sizes="100vw"
+              className="object-cover"
+            />
 
-          <div className="relative z-10 h-full w-full">
-            <div className="absolute top-14 right-12 text-sm font-semibold text-[#1C2533]">
-              Fecha: {fechaCotizacion}
-            </div>
-
-            <div className="px-12 pt-[20%] pb-48 h-full flex flex-col gap-5 text-[#1C2533]">
-              <div>
-                <h2 className="font-serif text-2xl">Cotización de lotes</h2>
-                <p className="text-[#475569]">Estimación en MXN generada automáticamente.</p>
+            <div className="relative z-10 h-full w-full">
+              <div className="absolute top-14 right-12 text-sm font-semibold text-[#1C2533]">
+                Fecha: {fechaCotizacion}
               </div>
 
-              <div className="space-y-2 border-b border-gray-200 pb-4">
-                {selectedLots.length === 0 ? (
-                  <p className="text-[#475569]">No se seleccionaron lotes para esta cotización.</p>
-                ) : (
-                  selectedLots.map((lote, index) => {
-                    const precioLote = lote.precioTotal ?? lote.precio ?? 0;
-                    return (
-                      <div key={lote.id || index} className="flex items-baseline justify-between gap-3">
-                        <div className="flex flex-col">
-                          <span className="font-semibold">{lote.nombre || `Lote ${index + 1}`}</span>
-                          <span className="text-xs text-[#475569]">{formatArea(lote.superficieM2 || 0)}</span>
-                        </div>
-                        <div className="text-right">
-                          <span className="block text-sm font-semibold">{formatCurrency(precioLote)}</span>
-                          <span className="text-[11px] text-[#16a34a]">Incluye descuento aplicado</span>
-                        </div>
-                      </div>
-                    );
-                  })
-                )}
-              </div>
-
-              <div className="flex flex-col gap-3 pt-2">
-                <div className="space-y-1">
-                  <div className="flex justify-between">
-                    <span className="text-[#475569]">Subtotal</span>
-                    <span className="font-semibold">{formatCurrency(totales.totalSeleccionado)}</span>
-                  </div>
-                  <div className="flex justify-between text-[#16a34a]">
-                    <span>Descuento ({Math.round(totales.descuentoPorcentaje * 100)}%)</span>
-                    <span>-{formatCurrency(totales.descuentoAplicado)}</span>
-                  </div>
-                  <div className="flex justify-between font-semibold text-base border-t border-dashed border-gray-300 pt-1 mt-1">
-                    <span>Total con descuento</span>
-                    <span>{formatCurrency(totales.totalConDescuento)}</span>
-                  </div>
+              <div className="px-12 pt-[20%] pb-48 h-full flex flex-col gap-5 text-[#1C2533]">
+                <div>
+                  <h2 className="font-serif text-2xl">Cotización de lotes</h2>
+                  <p className="text-[#475569]">Estimación en MXN generada automáticamente.</p>
                 </div>
 
-                <div className="space-y-1 bg-gray-50 p-3 rounded-md border border-gray-100 mt-2 print:bg-transparent print:border-gray-200">
-                  <div className="flex justify-between">
-                    <span className="text-[#475569]">Enganche</span>
-                    <span className="font-semibold">{formatCurrency(totales.enganche)}</span>
+                <div className="space-y-2 border-b border-gray-200 pb-4">
+                  {selectedLots.length === 0 ? (
+                    <p className="text-[#475569]">No se seleccionaron lotes para esta cotización.</p>
+                  ) : (
+                    selectedLots.map((lote, index) => {
+                      const precioLote = lote.precioTotal ?? lote.precio ?? 0;
+                      return (
+                        <div key={lote.id || index} className="flex items-baseline justify-between gap-3">
+                          <div className="flex flex-col">
+                            <span className="font-semibold">{lote.nombre || `Lote ${index + 1}`}</span>
+                            <span className="text-xs text-[#475569]">{formatArea(lote.superficieM2 || 0)}</span>
+                          </div>
+                          <div className="text-right">
+                            <span className="block text-sm font-semibold">{formatCurrency(precioLote)}</span>
+                            <span className="text-[11px] text-[#16a34a]">Incluye descuento aplicado</span>
+                          </div>
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+
+                <div className="flex flex-col gap-3 pt-2">
+                  <div className="space-y-1">
+                    <div className="flex justify-between">
+                      <span className="text-[#475569]">Subtotal</span>
+                      <span className="font-semibold">{formatCurrency(totales.totalSeleccionado)}</span>
+                    </div>
+                    <div className="flex justify-between text-[#16a34a]">
+                      <span>Descuento ({Math.round(totales.descuentoPorcentaje * 100)}%)</span>
+                      <span>-{formatCurrency(totales.descuentoAplicado)}</span>
+                    </div>
+                    <div className="flex justify-between font-semibold text-base border-t border-dashed border-gray-300 pt-1 mt-1">
+                      <span>Total con descuento</span>
+                      <span>{formatCurrency(totales.totalConDescuento)}</span>
+                    </div>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-[#475569]">{panelCopy.balance}</span>
-                    <span className="font-semibold">{formatCurrency(totales.saldoFinanciar)}</span>
-                  </div>
-                  <div className="flex justify-between font-semibold mt-2">
-                    <span>{panelCopy.monthly}</span>
-                    <span>{formatCurrency(totales.mensualidad)}</span>
-                  </div>
-                  <div className="flex justify-between text-xs text-[#475569]">
-                    <span>{panelCopy.monthsLabel}</span>
-                    <span>{meses} {panelCopy.monthsLabel}</span>
+
+                  <div className="space-y-1 bg-gray-50 p-3 rounded-md border border-gray-100 mt-2 print:bg-transparent print:border-gray-200">
+                    <div className="flex justify-between">
+                      <span className="text-[#475569]">Enganche</span>
+                      <span className="font-semibold">{formatCurrency(totales.enganche)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-[#475569]">{panelCopy.balance}</span>
+                      <span className="font-semibold">{formatCurrency(totales.saldoFinanciar)}</span>
+                    </div>
+                    <div className="flex justify-between font-semibold mt-2">
+                      <span>{panelCopy.monthly}</span>
+                      <span>{formatCurrency(totales.mensualidad)}</span>
+                    </div>
+                    <div className="flex justify-between text-xs text-[#475569]">
+                      <span>{panelCopy.monthsLabel}</span>
+                      <span>{meses} {panelCopy.monthsLabel}</span>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
 
-            <div className="mb-[20%] absolute bottom-12 left-12 right-12 text-[#475569] flex flex-col items-center">
-              <div className="w-full text-[12px] leading-relaxed mb-4 text-left">
-                <p className="font-semibold text-[#1C2533]">Notas importantes</p>
-                <ul className="mt-1 list-disc space-y-0.5 pl-5">
-                  <li>Los montos son informativos y pueden variar según disponibilidad y condiciones comerciales.</li>
-                  <li>La superficie total seleccionada es de {formatArea(totalArea)}.</li>
-                  <li>Comunícate con nuestro equipo para confirmar precios y disponibilidad.</li>
-                </ul>
+              <div className="mb-[20%] absolute bottom-12 left-12 right-12 text-[#475569] flex flex-col items-center">
+                <div className="w-full text-[12px] leading-relaxed mb-4 text-left">
+                  <p className="font-semibold text-[#1C2533]">Notas importantes</p>
+                  <ul className="mt-1 list-disc space-y-0.5 pl-5">
+                    <li>Los montos son informativos y pueden variar según disponibilidad y condiciones comerciales.</li>
+                    <li>La superficie total seleccionada es de {formatArea(totalArea)}.</li>
+                    <li>Comunícate con nuestro equipo para confirmar precios y disponibilidad.</li>
+                  </ul>
+                </div>
+                <p className="text-[10px] uppercase tracking-wide opacity-60 text-center border-t border-gray-300 w-full pt-2">
+                  {macroCopy.disclaimer}
+                </p>
               </div>
-              <p className="text-[10px] uppercase tracking-wide opacity-60 text-center border-t border-gray-300 w-full pt-2">
-                {macroCopy.disclaimer}
-              </p>
             </div>
           </div>
-        </div>
-      </div>
+        </div>,
+        printRoot
+      )}
     </div>
   );
 };

@@ -177,7 +177,7 @@ h6 {
 
 @media print {
   @page {
-    size: 210mm 297mm;
+    size: A4 portrait;
     margin: 0;
   }
 
@@ -201,11 +201,10 @@ h6 {
   }
 
   #cotizacion-print {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 210mm;
-    height: 297mm;
+    position: fixed;
+    inset: 0;
+    width: 100vw;
+    height: 100vh;
     z-index: 9999;
     margin: 0;
     padding: 0;
@@ -215,5 +214,15 @@ h6 {
     page-break-before: avoid;
     page-break-after: avoid;
     page-break-inside: avoid;
+    break-before: avoid-page;
+    break-after: avoid-page;
+    break-inside: avoid-page;
+  }
+
+  #cotizacion-print > div {
+    width: 210mm;
+    height: 297mm;
+    margin: 0 auto;
+    overflow: hidden;
   }
 }
