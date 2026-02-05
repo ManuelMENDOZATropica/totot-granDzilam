@@ -339,7 +339,7 @@ export const MacroCotizadorPanel = ({
               Fecha: {fechaCotizacion}
             </div>
 
-            <div className="px-12 pt-[20%] pb-48 h-full flex flex-col gap-5 text-[#1C2533]">
+            <div className="px-12 pt-[10%] pb-24 h-full flex flex-col gap-5 text-[#1C2533]">
               <div>
                 <h2 className="font-serif text-2xl">Cotización de lotes</h2>
                 <p className="text-[#475569]">Estimación en MXN generada automáticamente.</p>
@@ -404,7 +404,7 @@ export const MacroCotizadorPanel = ({
               </div>
             </div>
 
-            <div className="mb-[20%] absolute bottom-12 left-12 right-12 text-[#475569] flex flex-col items-center">
+            <div className="mb-[10%] absolute bottom-12 left-12 right-12 text-[#475569] flex flex-col items-center">
               <div className="w-full text-[12px] leading-relaxed mb-4 text-left">
                 <p className="font-semibold text-[#1C2533]">Notas importantes</p>
                 <ul className="mt-1 list-disc space-y-0.5 pl-5">
