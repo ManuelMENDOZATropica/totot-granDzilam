@@ -7,9 +7,9 @@ const updateSchema = z.object({
   minEnganche: z.coerce.number().min(0).max(100).optional(),
   maxEnganche: z.coerce.number().min(0).max(100).optional(),
   defaultEnganche: z.coerce.number().min(0).max(100).optional(),
-  minMeses: z.coerce.number().min(1).max(600).optional(),
-  maxMeses: z.coerce.number().min(1).max(600).optional(),
-  defaultMeses: z.coerce.number().min(1).max(600).optional(),
+  minMeses: z.coerce.number().min(1).max(50).optional(),
+  maxMeses: z.coerce.number().min(1).max(50).optional(),
+  defaultMeses: z.coerce.number().min(1).max(50).optional(),
   interes: z.coerce.number().min(0).max(100).optional(),
 });
 

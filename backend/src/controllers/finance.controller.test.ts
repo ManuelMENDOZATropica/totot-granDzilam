@@ -38,7 +38,7 @@ test('simulateFinance forwards error when lots are unavailable', async () => {
     maxEnganche: 80,
     defaultEnganche: 30,
     minMeses: 6,
-    maxMeses: 60,
+    maxMeses: 50,
     defaultMeses: 36,
     interes: 0,
   }));
@@ -77,7 +77,7 @@ test('simulateFinance calculates finance for available lots', async () => {
     maxEnganche: 80,
     defaultEnganche: 30,
     minMeses: 6,
-    maxMeses: 60,
+    maxMeses: 50,
     defaultMeses: 36,
     interes: 0,
   }));

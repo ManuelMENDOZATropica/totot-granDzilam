@@ -25,9 +25,9 @@ test('sanitizePercentage clamps values between 10 and 80', () => {
   assert.equal(sanitizePercentage(40), 40);
 });
 
-test('sanitizeMonths clamps values between 6 and 60', () => {
+test('sanitizeMonths clamps values between 6 and 50', () => {
   assert.equal(sanitizeMonths(1), 6);
-  assert.equal(sanitizeMonths(120), 60);
+  assert.equal(sanitizeMonths(120), 50);
   assert.equal(sanitizeMonths(24), 24);
 });
 

@@ -30,7 +30,7 @@ export const FinancePanel = ({
 
   const handleMesesChange = (event: ChangeEvent<HTMLInputElement>) => {
     const value = Number.parseInt(event.target.value, 10);
-    onMesesChange(clampNumber(Number.isNaN(value) ? 36 : value, 6, 60));
+    onMesesChange(clampNumber(Number.isNaN(value) ? 36 : value, 6, 50));
   };
 
   return (
@@ -87,19 +87,19 @@ export const FinancePanel = ({
           <input
             type="range"
             min={6}
-            max={60}
+            max={50}
             step={1}
             value={meses}
             onChange={handleMesesChange}
             aria-valuemin={6}
-            aria-valuemax={60}
+            aria-valuemax={50}
             aria-valuenow={meses}
             className="h-2 w-full cursor-pointer appearance-none rounded-full bg-slate-700 accent-sky-500"
           />
           <input
             type="number"
             min={6}
-            max={60}
+            max={50}
             step={1}
             value={meses}
             onChange={handleMesesChange}

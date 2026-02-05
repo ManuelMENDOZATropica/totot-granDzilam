@@ -15,9 +15,28 @@ const DEFAULT_SETTINGS: FinanceSettingsDTO = {
   maxEnganche: 80,
   defaultEnganche: 30,
   minMeses: 6,
-  maxMeses: 60,
+  maxMeses: 50,
   defaultMeses: 36,
   interes: 0,
+};
+
+const clamp = (value: number, min: number, max: number) => Math.min(Math.max(value, min), max);
+
+const normalizeSettings = (settings: FinanceSettingsDTO): FinanceSettingsDTO => {
+  const minEnganche = clamp(settings.minEnganche, 0, 100);
+  const maxEnganche = clamp(settings.maxEnganche, minEnganche, 100);
+  const minMeses = clamp(settings.minMeses, 1, 50);
+  const maxMeses = clamp(settings.maxMeses, minMeses, 50);
+
+  return {
+    ...settings,
+    minEnganche,
+    maxEnganche,
+    minMeses,
+    maxMeses,
+    defaultEnganche: clamp(settings.defaultEnganche, minEnganche, maxEnganche),
+    defaultMeses: clamp(settings.defaultMeses, minMeses, maxMeses),
+  };
 };
 
 const toDto = (settings: FinanceSettings): FinanceSettingsDTO => ({
@@ -33,10 +52,10 @@ const toDto = (settings: FinanceSettings): FinanceSettingsDTO => ({
 export const getFinanceSettings = async (): Promise<FinanceSettingsDTO> => {
   const settings = await FinanceSettingsModel.findOne().lean<FinanceSettings>();
   if (!settings) {
-    return DEFAULT_SETTINGS;
+    return normalizeSettings(DEFAULT_SETTINGS);
   }
 
-  return toDto(settings);
+  return normalizeSettings(toDto(settings));
 };
 
 export const updateFinanceSettings = async (
@@ -49,8 +68,8 @@ export const updateFinanceSettings = async (
   });
 
   if (!updated) {
-    return DEFAULT_SETTINGS;
+    return normalizeSettings(DEFAULT_SETTINGS);
   }
 
-  return toDto(updated);
+  return normalizeSettings(toDto(updated));
 };

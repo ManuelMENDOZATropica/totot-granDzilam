@@ -191,28 +191,27 @@ h6 {
     background: white;
   }
 
-  body * {
-    visibility: hidden;
+  body > *:not(#cotizacion-print) {
+    display: none !important;
+    visibility: hidden !important;
   }
 
   #cotizacion-print,
   #cotizacion-print * {
-    visibility: visible;
+    visibility: visible !important;
   }
 
   #cotizacion-print {
     position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
+    inset: 0;
     width: 100vw;
     height: 100vh;
     z-index: 9999;
     margin: 0;
     padding: 0;
-    display: block !important;
+    overflow: hidden;
     background-color: white;
+    break-inside: avoid;
     page-break-before: avoid;
     page-break-after: avoid;
     page-break-inside: avoid;

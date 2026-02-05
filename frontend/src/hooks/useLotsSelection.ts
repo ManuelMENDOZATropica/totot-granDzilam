@@ -5,7 +5,7 @@ const STORAGE_KEY = 'gd:calc:v1';
 const MIN_ENGANCHE = 10;
 const MAX_ENGANCHE = 80;
 const MIN_MONTHS = 6;
-const MAX_MONTHS = 60;
+const MAX_MONTHS = 50;
 
 export interface LotsSelectionState {
   selectedIds: string[];

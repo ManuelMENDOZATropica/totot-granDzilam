@@ -100,9 +100,15 @@ export const InteractiveMap = ({ src, className, imageClassName }: { src: string
                 <polygon
                   key={lot.id}
                   points={mapPaths[index]}
-                  fill={hoveredLot?.id === lot.id ?
-                    (lot.estado === 'disponible' ? 'rgba(16, 185, 129, 0.5)' : lot.estado === 'apartado' ? 'rgba(234, 179, 8, 0.5)' : 'rgba(239, 68, 68, 0.5)')
-                    : 'transparent'}
+                  fill={hoveredLot?.id === lot.id
+                    ? (lot.estado === 'disponible'
+                      ? 'rgba(16, 185, 129, 0.5)'
+                      : lot.estado === 'apartado'
+                        ? 'rgba(234, 179, 8, 0.5)'
+                        : 'rgba(239, 68, 68, 0.5)')
+                    : isMobileView
+                      ? 'rgba(255, 255, 255, 0.88)'
+                      : 'transparent'}
                   // Borde siempre blanco
                   stroke="white"
                   // Grosor dinámico: más grueso si está seleccionado, sutil si no

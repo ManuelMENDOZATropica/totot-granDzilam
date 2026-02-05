@@ -18,7 +18,7 @@ const financeSettingsSchema = new Schema<FinanceSettings>(
     maxEnganche: { type: Number, required: true, default: 80 },
     defaultEnganche: { type: Number, required: true, default: 30 },
     minMeses: { type: Number, required: true, default: 6 },
-    maxMeses: { type: Number, required: true, default: 60 },
+    maxMeses: { type: Number, required: true, default: 50 },
     defaultMeses: { type: Number, required: true, default: 36 },
     interes: { type: Number, required: true, default: 0 },
   },

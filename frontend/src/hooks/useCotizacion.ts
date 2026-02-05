@@ -25,7 +25,7 @@ const PARAMETROS_STORAGE_KEY = 'gran-dzilam:parametros';
 const MIN_ENGANCHE = 10;
 const MAX_ENGANCHE = 100;
 const MIN_MESES = 1;
-const MAX_MESES = 24;
+const MAX_MESES = 50;
 
 const calcularDescuento = (porcentajeEnganche: number) => {
   if (porcentajeEnganche >= 100) return 0.15;
