@@ -100,6 +100,8 @@ export default function Home() {
   const [brochureGateDismissedPage, setBrochureGateDismissedPage] = useState<number | null>(null);
   const [brochureCurrentPage, setBrochureCurrentPage] = useState<number | null>(null);
   const [brochureTotalPages, setBrochureTotalPages] = useState<number | null>(null);
+  const [showMobileImagineModal, setShowMobileImagineModal] = useState(false);
+  const [mobileImagineImageUrl, setMobileImagineImageUrl] = useState<string | null>(null);
 
   // Inicialización
   const [fondoActual, setFondoActual] = useState(vistasDesktop[0].src);
@@ -173,13 +175,24 @@ export default function Home() {
     if (status !== 'success') return;
     const imageUrl = getImagineImageSrc(result ?? null);
     if (!imageUrl) return;
+
+    if (isMobileViewport) {
+      setMobileImagineImageUrl(imageUrl);
+      setShowMobileImagineModal(true);
+      return;
+    }
+
     setFading(true);
     const timer = setTimeout(() => {
       setFondoActual(imageUrl);
       setFading(false);
     }, 200);
     return () => clearTimeout(timer);
-  }, [result, status]);
+  }, [isMobileViewport, result, status]);
+
+  const handleCloseMobileImagineModal = () => {
+    setShowMobileImagineModal(false);
+  };
 
   const handleImagineSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -619,6 +632,38 @@ export default function Home() {
       </main>
 
       {showCookieBanner ? <CookieBanner onChoice={handleCookieChoice} /> : null}
+
+      {isMobileViewport && showMobileImagineModal && mobileImagineImageUrl ? (
+        <div className="fixed inset-0 z-[80] bg-slate-950" role="dialog" aria-modal="true">
+          <div className="absolute inset-x-0 top-0 z-10 flex items-center justify-between px-4 py-4">
+            <a
+              href={mobileImagineImageUrl}
+              download
+              className="rounded-full bg-white/90 px-4 py-2 text-sm font-semibold text-slate-900 shadow"
+            >
+              Descargar
+            </a>
+            <button
+              type="button"
+              onClick={handleCloseMobileImagineModal}
+              aria-label="Cerrar imagen"
+              className="flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-2xl font-semibold leading-none text-slate-900 shadow"
+            >
+              ×
+            </button>
+          </div>
+
+          <div className="relative h-full w-full">
+            <Image
+              src={mobileImagineImageUrl}
+              alt="Resultado de imagen generada"
+              fill
+              className="object-contain"
+              sizes="100vw"
+            />
+          </div>
+        </div>
+      ) : null}
 
       <ChatbotWidget />
 
