@@ -13,6 +13,8 @@ interface PanelCotizacionProps {
   configuracionCargando?: boolean;
   onPorcentajeChange: (valor: number) => void;
   onMesesChange: (valor: number) => void;
+  mensualidadPersonalizada: number | null;
+  onMensualidadPersonalizadaChange: (valor: number | null) => void;
   onLimpiar: () => void;
   onCerrar?: () => void;
   // Agregamos esta prop para que el padre sepa cuándo abrir el overlay
@@ -36,6 +38,8 @@ export const PanelCotizacion = ({
   configuracionCargando = false,
   onPorcentajeChange,
   onMesesChange,
+  mensualidadPersonalizada,
+  onMensualidadPersonalizadaChange,
   onLimpiar,
   onCerrar,
   // Recibimos la función
@@ -64,16 +68,13 @@ export const PanelCotizacion = ({
       `${(valor * factor).toLocaleString(locale, { minimumFractionDigits: 2 })} ${etiquetaMedida}`;
   }, [etiquetaMedida, locale, unidadMedida]);
 
-  const totalMetros = lotesSeleccionados.reduce(
-    (acum, lote) => acum + lote.superficieM2,
-    0
-  );
+  const totalMetros = lotesSeleccionados.reduce((acum, lote) => acum + lote.superficieM2, 0);
 
   const colors = {
     bg: '#F3F1EC',
     text: '#1C2533',
     textLight: '#64748B',
-    badge: '#E2E0DB'
+    badge: '#E2E0DB',
   };
 
   return (
@@ -82,7 +83,6 @@ export const PanelCotizacion = ({
       style={{ backgroundColor: colors.bg }}
     >
       <div className="flex-1 overflow-y-auto px-8 py-10 lg:px-12 overlay-scrollbar">
-
         <h2 className="mb-10 font-serif text-3xl font-medium text-[#1C2533]">{panelCopy.title}</h2>
 
         {/* --- Medidas --- */}
@@ -145,36 +145,58 @@ export const PanelCotizacion = ({
             {lotesSeleccionados.map((lote, index) => (
               <div key={lote.id || index} className="flex justify-between">
                 <span>{lote.nombre || `Lote ${index + 1}`}</span>
-                <span>{formatCurrency(lote.precioTotal ?? lote.precio)} {etiquetaMoneda}</span>
+                <span>
+                  {formatCurrency(lote.precioTotal ?? lote.precio)} {etiquetaMoneda}
+                </span>
               </div>
             ))}
             <div className="flex justify-between font-bold">
               <span>{panelCopy.subtotal}</span>
-              <span>{formatCurrency(totales.totalSeleccionado)} {etiquetaMoneda}</span>
+              <span>
+                {formatCurrency(totales.totalSeleccionado)} {etiquetaMoneda}
+              </span>
             </div>
             <div className="flex justify-between text-[#16a34a]">
               <span>
                 {panelCopy.discount} ({Math.round(totales.descuentoPorcentaje * 100)}%)
               </span>
-              <span>-{formatCurrency(totales.descuentoAplicado)} {etiquetaMoneda}</span>
+              <span>
+                -{formatCurrency(totales.descuentoAplicado)} {etiquetaMoneda}
+              </span>
             </div>
             <div className="flex justify-between pb-4 font-bold">
               <span>{panelCopy.totalWithDiscount}</span>
-              <span>{formatCurrency(totales.totalConDescuento)} {etiquetaMoneda}</span>
+              <span>
+                {formatCurrency(totales.totalConDescuento)} {etiquetaMoneda}
+              </span>
             </div>
             <div className="space-y-2">
               <div className="flex justify-between">
                 <span>{panelCopy.downPayment}</span>
-                <span>{formatCurrency(totales.enganche)} {etiquetaMoneda}</span>
+                <span>
+                  {formatCurrency(totales.enganche)} {etiquetaMoneda}
+                </span>
               </div>
               <div className="flex justify-between">
                 <span>{panelCopy.balance}</span>
-                <span>{formatCurrency(totales.saldoFinanciar)} {etiquetaMoneda}</span>
+                <span>
+                  {formatCurrency(totales.saldoFinanciar)} {etiquetaMoneda}
+                </span>
               </div>
               <div className="flex justify-between">
                 <span>{panelCopy.monthly}</span>
-                <span>{formatCurrency(totales.mensualidad)} {etiquetaMoneda}</span>
+                <span>
+                  {formatCurrency(totales.mensualidad)} {etiquetaMoneda}
+                </span>
               </div>
+              {totales.saldoContraEntrega > 0 ? (
+                <div className="flex justify-between text-amber-700">
+                  <span>{panelCopy.balanceDelivery}</span>
+                  <span>
+                    {formatCurrency(totales.saldoContraEntrega)} {etiquetaMoneda}
+                  </span>
+                </div>
+              ) : null}
             </div>
           </div>
         </div>
@@ -197,7 +219,9 @@ export const PanelCotizacion = ({
                 disabled={configuracionCargando}
                 className="h-1 w-full cursor-pointer appearance-none rounded-full bg-[#E2E0DB] accent-[#1C2533]"
               />
-              <div className="text-right text-sm font-semibold text-[#1C2533]">{porcentajeEnganche}%</div>
+              <div className="text-right text-sm font-semibold text-[#1C2533]">
+                {porcentajeEnganche}%
+              </div>
             </div>
 
             <div className="flex flex-col gap-3">
@@ -214,7 +238,31 @@ export const PanelCotizacion = ({
                 disabled={configuracionCargando}
                 className="h-1 w-full cursor-pointer appearance-none rounded-full bg-[#E2E0DB] accent-[#1C2533]"
               />
-              <div className="text-right text-sm font-semibold text-[#1C2533]">{meses} {panelCopy.monthsLabel}</div>
+              <div className="text-right text-sm font-semibold text-[#1C2533]">
+                {meses} {panelCopy.monthsLabel}
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-3">
+              <div className="flex justify-between text-xs uppercase tracking-wider text-[#64748B]">
+                <span>{panelCopy.monthlyTargetLabel}</span>
+              </div>
+              <input
+                type="number"
+                min={0}
+                step={Math.max(configuracion.pasoMensualidad || 1, 1)}
+                value={mensualidadPersonalizada ?? ''}
+                onChange={(e) =>
+                  onMensualidadPersonalizadaChange(
+                    e.target.value === '' ? null : Number(e.target.value),
+                  )
+                }
+                placeholder={`${formatCurrency(totales.mensualidad)} ${etiquetaMoneda}`}
+                className="w-full rounded-xl border border-[#D8D4CC] bg-white px-3 py-2 text-sm text-[#1C2533] focus:border-[#1C2533] focus:outline-none"
+              />
+              <p className="text-xs text-[#64748B]">
+                {panelCopy.monthlyTargetHint} {formatCurrency(configuracion.pasoMensualidad || 1)}
+              </p>
             </div>
           </div>
         </div>
@@ -239,7 +287,6 @@ export const PanelCotizacion = ({
             {panelCopy.actions.contact}
           </button>
         </div>
-
       </div>
 
       <div className="border-t border-slate-300 bg-[#F3F1EC] px-8 py-6 lg:px-12">
