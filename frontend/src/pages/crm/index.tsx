@@ -212,7 +212,7 @@ export default function CrmPage() {
         maxMeses: String(settings.maxMeses),
         defaultMeses: String(settings.defaultMeses),
         interes: String(settings.interes),
-        pasoMensualidad: String(settings.pasoMensualidad),
+        pasoMensualidad: String(settings.pasoMensualidad ?? 1000),
       });
     } catch (error) {
       setFinanceError((error as Error).message);
@@ -504,7 +504,7 @@ export default function CrmPage() {
         maxMeses: String(settings.maxMeses),
         defaultMeses: String(settings.defaultMeses),
         interes: String(settings.interes),
-        pasoMensualidad: String(settings.pasoMensualidad),
+        pasoMensualidad: String(settings.pasoMensualidad ?? 1000),
       });
     } catch (error) {
       setFinanceError((error as Error).message);
@@ -1153,7 +1153,7 @@ export default function CrmPage() {
                 {financeSettings ? (
                   <p className="mt-4 text-xs text-slate-500">
                     Paso configurado actualmente:{' '}
-                    {financeSettings.pasoMensualidad.toLocaleString('es-MX')} MXN.
+                    {(financeSettings.pasoMensualidad ?? 1000).toLocaleString('es-MX')} MXN.
                   </p>
                 ) : null}
               </div>
