@@ -12,11 +12,13 @@ export interface TotalesCotizacion {
   enganche: number;
   saldoFinanciar: number;
   mensualidad: number;
+  saldoContraEntrega: number;
 }
 
 interface ParametrosCotizacionStorage {
   porcentaje: number;
   meses: number;
+  mensualidadPersonalizada: number | null;
 }
 
 const SELECCION_STORAGE_KEY = 'gran-dzilam:seleccion';
@@ -46,6 +48,7 @@ const DEFAULT_SETTINGS: FinanceSettingsDTO = {
   maxMeses: MAX_MESES,
   defaultMeses: 12,
   interes: 0,
+  pasoMensualidad: 1000,
 };
 
 const normalizarConfiguracion = (settings: FinanceSettingsDTO): FinanceSettingsDTO => {
@@ -60,7 +63,11 @@ const normalizarConfiguracion = (settings: FinanceSettingsDTO): FinanceSettingsD
     maxEnganche,
     minMeses,
     maxMeses,
-    defaultEnganche: clamp(settings.defaultEnganche ?? DEFAULT_SETTINGS.defaultEnganche, minEnganche, maxEnganche),
+    defaultEnganche: clamp(
+      settings.defaultEnganche ?? DEFAULT_SETTINGS.defaultEnganche,
+      minEnganche,
+      maxEnganche,
+    ),
     defaultMeses: clamp(settings.defaultMeses ?? DEFAULT_SETTINGS.defaultMeses, minMeses, maxMeses),
   };
 };
@@ -75,7 +82,7 @@ const sanitizeMonths = (valor: number, settings: FinanceSettingsDTO) => {
   return clamp(parsed, settings.minMeses, settings.maxMeses);
 };
 
-const leerLocalStorage = <T,>(key: string, fallback: T): T => {
+const leerLocalStorage = <T>(key: string, fallback: T): T => {
   if (typeof window === 'undefined') {
     return fallback;
   }
@@ -90,7 +97,7 @@ const leerLocalStorage = <T,>(key: string, fallback: T): T => {
   }
 };
 
-const escribirLocalStorage = <T,>(key: string, value: T) => {
+const escribirLocalStorage = <T>(key: string, value: T) => {
   if (typeof window === 'undefined') {
     return;
   }
@@ -106,6 +113,7 @@ const leerParametrosIniciales = () =>
   leerLocalStorage<ParametrosCotizacionStorage>(PARAMETROS_STORAGE_KEY, {
     porcentaje: DEFAULT_SETTINGS.defaultEnganche,
     meses: DEFAULT_SETTINGS.defaultMeses,
+    mensualidadPersonalizada: null,
   });
 
 const calcularTotales = (
@@ -113,6 +121,7 @@ const calcularTotales = (
   porcentaje: number,
   meses: number,
   settings: FinanceSettingsDTO,
+  mensualidadPersonalizada: number | null,
 ): TotalesCotizacion => {
   if (!lotes.length) {
     return {
@@ -123,6 +132,7 @@ const calcularTotales = (
       enganche: 0,
       saldoFinanciar: 0,
       mensualidad: 0,
+      saldoContraEntrega: 0,
     };
   }
 
@@ -134,8 +144,19 @@ const calcularTotales = (
   const descuentoAplicado = Math.max(totalSeleccionado - totalConDescuento, 0);
   const enganche = Math.round(totalConDescuento * porcentajeSanitizado);
   const saldoFinanciar = Math.max(totalConDescuento - enganche, 0);
-  const interesAdicional = settings.interes > 0 ? Math.round(saldoFinanciar * (settings.interes / 100)) : 0;
-  const mensualidad = mesesSanitizados > 0 ? Math.round((saldoFinanciar + interesAdicional) / mesesSanitizados) : 0;
+  const interesAdicional =
+    settings.interes > 0 ? Math.round(saldoFinanciar * (settings.interes / 100)) : 0;
+  const saldoTotalMensualidades = saldoFinanciar + interesAdicional;
+  const mensualidadBase =
+    mesesSanitizados > 0 ? Math.round(saldoTotalMensualidades / mesesSanitizados) : 0;
+  const mensualidadAjustada =
+    mensualidadPersonalizada && mensualidadPersonalizada > 0
+      ? Math.min(Math.round(mensualidadPersonalizada), mensualidadBase)
+      : mensualidadBase;
+  const saldoContraEntrega =
+    mensualidadAjustada < mensualidadBase
+      ? Math.max(saldoTotalMensualidades - mensualidadAjustada * mesesSanitizados, 0)
+      : 0;
 
   return {
     totalSeleccionado,
@@ -144,7 +165,8 @@ const calcularTotales = (
     descuentoPorcentaje,
     enganche,
     saldoFinanciar,
-    mensualidad,
+    mensualidad: mensualidadAjustada,
+    saldoContraEntrega,
   };
 };
 
@@ -158,8 +180,11 @@ export const useCotizacion = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
-  const [porcentajeEnganche, setPorcentajeEnganche] = useState(() => DEFAULT_SETTINGS.defaultEnganche);
+  const [porcentajeEnganche, setPorcentajeEnganche] = useState(
+    () => DEFAULT_SETTINGS.defaultEnganche,
+  );
   const [meses, setMeses] = useState(() => DEFAULT_SETTINGS.defaultMeses);
+  const [mensualidadPersonalizada, setMensualidadPersonalizada] = useState<number | null>(null);
   const [financeSettings, setFinanceSettings] = useState<FinanceSettingsDTO>(DEFAULT_SETTINGS);
   const [loadingSettings, setLoadingSettings] = useState(true);
   const [hydratedFromStorage, setHydratedFromStorage] = useState(false);
@@ -236,6 +261,7 @@ export const useCotizacion = () => {
 
     setPorcentajeEnganche(sanitizePercentage(storedParams.porcentaje, financeSettings));
     setMeses(sanitizeMonths(storedParams.meses, financeSettings));
+    setMensualidadPersonalizada(storedParams.mensualidadPersonalizada);
     setHydratedFromStorage(true);
     // financeSettings solo cambia cuando llega la configuración remota, por lo que
     // este efecto usa la versión más reciente para sanear valores persistidos.
@@ -251,8 +277,9 @@ export const useCotizacion = () => {
     escribirLocalStorage(PARAMETROS_STORAGE_KEY, {
       porcentaje: porcentajeEnganche,
       meses,
+      mensualidadPersonalizada,
     });
-  }, [hydratedFromStorage, porcentajeEnganche, meses]);
+  }, [hydratedFromStorage, porcentajeEnganche, meses, mensualidadPersonalizada]);
 
   const selectedLots = useMemo(() => {
     if (!selectedIds.length) return [] as Lote[];
@@ -262,8 +289,15 @@ export const useCotizacion = () => {
   }, [lotes, selectedIds]);
 
   const totales = useMemo(
-    () => calcularTotales(selectedLots, porcentajeEnganche, meses, financeSettings),
-    [selectedLots, porcentajeEnganche, meses, financeSettings],
+    () =>
+      calcularTotales(
+        selectedLots,
+        porcentajeEnganche,
+        meses,
+        financeSettings,
+        mensualidadPersonalizada,
+      ),
+    [selectedLots, porcentajeEnganche, meses, financeSettings, mensualidadPersonalizada],
   );
 
   const toggleLote = useCallback(
@@ -301,6 +335,20 @@ export const useCotizacion = () => {
     [financeSettings],
   );
 
+  const actualizarMensualidadPersonalizada = useCallback(
+    (valor: number | null) => {
+      if (valor === null || !Number.isFinite(valor) || valor <= 0) {
+        setMensualidadPersonalizada(null);
+        return;
+      }
+
+      const paso = Math.max(Math.round(financeSettings.pasoMensualidad || 1), 1);
+      const valorRedondeado = Math.max(Math.round(valor / paso) * paso, paso);
+      setMensualidadPersonalizada(valorRedondeado);
+    },
+    [financeSettings.pasoMensualidad],
+  );
+
   return {
     lotes,
     lotsMeta,
@@ -317,5 +365,7 @@ export const useCotizacion = () => {
     limpiarSeleccion,
     actualizarPorcentaje,
     actualizarMeses,
+    mensualidadPersonalizada,
+    actualizarMensualidadPersonalizada,
   };
 };

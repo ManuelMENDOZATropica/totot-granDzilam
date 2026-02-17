@@ -8,6 +8,7 @@ export interface FinanceSettingsDTO {
   maxMeses: number;
   defaultMeses: number;
   interes: number;
+  pasoMensualidad: number;
 }
 
 const parseErrorMessage = async (response: Response) => {
