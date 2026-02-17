@@ -18,6 +18,7 @@ export interface TotalesCotizacion {
 interface ParametrosCotizacionStorage {
   porcentaje: number;
   meses: number;
+  mensualidadPersonalizada: number | null;
 }
 
 const SELECCION_STORAGE_KEY = 'gran-dzilam:seleccion';
@@ -113,6 +114,7 @@ const leerParametrosIniciales = () =>
   leerLocalStorage<ParametrosCotizacionStorage>(PARAMETROS_STORAGE_KEY, {
     porcentaje: DEFAULT_SETTINGS.defaultEnganche,
     meses: DEFAULT_SETTINGS.defaultMeses,
+    mensualidadPersonalizada: null,
   });
 
 const calcularTotales = (
@@ -120,6 +122,7 @@ const calcularTotales = (
   porcentaje: number,
   meses: number,
   settings: FinanceSettingsDTO,
+  mensualidadPersonalizada: number | null,
 ): TotalesCotizacion => {
   if (!lotes.length) {
     return {
@@ -193,6 +196,7 @@ export const useCotizacion = () => {
     () => DEFAULT_SETTINGS.defaultEnganche,
   );
   const [meses, setMeses] = useState(() => DEFAULT_SETTINGS.defaultMeses);
+  const [mensualidadPersonalizada, setMensualidadPersonalizada] = useState<number | null>(null);
   const [financeSettings, setFinanceSettings] = useState<FinanceSettingsDTO>(DEFAULT_SETTINGS);
   const [loadingSettings, setLoadingSettings] = useState(true);
   const [hydratedFromStorage, setHydratedFromStorage] = useState(false);
@@ -269,6 +273,7 @@ export const useCotizacion = () => {
 
     setPorcentajeEnganche(sanitizePercentage(storedParams.porcentaje, financeSettings));
     setMeses(sanitizeMonths(storedParams.meses, financeSettings));
+    setMensualidadPersonalizada(storedParams.mensualidadPersonalizada);
     setHydratedFromStorage(true);
   }, [financeSettings]);
 
@@ -282,8 +287,9 @@ export const useCotizacion = () => {
     escribirLocalStorage(PARAMETROS_STORAGE_KEY, {
       porcentaje: porcentajeEnganche,
       meses,
+      mensualidadPersonalizada,
     });
-  }, [hydratedFromStorage, porcentajeEnganche, meses]);
+  }, [hydratedFromStorage, porcentajeEnganche, meses, mensualidadPersonalizada]);
 
   const selectedLots = useMemo(() => {
     if (!selectedIds.length) return [] as Lote[];
@@ -293,8 +299,15 @@ export const useCotizacion = () => {
   }, [lotes, selectedIds]);
 
   const totales = useMemo(
-    () => calcularTotales(selectedLots, porcentajeEnganche, meses, financeSettings),
-    [selectedLots, porcentajeEnganche, meses, financeSettings],
+    () =>
+      calcularTotales(
+        selectedLots,
+        porcentajeEnganche,
+        meses,
+        financeSettings,
+        mensualidadPersonalizada,
+      ),
+    [selectedLots, porcentajeEnganche, meses, financeSettings, mensualidadPersonalizada],
   );
 
   const toggleLote = useCallback(
@@ -332,6 +345,20 @@ export const useCotizacion = () => {
     [financeSettings],
   );
 
+  const actualizarMensualidadPersonalizada = useCallback(
+    (valor: number | null) => {
+      if (valor === null || !Number.isFinite(valor) || valor <= 0) {
+        setMensualidadPersonalizada(null);
+        return;
+      }
+
+      const paso = Math.max(Math.round(financeSettings.pasoMensualidad || 1), 1);
+      const valorRedondeado = Math.max(Math.round(valor / paso) * paso, paso);
+      setMensualidadPersonalizada(valorRedondeado);
+    },
+    [financeSettings.pasoMensualidad],
+  );
+
   return {
     lotes,
     lotsMeta,
@@ -348,5 +375,7 @@ export const useCotizacion = () => {
     limpiarSeleccion,
     actualizarPorcentaje,
     actualizarMeses,
+    mensualidadPersonalizada,
+    actualizarMensualidadPersonalizada,
   };
 };

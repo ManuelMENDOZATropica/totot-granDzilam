@@ -13,6 +13,8 @@ interface PanelCotizacionProps {
   configuracionCargando?: boolean;
   onPorcentajeChange: (valor: number) => void;
   onMesesChange: (valor: number) => void;
+  mensualidadPersonalizada: number | null;
+  onMensualidadPersonalizadaChange: (valor: number | null) => void;
   onLimpiar: () => void;
   onCerrar?: () => void;
   // Agregamos esta prop para que el padre sepa cuándo abrir el overlay
@@ -36,6 +38,8 @@ export const PanelCotizacion = ({
   configuracionCargando = false,
   onPorcentajeChange,
   onMesesChange,
+  mensualidadPersonalizada,
+  onMensualidadPersonalizadaChange,
   onLimpiar,
   onCerrar,
   // Recibimos la función

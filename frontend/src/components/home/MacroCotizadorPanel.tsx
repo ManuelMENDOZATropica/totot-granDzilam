@@ -27,6 +27,8 @@ interface MacroCotizadorPanelProps {
   configuracionCargando: boolean;
   onPorcentajeChange: (valor: number) => void;
   onMesesChange: (valor: number) => void;
+  mensualidadPersonalizada: number | null;
+  onMensualidadPersonalizadaChange: (valor: number | null) => void;
   onLimpiar: () => void;
 }
 
@@ -46,6 +48,8 @@ export const MacroCotizadorPanel = ({
   configuracionCargando,
   onPorcentajeChange,
   onMesesChange,
+  mensualidadPersonalizada,
+  onMensualidadPersonalizadaChange,
   onLimpiar,
 }: MacroCotizadorPanelProps) => {
   const { translations, language } = useLanguage();
@@ -309,6 +313,8 @@ export const MacroCotizadorPanel = ({
                   configuracionCargando={configuracionCargando}
                   onPorcentajeChange={onPorcentajeChange}
                   onMesesChange={onMesesChange}
+                  mensualidadPersonalizada={mensualidadPersonalizada}
+                  onMensualidadPersonalizadaChange={onMensualidadPersonalizadaChange}
                   onLimpiar={onLimpiar}
                   onCerrar={onToggle}
                   onContactar={handleContactRequest}

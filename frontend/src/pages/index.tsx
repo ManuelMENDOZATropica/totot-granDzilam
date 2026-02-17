@@ -81,6 +81,8 @@ export default function Home() {
     limpiarSeleccion,
     actualizarPorcentaje,
     actualizarMeses,
+    mensualidadPersonalizada,
+    actualizarMensualidadPersonalizada,
   } = useCotizacion();
 
   const { status, error: imagineError, generate, result } = useImagine();
@@ -443,6 +445,8 @@ export default function Home() {
             configuracionCargando={loadingFinanceSettings}
             onPorcentajeChange={actualizarPorcentaje}
             onMesesChange={actualizarMeses}
+            mensualidadPersonalizada={mensualidadPersonalizada}
+            onMensualidadPersonalizadaChange={actualizarMensualidadPersonalizada}
             onLimpiar={limpiarSeleccion}
           />
 
