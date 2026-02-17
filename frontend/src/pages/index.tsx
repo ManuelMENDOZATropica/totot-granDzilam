@@ -322,15 +322,12 @@ export default function Home() {
   const idealOffset = Math.max(0, activeIndex - 2);
   const scrollOffset = Math.min(idealOffset, maxScrollIndex);
 
-
-
   return (
     <>
       <Head>
         <title>{translations.home.meta.title}</title>
         <meta name="description" content={translations.home.meta.description} />
       </Head>
-
 
       <main className="min-h-screen bg-white text-slate-900 scroll-smooth">
         <HeroLanding />
@@ -666,7 +663,6 @@ export default function Home() {
       ) : null}
 
       <ChatbotWidget />
-
     </>
   );
 }

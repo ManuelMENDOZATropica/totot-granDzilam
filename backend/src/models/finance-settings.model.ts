@@ -8,6 +8,8 @@ export interface FinanceSettings {
   maxMeses: number;
   defaultMeses: number;
   interes: number;
+  pasoMensualidad: number;
+  mensualidadCerrada: number;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -21,8 +23,13 @@ const financeSettingsSchema = new Schema<FinanceSettings>(
     maxMeses: { type: Number, required: true, default: 60 },
     defaultMeses: { type: Number, required: true, default: 36 },
     interes: { type: Number, required: true, default: 0 },
+    pasoMensualidad: { type: Number, required: true, default: 1000 },
+    mensualidadCerrada: { type: Number, required: true, default: 0 },
   },
   { timestamps: true },
 );
 
-export const FinanceSettingsModel = model<FinanceSettings>('FinanceSettings', financeSettingsSchema);
+export const FinanceSettingsModel = model<FinanceSettings>(
+  'FinanceSettings',
+  financeSettingsSchema,
+);

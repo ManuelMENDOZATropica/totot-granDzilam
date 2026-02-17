@@ -66,7 +66,9 @@ export const MacroCotizadorPanel = ({
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     })} m²`;
-  const fechaCotizacion = new Date().toLocaleDateString(language === 'en' ? 'en-US' : language === 'fr' ? 'fr-FR' : 'es-MX');
+  const fechaCotizacion = new Date().toLocaleDateString(
+    language === 'en' ? 'en-US' : language === 'fr' ? 'fr-FR' : 'es-MX',
+  );
   const totalArea = selectedLots.reduce((acum, lote) => acum + (lote.superficieM2 || 0), 0);
 
   const handleToggleMain = () => {
@@ -102,7 +104,12 @@ export const MacroCotizadorPanel = ({
     }
   };
 
-  const handleFormSubmit = async (formData: { nombre: string; correo: string; telefono: string; interes: string }) => {
+  const handleFormSubmit = async (formData: {
+    nombre: string;
+    correo: string;
+    telefono: string;
+    interes: string;
+  }) => {
     await createContactSubmission(formData);
     setIsContactOpen(false);
     if (!downloadRequested) return;
@@ -132,10 +139,7 @@ export const MacroCotizadorPanel = ({
           transition-all duration-300 hover:bg-[#EBE9E4]
           border border-[#E2E0DB] shadow-lg
           z-[60] mx-auto sm:mx-0 sm:max-w-none
-          ${panelMacroAbierto
-            ? 'rounded-b-[20px] rounded-t-none border-t-0'
-            : 'rounded-[100px]'
-          }
+          ${panelMacroAbierto ? 'rounded-b-[20px] rounded-t-none border-t-0' : 'rounded-[100px]'}
         `}
       >
         <span
@@ -146,9 +150,30 @@ export const MacroCotizadorPanel = ({
           `}
         >
           {panelMacroAbierto ? (
-            <svg width="14" height="2" viewBox="0 0 14 2" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M1 1H13" stroke="currentColor" strokeWidth="1" strokeLinecap="round" /></svg>
+            <svg
+              width="14"
+              height="2"
+              viewBox="0 0 14 2"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path d="M1 1H13" stroke="currentColor" strokeWidth="1" strokeLinecap="round" />
+            </svg>
           ) : (
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M7 1V13M1 7H13" stroke="currentColor" strokeWidth="1" strokeLinecap="round" /></svg>
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 14 14"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M7 1V13M1 7H13"
+                stroke="currentColor"
+                strokeWidth="1"
+                strokeLinecap="round"
+              />
+            </svg>
           )}
         </span>
         <span className="font-serif text-[22px] sm:text-[28px] font-normal text-[#1C2E3D] leading-none pb-1">
@@ -165,9 +190,10 @@ export const MacroCotizadorPanel = ({
           border-x border-t border-[#E2E0DB]
           shadow-xl
           relative flex flex-col
-          ${panelMacroAbierto
-            ? 'max-h-[85vh] h-[85vh] sm:h-auto opacity-100 rounded-[20px] sm:rounded-t-[20px]'
-            : 'max-h-0 opacity-0 border-none overflow-hidden'
+          ${
+            panelMacroAbierto
+              ? 'max-h-[85vh] h-[85vh] sm:h-auto opacity-100 rounded-[20px] sm:rounded-t-[20px]'
+              : 'max-h-0 opacity-0 border-none overflow-hidden'
           }
         `}
       >
@@ -179,7 +205,6 @@ export const MacroCotizadorPanel = ({
           </p>
 
           <div className="flex flex-col lg:grid h-full w-full lg:grid-cols-[1fr_460px] bg-[#F3F1EC] flex-1 min-h-0">
-
             {/* SECCIÓN IZQUIERDA (Lista móvil / Mapa desktop) */}
             {/* !!! CHANGE 2: 
                 - 'shrink-0': No permitas que esto se encoja más de lo debido.
@@ -187,11 +212,12 @@ export const MacroCotizadorPanel = ({
                 - 'min-h-0': Permite flexbox calcular correctamente el overflow.
             */}
             <div className="relative w-full p-4 lg:p-6 shrink-0 flex flex-col min-h-0 max-h-[30vh] lg:max-h-none lg:h-full">
-
               {/* LISTA DE LOTES (SOLO MÓVIL) */}
               <div className="lg:hidden h-full flex flex-col min-h-0">
                 <div className="rounded-2xl border border-[#E2E0DB] bg-[#F3F1EC] p-4 shadow-sm flex flex-col h-full">
-                  <p className="mb-4 text-sm font-semibold text-[#1C2533] shrink-0">Selecciona un lote</p>
+                  <p className="mb-4 text-sm font-semibold text-[#1C2533] shrink-0">
+                    Selecciona un lote
+                  </p>
 
                   {/* Contenedor con scroll para los botones */}
                   <div className="flex-1 overflow-y-auto overlay-scrollbar pr-1 min-h-0">
@@ -201,9 +227,13 @@ export const MacroCotizadorPanel = ({
                         <p>{macroCopy.loading}</p>
                       </div>
                     ) : error ? (
-                      <div className="rounded-xl bg-red-50 p-4 text-center text-sm text-red-600">{error}</div>
+                      <div className="rounded-xl bg-red-50 p-4 text-center text-sm text-red-600">
+                        {error}
+                      </div>
                     ) : lotes.length === 0 ? (
-                      <div className="rounded-xl bg-white p-4 text-center text-sm text-[#1C2533]">{macroCopy.empty}</div>
+                      <div className="rounded-xl bg-white p-4 text-center text-sm text-[#1C2533]">
+                        {macroCopy.empty}
+                      </div>
                     ) : (
                       <div className="grid grid-cols-2 gap-3 pb-2">
                         {lotes.map((lote, index) => {
@@ -214,10 +244,11 @@ export const MacroCotizadorPanel = ({
                               key={lote.id || index}
                               type="button"
                               onClick={() => toggleLote(lote.id)}
-                              className={`rounded-xl border px-3 py-2 text-left text-sm font-medium transition-colors ${isSelected
-                                ? 'border-[#1C2533] bg-[#1C2533] text-white'
-                                : 'border-[#E2E0DB] bg-white text-[#1C2533] hover:bg-[#EBE9E4]'
-                                }`}
+                              className={`rounded-xl border px-3 py-2 text-left text-sm font-medium transition-colors ${
+                                isSelected
+                                  ? 'border-[#1C2533] bg-[#1C2533] text-white'
+                                  : 'border-[#E2E0DB] bg-white text-[#1C2533] hover:bg-[#EBE9E4]'
+                              }`}
                             >
                               {loteNombre}
                             </button>
@@ -246,9 +277,13 @@ export const MacroCotizadorPanel = ({
                     <p>{macroCopy.loading}</p>
                   </div>
                 ) : error ? (
-                  <div className="flex h-full items-center justify-center p-8 text-center text-red-500">{error}</div>
+                  <div className="flex h-full items-center justify-center p-8 text-center text-red-500">
+                    {error}
+                  </div>
                 ) : lotes.length === 0 ? (
-                  <div className="flex h-full items-center justify-center text-[#1C2533]"><p>{macroCopy.empty}</p></div>
+                  <div className="flex h-full items-center justify-center text-[#1C2533]">
+                    <p>{macroCopy.empty}</p>
+                  </div>
                 ) : (
                   <div className="absolute inset-0 h-full w-full overflow-hidden">
                     <MapaLotes lotes={lotes} seleccionados={selectedIds} onToggle={toggleLote} />
@@ -291,9 +326,10 @@ export const MacroCotizadorPanel = ({
             absolute inset-0 z-[100]
             flex flex-col bg-[#F3F1EC]
             transition-all duration-300 ease-in-out
-            ${isContactOpen
-              ? 'opacity-100 visible pointer-events-auto'
-              : 'opacity-0 invisible pointer-events-none'
+            ${
+              isContactOpen
+                ? 'opacity-100 visible pointer-events-auto'
+                : 'opacity-0 invisible pointer-events-none'
             }
           `}
         >
@@ -303,7 +339,15 @@ export const MacroCotizadorPanel = ({
               onClick={handleCloseOverlay}
               className="rounded-full bg-slate-200 p-2 text-slate-600 hover:bg-slate-300 transition-colors"
             >
-              <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 18L18 6M6 6l12 12" /></svg>
+              <svg
+                className="h-5 w-5"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
+                <path d="M6 18L18 6M6 6l12 12" />
+              </svg>
             </button>
           </div>
           <div className="flex-1 overflow-y-auto py-6 overlay-scrollbar">
@@ -313,120 +357,149 @@ export const MacroCotizadorPanel = ({
               </h2>
               <ContactForm
                 onSubmit={handleFormSubmit}
-                submitLabel={downloadRequested ? panelCopy.actions.download : translations.contact.actions.submit}
+                submitLabel={
+                  downloadRequested
+                    ? panelCopy.actions.download
+                    : translations.contact.actions.submit
+                }
               />
             </div>
           </div>
         </div>
       </div>
 
-      {printRoot && createPortal(
-        <div id="cotizacion-print" className="hidden">
-          <div
-            className="relative mx-auto h-full w-full overflow-hidden bg-[#fafafa]"
-            style={{
-              printColorAdjust: 'exact',
-              WebkitPrintColorAdjust: 'exact',
-              backgroundColor: '#fafafa'
-            }}
-          >
-            <Image
-              src="/assets/HOJA MEMBRETADA.png"
-              alt="Hoja membretada Gran Dzilam"
-              fill
-              priority
-              sizes="100vw"
-              className="object-cover"
-            />
+      {printRoot &&
+        createPortal(
+          <div id="cotizacion-print" className="hidden">
+            <div
+              className="relative mx-auto h-full w-full overflow-hidden bg-[#fafafa]"
+              style={{
+                printColorAdjust: 'exact',
+                WebkitPrintColorAdjust: 'exact',
+                backgroundColor: '#fafafa',
+              }}
+            >
+              <Image
+                src="/assets/HOJA MEMBRETADA.png"
+                alt="Hoja membretada Gran Dzilam"
+                fill
+                priority
+                sizes="100vw"
+                className="object-cover"
+              />
 
-            <div className="relative z-10 h-full w-full">
-              <div className="absolute top-14 right-12 text-sm font-semibold text-[#1C2533]">
-                Fecha: {fechaCotizacion}
-              </div>
-
-              <div className="px-12 pt-[20%] pb-48 h-full flex flex-col gap-5 text-[#1C2533]">
-                <div>
-                  <h2 className="font-serif text-2xl">Cotización de lotes</h2>
-                  <p className="text-[#475569]">Estimación en MXN generada automáticamente.</p>
+              <div className="relative z-10 h-full w-full">
+                <div className="absolute top-14 right-12 text-sm font-semibold text-[#1C2533]">
+                  Fecha: {fechaCotizacion}
                 </div>
 
-                <div className="space-y-2 border-b border-gray-200 pb-4">
-                  {selectedLots.length === 0 ? (
-                    <p className="text-[#475569]">No se seleccionaron lotes para esta cotización.</p>
-                  ) : (
-                    selectedLots.map((lote, index) => {
-                      const precioLote = lote.precioTotal ?? lote.precio ?? 0;
-                      return (
-                        <div key={lote.id || index} className="flex items-baseline justify-between gap-3">
-                          <div className="flex flex-col">
-                            <span className="font-semibold">{lote.nombre || `Lote ${index + 1}`}</span>
-                            <span className="text-xs text-[#475569]">{formatArea(lote.superficieM2 || 0)}</span>
-                          </div>
-                          <div className="text-right">
-                            <span className="block text-sm font-semibold">{formatCurrency(precioLote)}</span>
-                            <span className="text-[11px] text-[#16a34a]">Incluye descuento aplicado</span>
-                          </div>
-                        </div>
-                      );
-                    })
-                  )}
-                </div>
-
-                <div className="flex flex-col gap-3 pt-2">
-                  <div className="space-y-1">
-                    <div className="flex justify-between">
-                      <span className="text-[#475569]">Subtotal</span>
-                      <span className="font-semibold">{formatCurrency(totales.totalSeleccionado)}</span>
-                    </div>
-                    <div className="flex justify-between text-[#16a34a]">
-                      <span>Descuento ({Math.round(totales.descuentoPorcentaje * 100)}%)</span>
-                      <span>-{formatCurrency(totales.descuentoAplicado)}</span>
-                    </div>
-                    <div className="flex justify-between font-semibold text-base border-t border-dashed border-gray-300 pt-1 mt-1">
-                      <span>Total con descuento</span>
-                      <span>{formatCurrency(totales.totalConDescuento)}</span>
-                    </div>
+                <div className="px-12 pt-[20%] pb-48 h-full flex flex-col gap-5 text-[#1C2533]">
+                  <div>
+                    <h2 className="font-serif text-2xl">Cotización de lotes</h2>
+                    <p className="text-[#475569]">Estimación en MXN generada automáticamente.</p>
                   </div>
 
-                  <div className="space-y-1 bg-gray-50 p-3 rounded-md border border-gray-100 mt-2 print:bg-transparent print:border-gray-200">
-                    <div className="flex justify-between">
-                      <span className="text-[#475569]">Enganche</span>
-                      <span className="font-semibold">{formatCurrency(totales.enganche)}</span>
+                  <div className="space-y-2 border-b border-gray-200 pb-4">
+                    {selectedLots.length === 0 ? (
+                      <p className="text-[#475569]">
+                        No se seleccionaron lotes para esta cotización.
+                      </p>
+                    ) : (
+                      selectedLots.map((lote, index) => {
+                        const precioLote = lote.precioTotal ?? lote.precio ?? 0;
+                        return (
+                          <div
+                            key={lote.id || index}
+                            className="flex items-baseline justify-between gap-3"
+                          >
+                            <div className="flex flex-col">
+                              <span className="font-semibold">
+                                {lote.nombre || `Lote ${index + 1}`}
+                              </span>
+                              <span className="text-xs text-[#475569]">
+                                {formatArea(lote.superficieM2 || 0)}
+                              </span>
+                            </div>
+                            <div className="text-right">
+                              <span className="block text-sm font-semibold">
+                                {formatCurrency(precioLote)}
+                              </span>
+                              <span className="text-[11px] text-[#16a34a]">
+                                Incluye descuento aplicado
+                              </span>
+                            </div>
+                          </div>
+                        );
+                      })
+                    )}
+                  </div>
+
+                  <div className="flex flex-col gap-3 pt-2">
+                    <div className="space-y-1">
+                      <div className="flex justify-between">
+                        <span className="text-[#475569]">Subtotal</span>
+                        <span className="font-semibold">
+                          {formatCurrency(totales.totalSeleccionado)}
+                        </span>
+                      </div>
+                      <div className="flex justify-between text-[#16a34a]">
+                        <span>Descuento ({Math.round(totales.descuentoPorcentaje * 100)}%)</span>
+                        <span>-{formatCurrency(totales.descuentoAplicado)}</span>
+                      </div>
+                      <div className="flex justify-between font-semibold text-base border-t border-dashed border-gray-300 pt-1 mt-1">
+                        <span>Total con descuento</span>
+                        <span>{formatCurrency(totales.totalConDescuento)}</span>
+                      </div>
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-[#475569]">{panelCopy.balance}</span>
-                      <span className="font-semibold">{formatCurrency(totales.saldoFinanciar)}</span>
-                    </div>
-                    <div className="flex justify-between font-semibold mt-2">
-                      <span>{panelCopy.monthly}</span>
-                      <span>{formatCurrency(totales.mensualidad)}</span>
-                    </div>
-                    <div className="flex justify-between text-xs text-[#475569]">
-                      <span>{panelCopy.monthsLabel}</span>
-                      <span>{meses} {panelCopy.monthsLabel}</span>
+
+                    <div className="space-y-1 bg-gray-50 p-3 rounded-md border border-gray-100 mt-2 print:bg-transparent print:border-gray-200">
+                      <div className="flex justify-between">
+                        <span className="text-[#475569]">Enganche</span>
+                        <span className="font-semibold">{formatCurrency(totales.enganche)}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-[#475569]">{panelCopy.balance}</span>
+                        <span className="font-semibold">
+                          {formatCurrency(totales.saldoFinanciar)}
+                        </span>
+                      </div>
+                      <div className="flex justify-between font-semibold mt-2">
+                        <span>{panelCopy.monthly}</span>
+                        <span>{formatCurrency(totales.mensualidad)}</span>
+                      </div>
+                      <div className="flex justify-between text-xs text-[#475569]">
+                        <span>{panelCopy.monthsLabel}</span>
+                        <span>
+                          {meses} {panelCopy.monthsLabel}
+                        </span>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
 
-              <div className="mb-[20%] absolute bottom-12 left-12 right-12 text-[#475569] flex flex-col items-center">
-                <div className="w-full text-[12px] leading-relaxed mb-4 text-left">
-                  <p className="font-semibold text-[#1C2533]">Notas importantes</p>
-                  <ul className="mt-1 list-disc space-y-0.5 pl-5">
-                    <li>Los montos son informativos y pueden variar según disponibilidad y condiciones comerciales.</li>
-                    <li>La superficie total seleccionada es de {formatArea(totalArea)}.</li>
-                    <li>Comunícate con nuestro equipo para confirmar precios y disponibilidad.</li>
-                  </ul>
+                <div className="mb-[20%] absolute bottom-12 left-12 right-12 text-[#475569] flex flex-col items-center">
+                  <div className="w-full text-[12px] leading-relaxed mb-4 text-left">
+                    <p className="font-semibold text-[#1C2533]">Notas importantes</p>
+                    <ul className="mt-1 list-disc space-y-0.5 pl-5">
+                      <li>
+                        Los montos son informativos y pueden variar según disponibilidad y
+                        condiciones comerciales.
+                      </li>
+                      <li>La superficie total seleccionada es de {formatArea(totalArea)}.</li>
+                      <li>
+                        Comunícate con nuestro equipo para confirmar precios y disponibilidad.
+                      </li>
+                    </ul>
+                  </div>
+                  <p className="text-[10px] uppercase tracking-wide opacity-60 text-center border-t border-gray-300 w-full pt-2">
+                    {macroCopy.disclaimer}
+                  </p>
                 </div>
-                <p className="text-[10px] uppercase tracking-wide opacity-60 text-center border-t border-gray-300 w-full pt-2">
-                  {macroCopy.disclaimer}
-                </p>
               </div>
             </div>
-          </div>
-        </div>,
-        printRoot
-      )}
+          </div>,
+          printRoot,
+        )}
     </div>
   );
 };

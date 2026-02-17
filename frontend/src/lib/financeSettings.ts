@@ -8,7 +8,15 @@ export interface FinanceSettingsDTO {
   maxMeses: number;
   defaultMeses: number;
   interes: number;
+  pasoMensualidad: number;
+  mensualidadCerrada: number;
 }
+
+const normalizeFinanceSettings = (payload: FinanceSettingsDTO): FinanceSettingsDTO => ({
+  ...payload,
+  pasoMensualidad: payload.pasoMensualidad ?? 1000,
+  mensualidadCerrada: payload.mensualidadCerrada ?? 0,
+});
 
 const parseErrorMessage = async (response: Response) => {
   try {
@@ -26,7 +34,7 @@ export const fetchFinanceSettings = async (): Promise<FinanceSettingsDTO> => {
     throw new Error(await parseErrorMessage(response));
   }
 
-  return (await response.json()) as FinanceSettingsDTO;
+  return normalizeFinanceSettings((await response.json()) as FinanceSettingsDTO);
 };
 
 export const updateFinanceSettings = async (
@@ -46,5 +54,5 @@ export const updateFinanceSettings = async (
     throw new Error(await parseErrorMessage(response));
   }
 
-  return (await response.json()) as FinanceSettingsDTO;
+  return normalizeFinanceSettings((await response.json()) as FinanceSettingsDTO);
 };

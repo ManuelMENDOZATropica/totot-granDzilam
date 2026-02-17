@@ -75,9 +75,12 @@ type PanelEstimator = {
   downPayment: string;
   balance: string;
   monthly: string;
+  balanceDelivery: string;
   personalize: string;
   downPaymentLabel: string;
   monthsLabel: string;
+  monthlyTargetLabel: string;
+  monthlyTargetHint: string;
   actions: {
     clear: string;
     contact: string;
@@ -164,7 +167,8 @@ export const translations: Record<Language, TranslationSchema> = {
         unlocked: 'Contenido liberado',
         close: 'Cerrar',
         contactTitle: 'Desbloquea el brochure completo',
-        contactDescription: 'Compártenos tus datos y podrás consultar el brochure sin restricciones.',
+        contactDescription:
+          'Compártenos tus datos y podrás consultar el brochure sin restricciones.',
         submitLabel: 'Enviar y desbloquear',
       },
       interestModal: {
@@ -201,7 +205,7 @@ export const translations: Record<Language, TranslationSchema> = {
           paragraphs: [
             'Gran Dzilam es un conjunto de macroterrenos pensado para inversionistas que buscan multiplicar sus inversiones a gran escala rodeado de más de 10 proyectos en preventa en la misma vialidad, y más de 30 en sus alrededores lo que garantizan gran plusvalía y crecimiento de la zona.',
             'Gran Dzilam es una inversión inteligente con solo 14 terrenos para quienes buscan desarrollar un proyecto con crecimiento exponencial en las próximas décadas.',
-            'Es desarrollado por la empresa Quinta Real, quienes llevan más de 15 años en el sector de la construcción y comercialización.'
+            'Es desarrollado por la empresa Quinta Real, quienes llevan más de 15 años en el sector de la construcción y comercialización.',
           ],
         },
         {
@@ -232,10 +236,22 @@ export const translations: Record<Language, TranslationSchema> = {
           title: 'Especificaciones',
           highlight: 'Listo para desarrollar',
           specs: [
-            { title: 'Propiedad privada', description: 'Terrenos seguros, listos para escriturar.' },
-            { title: 'Acceso pavimentado', description: 'Terrenos a pie de pavimento, ubicados sobre carretera.' },
-            { title: 'Dimensiones', description: 'Desde 8 hasta 17 hectáreas, dividido con mojoneras.' },
-            { title: 'Gran plusvalía', description: 'Zona con proyectos residenciales, comerciales y de golf.' },
+            {
+              title: 'Propiedad privada',
+              description: 'Terrenos seguros, listos para escriturar.',
+            },
+            {
+              title: 'Acceso pavimentado',
+              description: 'Terrenos a pie de pavimento, ubicados sobre carretera.',
+            },
+            {
+              title: 'Dimensiones',
+              description: 'Desde 8 hasta 17 hectáreas, dividido con mojoneras.',
+            },
+            {
+              title: 'Gran plusvalía',
+              description: 'Zona con proyectos residenciales, comerciales y de golf.',
+            },
             { title: 'Conexión', description: 'A minutos de la playa, Mérida y Chichén Itzá.' },
           ],
         },
@@ -264,7 +280,8 @@ export const translations: Record<Language, TranslationSchema> = {
     },
     macro: {
       toggle: 'Cotizar macro terreno',
-      disclaimer: 'Esta herramienta es una representación ilustrativa y no constituye una oferta oficial ni legal.',
+      disclaimer:
+        'Esta herramienta es una representación ilustrativa y no constituye una oferta oficial ni legal.',
       loading: 'Cargando...',
       empty: 'No hay lotes disponibles',
       error: 'No se pudo cargar la información',
@@ -280,9 +297,12 @@ export const translations: Record<Language, TranslationSchema> = {
       downPayment: 'Enganche',
       balance: 'Saldo',
       monthly: 'Mensualidad',
+      balanceDelivery: 'Saldo contra entrega',
       personalize: 'Personaliza tu cotización',
       downPaymentLabel: 'Enganche',
       monthsLabel: 'Meses',
+      monthlyTargetLabel: 'Mensualidad cerrada',
+      monthlyTargetHint: 'Se redondea al múltiplo de',
       actions: {
         clear: 'Limpiar selección',
         contact: 'Hablar con un asesor',
@@ -331,7 +351,8 @@ export const translations: Record<Language, TranslationSchema> = {
     home: {
       meta: {
         title: 'Gran Dzilam · Lot estimator',
-        description: 'Select your lots and simulate payments in seconds with Gran Dzilam’s interactive estimator.',
+        description:
+          'Select your lots and simulate payments in seconds with Gran Dzilam’s interactive estimator.',
       },
       actions: {
         interest: 'Points of interest',
@@ -385,7 +406,7 @@ export const translations: Record<Language, TranslationSchema> = {
           paragraphs: [
             'Gran Dzilam is a collection of macrolots designed for investors seeking to multiply their investments on a large scale, surrounded by more than 10 pre-sale projects on the same road and over 30 in the surrounding area, guaranteeing great surplus value and growth.',
             'Gran Dzilam is a smart investment with only 14 lots for those looking to develop a project with exponential growth in the coming decades.',
-            'Developed by Quinta Real, a company with over 15 years of experience in the construction and commercialization sector.'
+            'Developed by Quinta Real, a company with over 15 years of experience in the construction and commercialization sector.',
           ],
         },
         {
@@ -417,20 +438,34 @@ export const translations: Record<Language, TranslationSchema> = {
           highlight: 'Ready to develop',
           specs: [
             { title: 'Private property', description: 'Secure land, ready for title deeds.' },
-            { title: 'Paved access', description: 'Roadside lots located directly on the highway.' },
+            {
+              title: 'Paved access',
+              description: 'Roadside lots located directly on the highway.',
+            },
             { title: 'Dimensions', description: 'From 8 to 17 hectares, divided with markers.' },
-            { title: 'Great appreciation', description: 'Area with residential, commercial, and golf projects.' },
-            { title: 'Connection', description: 'Minutes from the beach, Mérida, and Chichén Itzá.' },
+            {
+              title: 'Great appreciation',
+              description: 'Area with residential, commercial, and golf projects.',
+            },
+            {
+              title: 'Connection',
+              description: 'Minutes from the beach, Mérida, and Chichén Itzá.',
+            },
           ],
         },
       ],
     },
     chatbot: {
       intro: {
-        greeting: 'Hi, I am your virtual assistant. I can help with anything related to your investment in Gran Dzilam.',
+        greeting:
+          'Hi, I am your virtual assistant. I can help with anything related to your investment in Gran Dzilam.',
         question: 'Do you have any questions?',
       },
-      suggestions: ['Can I customize my financing?', 'Can I customize the surface area?', 'What projects are nearby?'],
+      suggestions: [
+        'Can I customize my financing?',
+        'Can I customize the surface area?',
+        'What projects are nearby?',
+      ],
       placeholder: 'Type your question here...',
       aria: { open: 'Open virtual assistant', close: 'Close virtual assistant', send: 'Send' },
       errors: {
@@ -443,7 +478,8 @@ export const translations: Record<Language, TranslationSchema> = {
     },
     macro: {
       toggle: 'Quote macrolot',
-      disclaimer: 'This tool is for illustrative purposes and does not represent an official or legal offer.',
+      disclaimer:
+        'This tool is for illustrative purposes and does not represent an official or legal offer.',
       loading: 'Loading...',
       empty: 'No lots available',
       error: 'Information could not be loaded',
@@ -459,9 +495,12 @@ export const translations: Record<Language, TranslationSchema> = {
       downPayment: 'Down payment',
       balance: 'Balance',
       monthly: 'Monthly payment',
+      balanceDelivery: 'Balance due on delivery',
       personalize: 'Personalize your quote',
       downPaymentLabel: 'Down payment',
       monthsLabel: 'Months',
+      monthlyTargetLabel: 'Rounded monthly amount',
+      monthlyTargetHint: 'Rounded to multiples of',
       actions: {
         clear: 'Clear selection',
         contact: 'Talk to an advisor',
@@ -510,7 +549,8 @@ export const translations: Record<Language, TranslationSchema> = {
     home: {
       meta: {
         title: 'Gran Dzilam · Estimation de lots',
-        description: 'Sélectionnez vos lots et simulez les paiements en quelques secondes avec le simulateur interactif de Gran Dzilam.',
+        description:
+          'Sélectionnez vos lots et simulez les paiements en quelques secondes avec le simulateur interactif de Gran Dzilam.',
       },
       actions: {
         interest: 'Points d’intérêt',
@@ -564,7 +604,7 @@ export const translations: Record<Language, TranslationSchema> = {
           paragraphs: [
             'Gran Dzilam est un ensemble de macrolots conçu pour les investisseurs cherchant à multiplier leurs investissements à grande échelle, entouré de plus de 10 projets en pré-vente sur la même voie et de plus de 30 aux alentours, garantissant une forte plus-value et croissance.',
             'Gran Dzilam est un investissement intelligent avec seulement 14 terrains pour ceux qui souhaitent développer un projet avec une croissance exponentielle dans les prochaines décennies.',
-            'Développé par Quinta Real, une entreprise avec plus de 15 ans d’expérience dans le secteur de la construction et de la commercialisation.'
+            'Développé par Quinta Real, une entreprise avec plus de 15 ans d’expérience dans le secteur de la construction et de la commercialisation.',
           ],
         },
         {
@@ -595,11 +635,23 @@ export const translations: Record<Language, TranslationSchema> = {
           title: 'Spécifications',
           highlight: 'Prêt à développer',
           specs: [
-            { title: 'Propriété privée', description: 'Terrains sécurisés, prêts pour l’acte notarié.' },
-            { title: 'Accès pavé', description: 'Terrains en bord de route, directement sur la chaussée.' },
+            {
+              title: 'Propriété privée',
+              description: 'Terrains sécurisés, prêts pour l’acte notarié.',
+            },
+            {
+              title: 'Accès pavé',
+              description: 'Terrains en bord de route, directement sur la chaussée.',
+            },
             { title: 'Dimensions', description: 'De 8 à 17 hectares, délimités par des bornes.' },
-            { title: 'Forte valorisation', description: 'Zone avec des projets résidentiels, commerciaux et un golf.' },
-            { title: 'Connexion', description: 'À quelques minutes de la plage, de Mérida et de Chichén Itzá.' },
+            {
+              title: 'Forte valorisation',
+              description: 'Zone avec des projets résidentiels, commerciaux et un golf.',
+            },
+            {
+              title: 'Connexion',
+              description: 'À quelques minutes de la plage, de Mérida et de Chichén Itzá.',
+            },
           ],
         },
       ],
@@ -616,10 +668,14 @@ export const translations: Record<Language, TranslationSchema> = {
         'Quels projets se trouvent dans la zone ?',
       ],
       placeholder: 'Écrivez votre question ici...',
-      aria: { open: 'Ouvrir l’assistant virtuel', close: 'Fermer l’assistant virtuel', send: 'Envoyer' },
+      aria: {
+        open: 'Ouvrir l’assistant virtuel',
+        close: 'Fermer l’assistant virtuel',
+        send: 'Envoyer',
+      },
       errors: {
         generic: 'Je ne peux pas répondre pour le moment. Réessayez plus tard.',
-        quota: "Limite d’utilisation atteinte. Réessayez plus tard.",
+        quota: 'Limite d’utilisation atteinte. Réessayez plus tard.',
         rateLimited: 'Vous avez dépassé la limite de requêtes. Réessayez dans quelques minutes.',
         timeout: 'Le service a mis trop de temps à répondre. Veuillez réessayer.',
         invalidPrompt: 'Nous n’avons pas pu traiter votre message. Modifiez le texte et réessayez.',
@@ -643,9 +699,12 @@ export const translations: Record<Language, TranslationSchema> = {
       downPayment: 'Acompte',
       balance: 'Solde',
       monthly: 'Mensualité',
+      balanceDelivery: 'Solde à la livraison',
       personalize: 'Personnalisez votre devis',
       downPaymentLabel: 'Acompte',
       monthsLabel: 'Mois',
+      monthlyTargetLabel: 'Mensualité arrondie',
+      monthlyTargetHint: 'Arrondi au multiple de',
       actions: {
         clear: 'Effacer la sélection',
         contact: 'Parler à un conseiller',

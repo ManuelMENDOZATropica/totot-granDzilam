@@ -11,6 +11,8 @@ const updateSchema = z.object({
   maxMeses: z.coerce.number().min(1).max(600).optional(),
   defaultMeses: z.coerce.number().min(1).max(600).optional(),
   interes: z.coerce.number().min(0).max(100).optional(),
+  pasoMensualidad: z.coerce.number().min(1).max(1000000).optional(),
+  mensualidadCerrada: z.coerce.number().min(0).max(1000000000).optional(),
 });
 
 export const getFinanceSettingsController = async (
@@ -40,8 +42,14 @@ export const updateFinanceSettingsController = async (
       throw new HttpError(400, 'El enganche mínimo no puede ser mayor al máximo');
     }
 
-    if (merged.defaultEnganche < merged.minEnganche || merged.defaultEnganche > merged.maxEnganche) {
-      throw new HttpError(400, 'El enganche predeterminado debe estar dentro del rango establecido');
+    if (
+      merged.defaultEnganche < merged.minEnganche ||
+      merged.defaultEnganche > merged.maxEnganche
+    ) {
+      throw new HttpError(
+        400,
+        'El enganche predeterminado debe estar dentro del rango establecido',
+      );
     }
 
     if (merged.minMeses > merged.maxMeses) {

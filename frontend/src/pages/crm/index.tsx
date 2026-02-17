@@ -27,8 +27,13 @@ import {
   fetchAdminContactSubmissions,
   fetchMyContactSubmissions,
 } from '@/lib/contactSubmissions';
+import {
+  fetchFinanceSettings,
+  type FinanceSettingsDTO,
+  updateFinanceSettings,
+} from '@/lib/financeSettings';
 
-type AdminTab = 'lots' | 'users' | 'contacts';
+type AdminTab = 'lots' | 'users' | 'contacts' | 'finance';
 
 interface LotFormState {
   identifier: string;
@@ -45,6 +50,18 @@ interface UserFormState {
   role: UserRole;
 }
 
+interface FinanceFormState {
+  minEnganche: string;
+  maxEnganche: string;
+  defaultEnganche: string;
+  minMeses: string;
+  maxMeses: string;
+  defaultMeses: string;
+  interes: string;
+  pasoMensualidad: string;
+  mensualidadCerrada: string;
+}
+
 const lotFormInitialState: LotFormState = {
   identifier: '',
   superficieM2: '',
@@ -58,6 +75,18 @@ const userFormInitialState: UserFormState = {
   email: '',
   password: '',
   role: 'viewer',
+};
+
+const financeFormInitialState: FinanceFormState = {
+  minEnganche: '',
+  maxEnganche: '',
+  defaultEnganche: '',
+  minMeses: '',
+  maxMeses: '',
+  defaultMeses: '',
+  interes: '',
+  pasoMensualidad: '',
+  mensualidadCerrada: '',
 };
 
 const estadoOptions: EstadoLote[] = ['disponible', 'apartado', 'vendido'];
@@ -93,9 +122,16 @@ export default function CrmPage() {
   const [editingUserId, setEditingUserId] = useState<string | null>(null);
   const [userSaving, setUserSaving] = useState(false);
 
-  const availableTabs = useMemo<AdminTab[]>(() => (user?.role === 'admin' ? ['lots', 'users', 'contacts'] : ['contacts']), [
-    user?.role,
-  ]);
+  const [financeSettings, setFinanceSettingsState] = useState<FinanceSettingsDTO | null>(null);
+  const [financeForm, setFinanceForm] = useState<FinanceFormState>(financeFormInitialState);
+  const [financeLoading, setFinanceLoading] = useState(false);
+  const [financeSaving, setFinanceSaving] = useState(false);
+  const [financeError, setFinanceError] = useState<string | null>(null);
+
+  const availableTabs = useMemo<AdminTab[]>(
+    () => (user?.role === 'admin' ? ['lots', 'users', 'finance', 'contacts'] : ['contacts']),
+    [user?.role],
+  );
 
   useEffect(() => {
     if (!router.isReady) {
@@ -104,15 +140,18 @@ export default function CrmPage() {
 
     const queryTab = router.query.tab;
     const requestedTab =
-      typeof queryTab === 'string' && ['lots', 'users', 'contacts'].includes(queryTab)
+      typeof queryTab === 'string' && ['lots', 'users', 'contacts', 'finance'].includes(queryTab)
         ? (queryTab as AdminTab)
         : null;
-    const nextTab = requestedTab && availableTabs.includes(requestedTab) ? requestedTab : availableTabs[0];
+    const nextTab =
+      requestedTab && availableTabs.includes(requestedTab) ? requestedTab : availableTabs[0];
 
     setActiveTab(nextTab);
 
     if (nextTab !== requestedTab) {
-      void router.replace({ pathname: '/crm', query: { tab: nextTab } }, undefined, { shallow: true });
+      void router.replace({ pathname: '/crm', query: { tab: nextTab } }, undefined, {
+        shallow: true,
+      });
     }
   }, [router.isReady, router.query.tab, availableTabs, router]);
 
@@ -156,6 +195,35 @@ export default function CrmPage() {
     }
   }, [token]);
 
+  const loadFinanceSettings = useCallback(async () => {
+    if (!token || user?.role !== 'admin') {
+      return;
+    }
+
+    setFinanceLoading(true);
+    setFinanceError(null);
+
+    try {
+      const settings = await fetchFinanceSettings();
+      setFinanceSettingsState(settings);
+      setFinanceForm({
+        minEnganche: String(settings.minEnganche),
+        maxEnganche: String(settings.maxEnganche),
+        defaultEnganche: String(settings.defaultEnganche),
+        minMeses: String(settings.minMeses),
+        maxMeses: String(settings.maxMeses),
+        defaultMeses: String(settings.defaultMeses),
+        interes: String(settings.interes),
+        pasoMensualidad: String(settings.pasoMensualidad ?? 1000),
+        mensualidadCerrada: String(settings.mensualidadCerrada ?? 0),
+      });
+    } catch (error) {
+      setFinanceError((error as Error).message);
+    } finally {
+      setFinanceLoading(false);
+    }
+  }, [token, user?.role]);
+
   const loadContactSubmissions = useCallback(async () => {
     if (!token || !user) {
       return;
@@ -183,7 +251,8 @@ export default function CrmPage() {
     }
     void loadLots();
     void loadUsers();
-  }, [token, user, loadLots, loadUsers]);
+    void loadFinanceSettings();
+  }, [token, user, loadLots, loadUsers, loadFinanceSettings]);
 
   useEffect(() => {
     if (!token || !user) {
@@ -200,7 +269,9 @@ export default function CrmPage() {
       await login(email, password);
       setEmail('');
       setPassword('');
-      void router.replace({ pathname: '/crm', query: { tab: activeTab } }, undefined, { shallow: true });
+      void router.replace({ pathname: '/crm', query: { tab: activeTab } }, undefined, {
+        shallow: true,
+      });
     } catch (error) {
       setAuthError((error as Error).message);
     } finally {
@@ -366,7 +437,10 @@ export default function CrmPage() {
     if (!token) {
       return;
     }
-    if (typeof window !== 'undefined' && !window.confirm(`¿Eliminar al usuario ${adminUser.email}?`)) {
+    if (
+      typeof window !== 'undefined' &&
+      !window.confirm(`¿Eliminar al usuario ${adminUser.email}?`)
+    ) {
       return;
     }
     setUsersError(null);
@@ -388,7 +462,9 @@ export default function CrmPage() {
 
     try {
       const updated = await assignContactSubmission(token, submissionId, assignedTo);
-      setContactSubmissions((previous) => previous.map((item) => (item.id === submissionId ? updated : item)));
+      setContactSubmissions((previous) =>
+        previous.map((item) => (item.id === submissionId ? updated : item)),
+      );
     } catch (error) {
       setContactsError((error as Error).message);
     } finally {
@@ -396,8 +472,57 @@ export default function CrmPage() {
     }
   };
 
+  const handleFinanceFieldChange = (field: keyof FinanceFormState, value: string) => {
+    setFinanceForm((previous) => ({ ...previous, [field]: value }));
+  };
+
+  const handleFinanceSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!token || user?.role !== 'admin') {
+      return;
+    }
+
+    setFinanceError(null);
+    setFinanceSaving(true);
+
+    try {
+      const payload: Partial<FinanceSettingsDTO> = {
+        minEnganche: Number(financeForm.minEnganche),
+        maxEnganche: Number(financeForm.maxEnganche),
+        defaultEnganche: Number(financeForm.defaultEnganche),
+        minMeses: Number(financeForm.minMeses),
+        maxMeses: Number(financeForm.maxMeses),
+        defaultMeses: Number(financeForm.defaultMeses),
+        interes: Number(financeForm.interes),
+        pasoMensualidad: Number(financeForm.pasoMensualidad),
+        mensualidadCerrada: Number(financeForm.mensualidadCerrada),
+      };
+
+      const settings = await updateFinanceSettings(token, payload);
+      setFinanceSettingsState(settings);
+      setFinanceForm({
+        minEnganche: String(settings.minEnganche),
+        maxEnganche: String(settings.maxEnganche),
+        defaultEnganche: String(settings.defaultEnganche),
+        minMeses: String(settings.minMeses),
+        maxMeses: String(settings.maxMeses),
+        defaultMeses: String(settings.defaultMeses),
+        interes: String(settings.interes),
+        pasoMensualidad: String(settings.pasoMensualidad ?? 1000),
+        mensualidadCerrada: String(settings.mensualidadCerrada ?? 0),
+      });
+    } catch (error) {
+      setFinanceError((error as Error).message);
+    } finally {
+      setFinanceSaving(false);
+    }
+  };
+
   const lotsEmpty = useMemo(() => !lotsLoading && lots.length === 0, [lotsLoading, lots.length]);
-  const usersEmpty = useMemo(() => !usersLoading && users.length === 0, [usersLoading, users.length]);
+  const usersEmpty = useMemo(
+    () => !usersLoading && users.length === 0,
+    [usersLoading, users.length],
+  );
   const contactsEmpty = useMemo(
     () => !contactsLoading && contactSubmissions.length === 0,
     [contactsLoading, contactSubmissions.length],
@@ -414,6 +539,7 @@ export default function CrmPage() {
     lots: 'Lotes',
     users: 'Usuarios',
     contacts: 'Contactos',
+    finance: 'Cotización',
   };
 
   if (!user && isLoading) {
@@ -455,9 +581,12 @@ export default function CrmPage() {
             <section className="flex flex-1 items-start justify-center">
               <div className="w-full max-w-2xl rounded-[24px] bg-[#F4F4F4] px-10 py-10 shadow-md">
                 <div className="mb-8 text-center">
-                  <h1 className="text-3xl font-semibold text-slate-900">Acceso al portal administrativo</h1>
+                  <h1 className="text-3xl font-semibold text-slate-900">
+                    Acceso al portal administrativo
+                  </h1>
                   <p className="mt-3 text-sm text-slate-600">
-                    Gestiona los lotes y la configuración del cotizador con tus credenciales administrativas
+                    Gestiona los lotes y la configuración del cotizador con tus credenciales
+                    administrativas
                   </p>
                 </div>
 
@@ -503,7 +632,10 @@ export default function CrmPage() {
 
                 <p className="mt-6 text-center text-xs text-slate-500">
                   ¿Necesitas ayuda? Escríbenos a{' '}
-                  <Link href="mailto:hola@totot.me" className="font-medium text-slate-700 underline-offset-4 hover:text-slate-900">
+                  <Link
+                    href="mailto:hola@totot.me"
+                    className="font-medium text-slate-700 underline-offset-4 hover:text-slate-900"
+                  >
                     hola@totot.me
                   </Link>
                 </p>
@@ -526,7 +658,9 @@ export default function CrmPage() {
             <div>
               <p className="text-sm text-slate-500">Panel administrativo</p>
               <h1 className="text-2xl font-semibold text-slate-900">Hola, {user.name}</h1>
-              <p className="text-sm text-slate-500">Gestiona los lotes, usuarios y mensajes de contacto</p>
+              <p className="text-sm text-slate-500">
+                Gestiona los lotes, usuarios y mensajes de contacto
+              </p>
             </div>
             <div className="flex items-center gap-3">
               <span className="rounded-full bg-slate-200 px-4 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-slate-600">
@@ -566,7 +700,9 @@ export default function CrmPage() {
                   <h2 className="text-lg font-semibold text-slate-900">
                     {editingLotId ? 'Editar lote' : 'Agregar nuevo lote'}
                   </h2>
-                  <p className="text-sm text-slate-500">Completa la información del lote disponible para el cotizador.</p>
+                  <p className="text-sm text-slate-500">
+                    Completa la información del lote disponible para el cotizador.
+                  </p>
                 </div>
                 {lotFormError ? <p className="mb-4 text-sm text-red-600">{lotFormError}</p> : null}
                 <form className="grid gap-4 md:grid-cols-2" onSubmit={handleLotSubmit}>
@@ -652,7 +788,9 @@ export default function CrmPage() {
                 <div className="mb-4 flex items-center justify-between">
                   <div>
                     <h3 className="text-base font-semibold text-slate-900">Lotes registrados</h3>
-                    <p className="text-sm text-slate-500">Consulta y actualiza la información disponible.</p>
+                    <p className="text-sm text-slate-500">
+                      Consulta y actualiza la información disponible.
+                    </p>
                   </div>
                   <button
                     type="button"
@@ -682,8 +820,12 @@ export default function CrmPage() {
                       <tbody>
                         {lots.map((lot) => (
                           <tr key={lot.id} className="border-t border-slate-100">
-                            <td className="py-2 pr-4 font-medium text-slate-900">{lot.identifier}</td>
-                            <td className="py-2 pr-4">{lot.superficieM2.toLocaleString('es-MX')} m²</td>
+                            <td className="py-2 pr-4 font-medium text-slate-900">
+                              {lot.identifier}
+                            </td>
+                            <td className="py-2 pr-4">
+                              {lot.superficieM2.toLocaleString('es-MX')} m²
+                            </td>
                             <td className="py-2 pr-4">${lot.precio.toLocaleString('es-MX')}</td>
                             <td className="py-2 pr-4 capitalize">{lot.estado}</td>
                             <td className="py-2 pr-4">
@@ -723,7 +865,9 @@ export default function CrmPage() {
                   </h2>
                   <p className="text-sm text-slate-500">Otorga acceso al panel a tu equipo.</p>
                 </div>
-                {userFormError ? <p className="mb-4 text-sm text-red-600">{userFormError}</p> : null}
+                {userFormError ? (
+                  <p className="mb-4 text-sm text-red-600">{userFormError}</p>
+                ) : null}
                 <form className="grid gap-4 md:grid-cols-2" onSubmit={handleUserSubmit}>
                   <label className="text-sm text-slate-600">
                     Nombre completo
@@ -765,7 +909,11 @@ export default function CrmPage() {
                       type="password"
                       value={userFormState.password}
                       onChange={(event) => handleUserFieldChange('password', event.target.value)}
-                      placeholder={editingUserId ? 'Mantener contraseña actual' : 'Define una contraseña inicial'}
+                      placeholder={
+                        editingUserId
+                          ? 'Mantener contraseña actual'
+                          : 'Define una contraseña inicial'
+                      }
                       className="mt-1 w-full rounded-2xl border border-slate-200 px-4 py-2 text-slate-900 focus:border-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900/20"
                     />
                   </label>
@@ -775,7 +923,11 @@ export default function CrmPage() {
                       disabled={userSaving}
                       className="rounded-full bg-slate-900 px-5 py-2 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-400"
                     >
-                      {userSaving ? 'Guardando…' : editingUserId ? 'Guardar cambios' : 'Crear usuario'}
+                      {userSaving
+                        ? 'Guardando…'
+                        : editingUserId
+                          ? 'Guardar cambios'
+                          : 'Crear usuario'}
                     </button>
                     {editingUserId ? (
                       <button
@@ -823,9 +975,13 @@ export default function CrmPage() {
                       <tbody>
                         {users.map((adminUser) => (
                           <tr key={adminUser.id} className="border-t border-slate-100">
-                            <td className="py-2 pr-4 font-medium text-slate-900">{adminUser.name}</td>
+                            <td className="py-2 pr-4 font-medium text-slate-900">
+                              {adminUser.name}
+                            </td>
                             <td className="py-2 pr-4">{adminUser.email}</td>
-                            <td className="py-2 pr-4 uppercase tracking-wide text-slate-500">{adminUser.role}</td>
+                            <td className="py-2 pr-4 uppercase tracking-wide text-slate-500">
+                              {adminUser.role}
+                            </td>
                             <td className="py-2 pr-4">
                               <div className="flex flex-wrap gap-2">
                                 <button
@@ -854,6 +1010,176 @@ export default function CrmPage() {
             </section>
           ) : null}
 
+          {activeTab === 'finance' ? (
+            <section className="space-y-6">
+              <div className="rounded-3xl bg-white p-6 shadow-sm">
+                <div className="mb-6 flex items-start justify-between gap-4">
+                  <div>
+                    <h2 className="text-lg font-semibold text-slate-900">
+                      Configuración de macro cotización
+                    </h2>
+                    <p className="text-sm text-slate-500">
+                      Define rangos de enganche, meses y mensualidades cerradas.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => void loadFinanceSettings()}
+                    className="rounded-full border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 transition hover:border-slate-900 hover:text-slate-900"
+                  >
+                    Actualizar
+                  </button>
+                </div>
+                {financeError ? <p className="mb-4 text-sm text-red-600">{financeError}</p> : null}
+                {financeLoading ? (
+                  <p className="text-sm text-slate-500">Cargando configuración…</p>
+                ) : (
+                  <form className="grid gap-4 md:grid-cols-2" onSubmit={handleFinanceSubmit}>
+                    <label className="text-sm text-slate-600">
+                      Enganche mínimo (%)
+                      <input
+                        type="number"
+                        min="0"
+                        max="100"
+                        value={financeForm.minEnganche}
+                        onChange={(event) =>
+                          handleFinanceFieldChange('minEnganche', event.target.value)
+                        }
+                        required
+                        className="mt-1 w-full rounded-2xl border border-slate-200 px-4 py-2 text-slate-900"
+                      />
+                    </label>
+                    <label className="text-sm text-slate-600">
+                      Enganche máximo (%)
+                      <input
+                        type="number"
+                        min="0"
+                        max="100"
+                        value={financeForm.maxEnganche}
+                        onChange={(event) =>
+                          handleFinanceFieldChange('maxEnganche', event.target.value)
+                        }
+                        required
+                        className="mt-1 w-full rounded-2xl border border-slate-200 px-4 py-2 text-slate-900"
+                      />
+                    </label>
+                    <label className="text-sm text-slate-600">
+                      Enganche predeterminado (%)
+                      <input
+                        type="number"
+                        min="0"
+                        max="100"
+                        value={financeForm.defaultEnganche}
+                        onChange={(event) =>
+                          handleFinanceFieldChange('defaultEnganche', event.target.value)
+                        }
+                        required
+                        className="mt-1 w-full rounded-2xl border border-slate-200 px-4 py-2 text-slate-900"
+                      />
+                    </label>
+                    <label className="text-sm text-slate-600">
+                      Meses mínimo
+                      <input
+                        type="number"
+                        min="1"
+                        value={financeForm.minMeses}
+                        onChange={(event) =>
+                          handleFinanceFieldChange('minMeses', event.target.value)
+                        }
+                        required
+                        className="mt-1 w-full rounded-2xl border border-slate-200 px-4 py-2 text-slate-900"
+                      />
+                    </label>
+                    <label className="text-sm text-slate-600">
+                      Meses máximo
+                      <input
+                        type="number"
+                        min="1"
+                        value={financeForm.maxMeses}
+                        onChange={(event) =>
+                          handleFinanceFieldChange('maxMeses', event.target.value)
+                        }
+                        required
+                        className="mt-1 w-full rounded-2xl border border-slate-200 px-4 py-2 text-slate-900"
+                      />
+                    </label>
+                    <label className="text-sm text-slate-600">
+                      Meses predeterminado
+                      <input
+                        type="number"
+                        min="1"
+                        value={financeForm.defaultMeses}
+                        onChange={(event) =>
+                          handleFinanceFieldChange('defaultMeses', event.target.value)
+                        }
+                        required
+                        className="mt-1 w-full rounded-2xl border border-slate-200 px-4 py-2 text-slate-900"
+                      />
+                    </label>
+                    <label className="text-sm text-slate-600">
+                      Interés (%)
+                      <input
+                        type="number"
+                        min="0"
+                        max="100"
+                        step="0.01"
+                        value={financeForm.interes}
+                        onChange={(event) =>
+                          handleFinanceFieldChange('interes', event.target.value)
+                        }
+                        required
+                        className="mt-1 w-full rounded-2xl border border-slate-200 px-4 py-2 text-slate-900"
+                      />
+                    </label>
+                    <label className="text-sm text-slate-600">
+                      Paso de mensualidad cerrada (MXN)
+                      <input
+                        type="number"
+                        min="1"
+                        value={financeForm.pasoMensualidad}
+                        onChange={(event) =>
+                          handleFinanceFieldChange('pasoMensualidad', event.target.value)
+                        }
+                        required
+                        className="mt-1 w-full rounded-2xl border border-slate-200 px-4 py-2 text-slate-900"
+                      />
+                    </label>
+                    <label className="text-sm text-slate-600">
+                      Mensualidad cerrada (MXN, 0 para desactivar)
+                      <input
+                        type="number"
+                        min="0"
+                        value={financeForm.mensualidadCerrada}
+                        onChange={(event) =>
+                          handleFinanceFieldChange('mensualidadCerrada', event.target.value)
+                        }
+                        required
+                        className="mt-1 w-full rounded-2xl border border-slate-200 px-4 py-2 text-slate-900"
+                      />
+                    </label>
+                    <div className="md:col-span-2">
+                      <button
+                        type="submit"
+                        disabled={financeSaving}
+                        className="rounded-full bg-slate-900 px-5 py-2 text-sm font-semibold text-white disabled:opacity-60"
+                      >
+                        {financeSaving ? 'Guardando…' : 'Guardar configuración'}
+                      </button>
+                    </div>
+                  </form>
+                )}
+                {financeSettings ? (
+                  <p className="mt-4 text-xs text-slate-500">
+                    Paso configurado actualmente:{' '}
+                    {(financeSettings.pasoMensualidad ?? 1000).toLocaleString('es-MX')} MXN ·
+                    Mensualidad cerrada:{' '}
+                    {(financeSettings.mensualidadCerrada ?? 0).toLocaleString('es-MX')} MXN.
+                  </p>
+                ) : null}
+              </div>
+            </section>
+          ) : null}
+
           {activeTab === 'contacts' ? (
             <section className="space-y-6">
               <div className="rounded-3xl bg-white p-6 shadow-sm">
@@ -876,12 +1202,16 @@ export default function CrmPage() {
                     Actualizar
                   </button>
                 </div>
-                {contactsError ? <p className="mb-4 text-sm text-red-600">{contactsError}</p> : null}
+                {contactsError ? (
+                  <p className="mb-4 text-sm text-red-600">{contactsError}</p>
+                ) : null}
                 {contactsLoading ? (
                   <p className="text-sm text-slate-500">Cargando contactos…</p>
                 ) : contactsEmpty ? (
                   <p className="text-sm text-slate-500">
-                    {isAdmin ? 'Aún no hay registros de formularios de contacto.' : 'Aún no tienes mensajes asignados.'}
+                    {isAdmin
+                      ? 'Aún no hay registros de formularios de contacto.'
+                      : 'Aún no tienes mensajes asignados.'}
                   </p>
                 ) : (
                   <div className="overflow-x-auto">
@@ -901,7 +1231,9 @@ export default function CrmPage() {
                       <tbody>
                         {contactSubmissions.map((submission) => (
                           <tr key={submission.id} className="border-t border-slate-100 align-top">
-                            <td className="py-2 pr-4 font-medium text-slate-900">{submission.nombre}</td>
+                            <td className="py-2 pr-4 font-medium text-slate-900">
+                              {submission.nombre}
+                            </td>
                             <td className="py-2 pr-4">
                               <a
                                 className="text-slate-700 underline-offset-4 hover:text-slate-900 hover:underline"
@@ -918,8 +1250,12 @@ export default function CrmPage() {
                                 {submission.telefono}
                               </a>
                             </td>
-                            <td className="py-2 pr-4 max-w-[280px] whitespace-pre-wrap text-slate-700">{submission.interes}</td>
-                            <td className="py-2 pr-4 text-slate-500">{formatDateTime(submission.createdAt)}</td>
+                            <td className="py-2 pr-4 max-w-[280px] whitespace-pre-wrap text-slate-700">
+                              {submission.interes}
+                            </td>
+                            <td className="py-2 pr-4 text-slate-500">
+                              {formatDateTime(submission.createdAt)}
+                            </td>
                             {isAdmin ? (
                               <td className="py-2 pr-4">
                                 <div className="flex items-center gap-2">
