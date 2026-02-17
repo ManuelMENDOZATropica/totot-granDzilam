@@ -9,11 +9,13 @@ export interface FinanceSettingsDTO {
   defaultMeses: number;
   interes: number;
   pasoMensualidad: number;
+  mensualidadCerrada: number;
 }
 
 const normalizeFinanceSettings = (payload: FinanceSettingsDTO): FinanceSettingsDTO => ({
   ...payload,
   pasoMensualidad: payload.pasoMensualidad ?? 1000,
+  mensualidadCerrada: payload.mensualidadCerrada ?? 0,
 });
 
 const parseErrorMessage = async (response: Response) => {

@@ -49,6 +49,7 @@ const DEFAULT_SETTINGS: FinanceSettingsDTO = {
   defaultMeses: 12,
   interes: 0,
   pasoMensualidad: 1000,
+  mensualidadCerrada: 0,
 };
 
 const normalizarConfiguracion = (settings: FinanceSettingsDTO): FinanceSettingsDTO => {
@@ -149,9 +150,20 @@ const calcularTotales = (
   const saldoTotalMensualidades = saldoFinanciar + interesAdicional;
   const mensualidadBase =
     mesesSanitizados > 0 ? Math.round(saldoTotalMensualidades / mesesSanitizados) : 0;
+
+  const mensualidadConfigurada =
+    settings.mensualidadCerrada > 0 ? settings.mensualidadCerrada : null;
+  const pasoMensualidad = Math.max(Math.round(settings.pasoMensualidad || 1), 1);
+  const mensualidadRedondeada =
+    mensualidadConfigurada !== null
+      ? Math.max(
+          Math.round(mensualidadConfigurada / pasoMensualidad) * pasoMensualidad,
+          pasoMensualidad,
+        )
+      : null;
   const mensualidadAjustada =
-    mensualidadPersonalizada && mensualidadPersonalizada > 0
-      ? Math.min(Math.round(mensualidadPersonalizada), mensualidadBase)
+    mensualidadRedondeada !== null
+      ? Math.min(Math.round(mensualidadRedondeada), mensualidadBase)
       : mensualidadBase;
   const saldoContraEntrega =
     mensualidadAjustada < mensualidadBase
@@ -263,8 +275,6 @@ export const useCotizacion = () => {
     setMeses(sanitizeMonths(storedParams.meses, financeSettings));
     setMensualidadPersonalizada(storedParams.mensualidadPersonalizada);
     setHydratedFromStorage(true);
-    // financeSettings solo cambia cuando llega la configuración remota, por lo que
-    // este efecto usa la versión más reciente para sanear valores persistidos.
   }, [financeSettings]);
 
   useEffect(() => {

@@ -242,28 +242,6 @@ export const PanelCotizacion = ({
                 {meses} {panelCopy.monthsLabel}
               </div>
             </div>
-
-            <div className="flex flex-col gap-3">
-              <div className="flex justify-between text-xs uppercase tracking-wider text-[#64748B]">
-                <span>{panelCopy.monthlyTargetLabel}</span>
-              </div>
-              <input
-                type="number"
-                min={0}
-                step={Math.max(configuracion.pasoMensualidad || 1, 1)}
-                value={mensualidadPersonalizada ?? ''}
-                onChange={(e) =>
-                  onMensualidadPersonalizadaChange(
-                    e.target.value === '' ? null : Number(e.target.value),
-                  )
-                }
-                placeholder={`${formatCurrency(totales.mensualidad)} ${etiquetaMoneda}`}
-                className="w-full rounded-xl border border-[#D8D4CC] bg-white px-3 py-2 text-sm text-[#1C2533] focus:border-[#1C2533] focus:outline-none"
-              />
-              <p className="text-xs text-[#64748B]">
-                {panelCopy.monthlyTargetHint} {formatCurrency(configuracion.pasoMensualidad || 1)}
-              </p>
-            </div>
           </div>
         </div>
 

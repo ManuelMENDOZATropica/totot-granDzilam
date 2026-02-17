@@ -9,6 +9,7 @@ export interface FinanceSettingsDTO {
   defaultMeses: number;
   interes: number;
   pasoMensualidad: number;
+  mensualidadCerrada: number;
 }
 
 const DEFAULT_SETTINGS: FinanceSettingsDTO = {
@@ -20,6 +21,7 @@ const DEFAULT_SETTINGS: FinanceSettingsDTO = {
   defaultMeses: 36,
   interes: 0,
   pasoMensualidad: 1000,
+  mensualidadCerrada: 0,
 };
 
 const toDto = (settings: FinanceSettings): FinanceSettingsDTO => ({
@@ -31,6 +33,7 @@ const toDto = (settings: FinanceSettings): FinanceSettingsDTO => ({
   defaultMeses: settings.defaultMeses ?? DEFAULT_SETTINGS.defaultMeses,
   interes: settings.interes ?? DEFAULT_SETTINGS.interes,
   pasoMensualidad: settings.pasoMensualidad ?? DEFAULT_SETTINGS.pasoMensualidad,
+  mensualidadCerrada: settings.mensualidadCerrada ?? DEFAULT_SETTINGS.mensualidadCerrada,
 });
 
 export const getFinanceSettings = async (): Promise<FinanceSettingsDTO> => {

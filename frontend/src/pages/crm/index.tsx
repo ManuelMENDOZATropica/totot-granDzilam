@@ -59,6 +59,7 @@ interface FinanceFormState {
   defaultMeses: string;
   interes: string;
   pasoMensualidad: string;
+  mensualidadCerrada: string;
 }
 
 const lotFormInitialState: LotFormState = {
@@ -85,6 +86,7 @@ const financeFormInitialState: FinanceFormState = {
   defaultMeses: '',
   interes: '',
   pasoMensualidad: '',
+  mensualidadCerrada: '',
 };
 
 const estadoOptions: EstadoLote[] = ['disponible', 'apartado', 'vendido'];
@@ -213,6 +215,7 @@ export default function CrmPage() {
         defaultMeses: String(settings.defaultMeses),
         interes: String(settings.interes),
         pasoMensualidad: String(settings.pasoMensualidad ?? 1000),
+        mensualidadCerrada: String(settings.mensualidadCerrada ?? 0),
       });
     } catch (error) {
       setFinanceError((error as Error).message);
@@ -492,6 +495,7 @@ export default function CrmPage() {
         defaultMeses: Number(financeForm.defaultMeses),
         interes: Number(financeForm.interes),
         pasoMensualidad: Number(financeForm.pasoMensualidad),
+        mensualidadCerrada: Number(financeForm.mensualidadCerrada),
       };
 
       const settings = await updateFinanceSettings(token, payload);
@@ -505,6 +509,7 @@ export default function CrmPage() {
         defaultMeses: String(settings.defaultMeses),
         interes: String(settings.interes),
         pasoMensualidad: String(settings.pasoMensualidad ?? 1000),
+        mensualidadCerrada: String(settings.mensualidadCerrada ?? 0),
       });
     } catch (error) {
       setFinanceError((error as Error).message);
@@ -1139,6 +1144,19 @@ export default function CrmPage() {
                         className="mt-1 w-full rounded-2xl border border-slate-200 px-4 py-2 text-slate-900"
                       />
                     </label>
+                    <label className="text-sm text-slate-600">
+                      Mensualidad cerrada (MXN, 0 para desactivar)
+                      <input
+                        type="number"
+                        min="0"
+                        value={financeForm.mensualidadCerrada}
+                        onChange={(event) =>
+                          handleFinanceFieldChange('mensualidadCerrada', event.target.value)
+                        }
+                        required
+                        className="mt-1 w-full rounded-2xl border border-slate-200 px-4 py-2 text-slate-900"
+                      />
+                    </label>
                     <div className="md:col-span-2">
                       <button
                         type="submit"
@@ -1153,7 +1171,9 @@ export default function CrmPage() {
                 {financeSettings ? (
                   <p className="mt-4 text-xs text-slate-500">
                     Paso configurado actualmente:{' '}
-                    {(financeSettings.pasoMensualidad ?? 1000).toLocaleString('es-MX')} MXN.
+                    {(financeSettings.pasoMensualidad ?? 1000).toLocaleString('es-MX')} MXN ·
+                    Mensualidad cerrada:{' '}
+                    {(financeSettings.mensualidadCerrada ?? 0).toLocaleString('es-MX')} MXN.
                   </p>
                 ) : null}
               </div>
