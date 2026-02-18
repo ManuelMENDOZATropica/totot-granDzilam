@@ -23,6 +23,19 @@ import {
   type CreateContactSubmissionPayload,
 } from '@/lib/contactSubmissions';
 
+const DEFAULT_IMAGINE_DOWNLOAD_NAME = 'gran-dzilam-imagine.png';
+
+const buildImagineDownloadName = (imageUrl: string) => {
+  try {
+    const parsedUrl = new URL(imageUrl, window.location.origin);
+    const fileNameFromPath = parsedUrl.pathname.split('/').filter(Boolean).pop();
+    if (fileNameFromPath) return fileNameFromPath;
+    return DEFAULT_IMAGINE_DOWNLOAD_NAME;
+  } catch {
+    return DEFAULT_IMAGINE_DOWNLOAD_NAME;
+  }
+};
+
 const BrochureViewer = dynamic(
   () => import('@/components/home/BrochureViewer').then((mod) => mod.BrochureViewer),
   {
@@ -104,6 +117,7 @@ export default function Home() {
   const [brochureTotalPages, setBrochureTotalPages] = useState<number | null>(null);
   const [showMobileImagineModal, setShowMobileImagineModal] = useState(false);
   const [mobileImagineImageUrl, setMobileImagineImageUrl] = useState<string | null>(null);
+  const [isDownloadingImagineImage, setIsDownloadingImagineImage] = useState(false);
 
   // Inicialización
   const [fondoActual, setFondoActual] = useState(vistasDesktop[0].src);
@@ -194,6 +208,35 @@ export default function Home() {
 
   const handleCloseMobileImagineModal = () => {
     setShowMobileImagineModal(false);
+  };
+
+  const handleDownloadMobileImagineImage = async () => {
+    if (!mobileImagineImageUrl) return;
+
+    setIsDownloadingImagineImage(true);
+
+    try {
+      const response = await fetch(mobileImagineImageUrl);
+      if (!response.ok) {
+        throw new Error('No se pudo descargar la imagen generada.');
+      }
+
+      const blob = await response.blob();
+      const fileName = buildImagineDownloadName(mobileImagineImageUrl);
+      const objectUrl = URL.createObjectURL(blob);
+      const downloadLink = document.createElement('a');
+      downloadLink.href = objectUrl;
+      downloadLink.download = fileName;
+      downloadLink.rel = 'noopener';
+      document.body.appendChild(downloadLink);
+      downloadLink.click();
+      downloadLink.remove();
+      URL.revokeObjectURL(objectUrl);
+    } catch {
+      window.alert('No pudimos descargar la imagen. Intenta de nuevo.');
+    } finally {
+      setIsDownloadingImagineImage(false);
+    }
   };
 
   const handleImagineSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -637,13 +680,14 @@ export default function Home() {
       {isMobileViewport && showMobileImagineModal && mobileImagineImageUrl ? (
         <div className="fixed inset-0 z-[80] bg-slate-950" role="dialog" aria-modal="true">
           <div className="absolute inset-x-0 top-0 z-10 flex items-center justify-between px-4 py-4">
-            <a
-              href={mobileImagineImageUrl}
-              download
+            <button
+              type="button"
+              onClick={handleDownloadMobileImagineImage}
+              disabled={isDownloadingImagineImage}
               className="rounded-full bg-white/90 px-4 py-2 text-sm font-semibold text-slate-900 shadow"
             >
-              Descargar
-            </a>
+              {isDownloadingImagineImage ? 'Descargando…' : 'Descargar'}
+            </button>
             <button
               type="button"
               onClick={handleCloseMobileImagineModal}
