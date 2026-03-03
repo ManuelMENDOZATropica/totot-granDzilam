@@ -502,21 +502,21 @@ export const MacroCotizadorPanel = ({
                   </div>
                 </div>
               </div>
-            </div>
 
-            {/* Notas al pie */}
-            <div style={{ position: 'absolute', bottom: 60, left: 48, right: 48, color: '#475569' }}>
-              <div style={{ fontSize: 11, lineHeight: 1.5, marginBottom: 12 }}>
-                <p style={{ fontWeight: 600, color: '#1C2533', margin: '0 0 4px' }}>Notas importantes</p>
-                <ul style={{ margin: 0, paddingLeft: 18 }}>
-                  <li>Los montos son informativos y pueden variar según disponibilidad y condiciones comerciales.</li>
-                  <li>La superficie total seleccionada es de {formatArea(totalArea)}.</li>
-                  <li>Comunícate con nuestro equipo para confirmar precios y disponibilidad.</li>
-                </ul>
+              {/* Notas al pie — inline, justo debajo de los totales */}
+              <div style={{ color: '#475569', marginTop: 8 }}>
+                <div style={{ fontSize: 11, lineHeight: 1.5, marginBottom: 10 }}>
+                  <p style={{ fontWeight: 600, color: '#1C2533', margin: '0 0 4px' }}>Notas importantes</p>
+                  <ul style={{ margin: 0, paddingLeft: 18 }}>
+                    <li>Los montos son informativos y pueden variar según disponibilidad y condiciones comerciales.</li>
+                    <li>La superficie total seleccionada es de {formatArea(totalArea)}.</li>
+                    <li>Comunícate con nuestro equipo para confirmar precios y disponibilidad.</li>
+                  </ul>
+                </div>
+                <p style={{ fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.05em', opacity: 0.6, textAlign: 'center', borderTop: '1px solid #d1d5db', paddingTop: 8, margin: 0 }}>
+                  {macroCopy.disclaimer}
+                </p>
               </div>
-              <p style={{ fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.05em', opacity: 0.6, textAlign: 'center', borderTop: '1px solid #d1d5db', paddingTop: 8, margin: 0 }}>
-                {macroCopy.disclaimer}
-              </p>
             </div>
 
           </div>
