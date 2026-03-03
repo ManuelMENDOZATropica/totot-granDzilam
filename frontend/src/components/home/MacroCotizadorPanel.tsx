@@ -249,8 +249,8 @@ export const MacroCotizadorPanel = ({
                               type="button"
                               onClick={() => toggleLote(lote.id)}
                               className={`rounded-xl border px-3 py-2 text-left text-sm font-medium transition-colors ${isSelected
-                                  ? 'border-[#1C2533] bg-[#1C2533] text-white'
-                                  : 'border-[#E2E0DB] bg-white text-[#1C2533] hover:bg-[#EBE9E4]'
+                                ? 'border-[#1C2533] bg-[#1C2533] text-white'
+                                : 'border-[#E2E0DB] bg-white text-[#1C2533] hover:bg-[#EBE9E4]'
                                 }`}
                             >
                               {loteNombre}
@@ -401,7 +401,7 @@ export const MacroCotizadorPanel = ({
                   Fecha: {fechaCotizacion}
                 </div>
 
-                <div className="px-12 pt-[20%] pb-48 h-full flex flex-col gap-5 text-[#1C2533]">
+                <div className="px-12 pt-[20%] print:pt-[55mm] pb-48 print:pb-[30mm] h-full flex flex-col gap-5 text-[#1C2533]">
                   <div>
                     <h2 className="font-serif text-2xl">Cotización de lotes</h2>
                     <p className="text-[#475569]">Estimación en MXN generada automáticamente.</p>
@@ -485,7 +485,7 @@ export const MacroCotizadorPanel = ({
                   </div>
                 </div>
 
-                <div className="mb-[20%] absolute bottom-12 left-12 right-12 text-[#475569] flex flex-col items-center">
+                <div className="mb-[20%] print:mb-[15mm] absolute bottom-12 print:bottom-[15mm] left-12 right-12 text-[#475569] flex flex-col items-center">
                   <div className="w-full text-[12px] leading-relaxed mb-4 text-left">
                     <p className="font-semibold text-[#1C2533]">Notas importantes</p>
                     <ul className="mt-1 list-disc space-y-0.5 pl-5">
