@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, MouseEvent } from 'react';
+import { useEffect, useRef, useState, MouseEvent, useCallback, CSSProperties } from 'react';
 import Image from 'next/image';
 
 interface PublicLot {
@@ -33,6 +33,13 @@ const LOT_PATHS_MOBILE = [
   "71.12,-41.59 82.20,-41.59 79.36,-23.55 80.42,-3.17 81.50,9.87 81.14,23.57 68.98,25.04"
 ];
 
+/**
+ * Y máximo (fondo) de los paths en coordenadas del viewBox móvil.
+ * Transform aplicado: translate(anchorX=190, anchorY=511) scale(2)
+ * Max Y en coords de path = 42.78  →  en viewBox = 511 + 2×42.78 = 596.56
+ */
+const MOBILE_PATH_BOTTOM_VB = 511 + 2 * 42.78; // ≈ 596.56
+
 
 
 export const InteractiveMap = ({ src, className, imageClassName }: { src: string; className?: string; imageClassName?: string }) => {
@@ -40,6 +47,10 @@ export const InteractiveMap = ({ src, className, imageClassName }: { src: string
   const [hoveredLot, setHoveredLot] = useState<PublicLot | null>(null);
   const [tooltipPos, setTooltipPos] = useState({ x: 0, y: 0 });
   const containerRef = useRef<HTMLDivElement | null>(null);
+  // Estilo calculado dinámicamente para el SVG móvil
+  const [mobileSvgStyle, setMobileSvgStyle] = useState<CSSProperties>(
+    { position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }
+  );
 
   const isDesktopView = src.includes('1.png') || src.includes('1.jpg');
   const isMobileView = src.includes('mobile1.png') || src.includes('mobile1.jpg');
@@ -57,6 +68,26 @@ export const InteractiveMap = ({ src, className, imageClassName }: { src: string
     ? `translate(${anchorX}, ${anchorY}) scale(2)`
     : `translate(${DESKTOP_TRANSLATE.x}, ${DESKTOP_TRANSLATE.y})`;
 
+  /**
+   * Calcula el style del SVG móvil tal que:
+   * 1. Ancho = 100% del contenedor
+   * 2. Alto proporcional al viewBox (relación de aspecto conservada)
+   * 3. El fondo de los paths queda fijo en el centro vertical del contenedor
+   */
+  const updateMobileSvgStyle = useCallback(() => {
+    if (!isMobileView || !containerRef.current) return;
+    const { offsetWidth: containerW, offsetHeight: containerH } = containerRef.current;
+    // Escala: 1 unidad viewBox = containerW / 380 px
+    const svgScale = containerW / MOBILE_VIEWBOX.width;
+    const svgW = containerW;                               // llena el ancho
+    const svgH = MOBILE_VIEWBOX.height * svgScale;         // altura proporcional
+    // El fondo de los paths en px, medido desde el top del SVG
+    const pathsBottomPx = MOBILE_PATH_BOTTOM_VB * svgScale;
+    // Queremos que ese punto esté en el centro vertical del contenedor
+    const svgTop = containerH / 2 - pathsBottomPx;
+    setMobileSvgStyle({ position: 'absolute', top: svgTop, left: 0, width: svgW, height: svgH });
+  }, [isMobileView]);
+
   useEffect(() => {
     if (!isInteractive) return;
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
@@ -67,6 +98,17 @@ export const InteractiveMap = ({ src, className, imageClassName }: { src: string
       })
       .catch((err) => console.error('Error cargando lotes:', err));
   }, [isInteractive]);
+
+  // ResizeObserver: recalcula el posicionamiento del SVG móvil al cambiar el tamaño
+  useEffect(() => {
+    if (!isMobileView) return;
+    updateMobileSvgStyle();
+    const el = containerRef.current;
+    if (!el) return;
+    const observer = new ResizeObserver(updateMobileSvgStyle);
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [isMobileView, updateMobileSvgStyle]);
 
 
   const handleInteraction = (event: MouseEvent<SVGPolygonElement>, lot: PublicLot) => {
@@ -94,12 +136,17 @@ export const InteractiveMap = ({ src, className, imageClassName }: { src: string
 
         {isInteractive && (
           <svg
-            className="absolute top-0 left-0 h-full w-full pointer-events-none z-[44]"
+            className="pointer-events-none z-[44]"
             viewBox={viewBox}
-            // 'xMidYMid slice' es la equivalencia matemática exacta de object-cover:
-            // escala el viewBox para CUBRIR el SVG manteniendo proporciones, centrado.
-            // La imagen también usa object-cover → ambos escalan igual → paths siempre alineados.
-            preserveAspectRatio={isMobileView ? 'xMidYMid slice' : 'none'}
+            // En móvil: posición calculada dinámicamente (ancho=100%, fondo anclado al centro).
+            // En desktop: cubre todo el contenedor sin escala uniforme.
+            style={isMobileView
+              ? mobileSvgStyle
+              : { position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }
+            }
+            // 'none': el SVG tiene exactamente la misma proporción que el viewBox (por cálculo),
+            // así que no hay distorsión aunque no haya preservación de aspecto.
+            preserveAspectRatio={isMobileView ? 'none' : 'none'}
           >
             <g className="pointer-events-auto" transform={mapTransform}>
               {lots.map((lot, index) => (
