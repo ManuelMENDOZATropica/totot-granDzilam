@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, MouseEvent } from 'react';
+import { useEffect, useRef, useState, MouseEvent, useCallback } from 'react';
 import Image from 'next/image';
 
 interface PublicLot {
@@ -33,11 +33,38 @@ const LOT_PATHS_MOBILE = [
   "71.12,-41.59 82.20,-41.59 79.36,-23.55 80.42,-3.17 81.50,9.87 81.14,23.57 68.98,25.04"
 ];
 
+// Proporciones reales de las imágenes de mapa
+const MOBILE_IMAGE_INTRINSIC = { width: 1024, height: 1536 };
+
+/**
+ * Calcula el rectángulo (top, left, width, height) en píxeles donde
+ * una imagen con object-fit: contain y object-position: top se renderiza
+ * dentro de un contenedor de tamaño (containerW, containerH).
+ */
+function calcContainTopRect(
+  containerW: number,
+  containerH: number,
+  imgW: number,
+  imgH: number,
+): { top: number; left: number; width: number; height: number } {
+  const scaleByWidth = containerW / imgW;
+  const scaleByHeight = containerH / imgH;
+  const scale = Math.min(scaleByWidth, scaleByHeight);
+  const renderedW = imgW * scale;
+  const renderedH = imgH * scale;
+  // object-position: top → alinear arriba, centrar horizontalmente
+  const left = (containerW - renderedW) / 2;
+  const top = 0;
+  return { top, left, width: renderedW, height: renderedH };
+}
+
 export const InteractiveMap = ({ src, className, imageClassName }: { src: string; className?: string; imageClassName?: string }) => {
   const [lots, setLots] = useState<PublicLot[]>([]);
   const [hoveredLot, setHoveredLot] = useState<PublicLot | null>(null);
   const [tooltipPos, setTooltipPos] = useState({ x: 0, y: 0 });
   const containerRef = useRef<HTMLDivElement | null>(null);
+  // Rectángulo calculado de la imagen móvil dentro del contenedor
+  const [mobileImgRect, setMobileImgRect] = useState<{ top: number; left: number; width: number; height: number } | null>(null);
 
   const isDesktopView = src.includes('1.png') || src.includes('1.jpg');
   const isMobileView = src.includes('mobile1.png') || src.includes('mobile1.jpg');
@@ -55,6 +82,13 @@ export const InteractiveMap = ({ src, className, imageClassName }: { src: string
     ? `translate(${anchorX}, ${anchorY}) scale(2)`
     : `translate(${DESKTOP_TRANSLATE.x}, ${DESKTOP_TRANSLATE.y})`;
 
+  // Recalcular el rectángulo de la imagen móvil cuando cambia el tamaño del contenedor
+  const updateMobileImgRect = useCallback(() => {
+    if (!isMobileView || !containerRef.current) return;
+    const { offsetWidth: w, offsetHeight: h } = containerRef.current;
+    setMobileImgRect(calcContainTopRect(w, h, MOBILE_IMAGE_INTRINSIC.width, MOBILE_IMAGE_INTRINSIC.height));
+  }, [isMobileView]);
+
   useEffect(() => {
     if (!isInteractive) return;
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
@@ -65,6 +99,17 @@ export const InteractiveMap = ({ src, className, imageClassName }: { src: string
       })
       .catch((err) => console.error('Error cargando lotes:', err));
   }, [isInteractive]);
+
+  // Observar cambios de tamaño del contenedor para mantener el SVG móvil alineado
+  useEffect(() => {
+    if (!isMobileView) return;
+    updateMobileImgRect();
+    const el = containerRef.current;
+    if (!el) return;
+    const observer = new ResizeObserver(updateMobileImgRect);
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [isMobileView, updateMobileImgRect]);
 
   const handleInteraction = (event: MouseEvent<SVGPolygonElement>, lot: PublicLot) => {
     if (!isMobileView) {
@@ -91,9 +136,23 @@ export const InteractiveMap = ({ src, className, imageClassName }: { src: string
 
         {isInteractive && (
           <svg
-            className="absolute top-0 left-0 h-full w-full pointer-events-none z-[44]"
+            className="pointer-events-none z-[44]"
             viewBox={viewBox}
-            preserveAspectRatio={isMobileView ? 'xMidYMin meet' : 'none'}
+            // En móvil: estilo inline posiciona el SVG exactamente sobre la imagen renderizada.
+            // En desktop: cubre todo el contenedor con preserveAspectRatio='none'.
+            style={isMobileView && mobileImgRect
+              ? {
+                position: 'absolute',
+                top: mobileImgRect.top,
+                left: mobileImgRect.left,
+                width: mobileImgRect.width,
+                height: mobileImgRect.height,
+                // Con el SVG ajustado al tamaño REAL de la imagen, 'xMidYMid meet'
+                // equivale a cubrir exactamente esa área respetando el viewBox.
+              }
+              : { position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }
+            }
+            preserveAspectRatio={isMobileView ? 'xMidYMid meet' : 'none'}
           >
             <g className="pointer-events-auto" transform={mapTransform}>
               {lots.map((lot, index) => (
