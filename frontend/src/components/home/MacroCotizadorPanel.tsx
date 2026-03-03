@@ -101,7 +101,8 @@ export const MacroCotizadorPanel = ({
   const generatePdf = async () => {
     setIsGeneratingPdf(true);
     try {
-      await new Promise((resolve) => setTimeout(resolve, 150));
+      // Damos más tiempo para que el navegador renderice el portal y cargue imágenes (Safari/iPhone)
+      await new Promise((resolve) => setTimeout(resolve, 800));
       window.print();
     } finally {
       setIsGeneratingPdf(false);
@@ -194,10 +195,9 @@ export const MacroCotizadorPanel = ({
           border-x border-t border-[#E2E0DB]
           shadow-xl
           relative flex flex-col
-          ${
-            panelMacroAbierto
-              ? 'max-h-[85vh] h-[85vh] sm:h-auto opacity-100 rounded-[20px] sm:rounded-t-[20px]'
-              : 'max-h-0 opacity-0 border-none overflow-hidden'
+          ${panelMacroAbierto
+            ? 'max-h-[85vh] h-[85vh] sm:h-auto opacity-100 rounded-[20px] sm:rounded-t-[20px]'
+            : 'max-h-0 opacity-0 border-none overflow-hidden'
           }
         `}
       >
@@ -248,11 +248,10 @@ export const MacroCotizadorPanel = ({
                               key={lote.id || index}
                               type="button"
                               onClick={() => toggleLote(lote.id)}
-                              className={`rounded-xl border px-3 py-2 text-left text-sm font-medium transition-colors ${
-                                isSelected
+                              className={`rounded-xl border px-3 py-2 text-left text-sm font-medium transition-colors ${isSelected
                                   ? 'border-[#1C2533] bg-[#1C2533] text-white'
                                   : 'border-[#E2E0DB] bg-white text-[#1C2533] hover:bg-[#EBE9E4]'
-                              }`}
+                                }`}
                             >
                               {loteNombre}
                             </button>
@@ -332,10 +331,9 @@ export const MacroCotizadorPanel = ({
             absolute inset-0 z-[100]
             flex flex-col bg-[#F3F1EC]
             transition-all duration-300 ease-in-out
-            ${
-              isContactOpen
-                ? 'opacity-100 visible pointer-events-auto'
-                : 'opacity-0 invisible pointer-events-none'
+            ${isContactOpen
+              ? 'opacity-100 visible pointer-events-auto'
+              : 'opacity-0 invisible pointer-events-none'
             }
           `}
         >
@@ -376,9 +374,13 @@ export const MacroCotizadorPanel = ({
 
       {printRoot &&
         createPortal(
-          <div id="cotizacion-print" className="hidden">
+          <div
+            id="cotizacion-print"
+            className="hidden print:block"
+            aria-hidden={!isGeneratingPdf}
+          >
             <div
-              className="relative mx-auto h-full w-full overflow-hidden bg-[#fafafa]"
+              className="relative mx-auto bg-[#fafafa]"
               style={{
                 printColorAdjust: 'exact',
                 WebkitPrintColorAdjust: 'exact',
