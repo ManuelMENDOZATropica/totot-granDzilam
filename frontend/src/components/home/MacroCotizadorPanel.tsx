@@ -1,6 +1,5 @@
 import Image from 'next/image';
-import { createPortal } from 'react-dom';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { formatearMoneda } from '@/lib/formatoMoneda';
 import { MapaLotes } from '@/components/mapa/MapaLotes';
@@ -58,11 +57,8 @@ export const MacroCotizadorPanel = ({
   const [isContactOpen, setIsContactOpen] = useState(false);
   const [downloadRequested, setDownloadRequested] = useState(false);
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
-  const [printRoot, setPrintRoot] = useState<HTMLElement | null>(null);
-
-  useEffect(() => {
-    setPrintRoot(document.body);
-  }, []);
+  // Ref al contenedor oculto que vamos a capturar con html2canvas
+  const printRef = useRef<HTMLDivElement | null>(null);
 
   const formatCurrency = (valor: number) => formatearMoneda(valor, 'MXN');
   const formatArea = (valor: number) =>
@@ -99,12 +95,42 @@ export const MacroCotizadorPanel = ({
   };
 
   const generatePdf = async () => {
+    const node = printRef.current;
+    if (!node) return;
     setIsGeneratingPdf(true);
     try {
-      // Damos más tiempo para que el navegador renderice el portal y cargue imágenes (Safari/iPhone)
-      await new Promise((resolve) => setTimeout(resolve, 800));
-      window.print();
+      // Hacemos visible el nodo momentneamente para que html2canvas lo capture
+      node.style.visibility = 'visible';
+      node.style.pointerEvents = 'none';
+
+      // Esperamos a que el browser pinte las imágenes
+      await new Promise((resolve) => setTimeout(resolve, 600));
+
+      const [html2canvas, { jsPDF }] = await Promise.all([
+        import('html2canvas').then((m) => m.default),
+        import('jspdf'),
+      ]);
+
+      const canvas = await html2canvas(node, {
+        scale: 2,           // alta resolución
+        useCORS: true,      // permite imágenes del mismo dominio
+        allowTaint: true,
+        logging: false,
+        backgroundColor: '#ffffff',
+        width: node.offsetWidth,
+        height: node.offsetHeight,
+      });
+
+      const imgData = canvas.toDataURL('image/jpeg', 0.95);
+      const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+      // Ocupamos toda la hoja A4 (210 x 297 mm)
+      pdf.addImage(imgData, 'JPEG', 0, 0, 210, 297);
+      pdf.save('cotizacion-gran-dzilam.pdf');
     } finally {
+      if (node) {
+        node.style.visibility = 'hidden';
+        node.style.pointerEvents = '';
+      }
       setIsGeneratingPdf(false);
     }
   };
@@ -372,142 +398,130 @@ export const MacroCotizadorPanel = ({
         </div>
       </div>
 
-      {printRoot &&
-        createPortal(
-          <div
-            id="cotizacion-print"
-            className="hidden print:block"
-            aria-hidden={!isGeneratingPdf}
-          >
-            <div
-              className="relative mx-auto bg-[#fafafa]"
-              style={{
-                printColorAdjust: 'exact',
-                WebkitPrintColorAdjust: 'exact',
-                backgroundColor: '#fafafa',
-              }}
-            >
-              <Image
-                src="/assets/HOJA MEMBRETADA.png"
-                alt="Hoja membretada Gran Dzilam"
-                fill
-                priority
-                sizes="100vw"
-                className="object-cover"
-              />
+      {/* Contenedor de impresión oculto fuera de pantalla — capturado por html2canvas */}
+      <div
+        ref={printRef}
+        aria-hidden="true"
+        style={{
+          // A4 a 96 dpi: 794 x 1123 px
+          width: '794px',
+          height: '1123px',
+          position: 'fixed',
+          left: '-9999px',
+          top: '0',
+          visibility: 'hidden',
+          overflow: 'hidden',
+          backgroundColor: '#fafafa',
+          zIndex: -1,
+        }}
+      >
+        {/* Imagen de fondo que ocupa el 100% */}
+        <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/assets/HOJA MEMBRETADA.png"
+            alt=""
+            style={{
+              position: 'absolute',
+              inset: 0,
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover',
+            }}
+          />
 
-              <div className="relative z-10 h-full w-full">
-                <div className="absolute top-14 right-12 text-sm font-semibold text-[#1C2533]">
-                  Fecha: {fechaCotizacion}
+          {/* Contenido encima de la imagen */}
+          <div style={{ position: 'relative', zIndex: 10, width: '100%', height: '100%', fontFamily: 'sans-serif', color: '#1C2533' }}>
+
+            {/* Fecha */}
+            <div style={{ position: 'absolute', top: 48, right: 48, fontSize: 13, fontWeight: 600 }}>
+              Fecha: {fechaCotizacion}
+            </div>
+
+            {/* Sección principal de texto */}
+            <div style={{ padding: '200px 60px 0', display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <div>
+                <h2 style={{ fontFamily: 'serif', fontSize: 22, margin: 0, marginBottom: 4 }}>Cotización de lotes</h2>
+                <p style={{ color: '#475569', margin: 0, fontSize: 13 }}>Estimación en MXN generada automáticamente.</p>
+              </div>
+
+              {/* Lista de lotes */}
+              <div style={{ borderBottom: '1px solid #e5e7eb', paddingBottom: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {selectedLots.length === 0 ? (
+                  <p style={{ color: '#475569', fontSize: 13, margin: 0 }}>No se seleccionaron lotes.</p>
+                ) : (
+                  selectedLots.map((lote, index) => {
+                    const precioLote = lote.precioTotal ?? lote.precio ?? 0;
+                    return (
+                      <div key={lote.id || index} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column' }}>
+                          <span style={{ fontWeight: 600, fontSize: 14 }}>{lote.nombre || `Lote ${index + 1}`}</span>
+                          <span style={{ fontSize: 11, color: '#475569' }}>{formatArea(lote.superficieM2 || 0)}</span>
+                        </div>
+                        <div style={{ textAlign: 'right' }}>
+                          <span style={{ display: 'block', fontSize: 13, fontWeight: 600 }}>{formatCurrency(precioLote)}</span>
+                          <span style={{ fontSize: 10, color: '#16a34a' }}>Incluye descuento aplicado</span>
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+
+              {/* Totales */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6, fontSize: 13 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span style={{ color: '#475569' }}>Subtotal</span>
+                  <span style={{ fontWeight: 600 }}>{formatCurrency(totales.totalSeleccionado)}</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', color: '#16a34a' }}>
+                  <span>Descuento ({Math.round(totales.descuentoPorcentaje * 100)}%)</span>
+                  <span>-{formatCurrency(totales.descuentoAplicado)}</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 700, borderTop: '1px dashed #d1d5db', paddingTop: 6, marginTop: 4 }}>
+                  <span>Total con descuento</span>
+                  <span>{formatCurrency(totales.totalConDescuento)}</span>
                 </div>
 
-                <div className="px-12 pt-[20%] print:pt-[55mm] pb-48 print:pb-[30mm] h-full flex flex-col gap-5 text-[#1C2533]">
-                  <div>
-                    <h2 className="font-serif text-2xl">Cotización de lotes</h2>
-                    <p className="text-[#475569]">Estimación en MXN generada automáticamente.</p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 4, background: '#f9fafb', border: '1px solid #f3f4f6', borderRadius: 6, padding: 10, marginTop: 6 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <span style={{ color: '#475569' }}>Enganche</span>
+                    <span style={{ fontWeight: 600 }}>{formatCurrency(totales.enganche)}</span>
                   </div>
-
-                  <div className="space-y-2 border-b border-gray-200 pb-4">
-                    {selectedLots.length === 0 ? (
-                      <p className="text-[#475569]">
-                        No se seleccionaron lotes para esta cotización.
-                      </p>
-                    ) : (
-                      selectedLots.map((lote, index) => {
-                        const precioLote = lote.precioTotal ?? lote.precio ?? 0;
-                        return (
-                          <div
-                            key={lote.id || index}
-                            className="flex items-baseline justify-between gap-3"
-                          >
-                            <div className="flex flex-col">
-                              <span className="font-semibold">
-                                {lote.nombre || `Lote ${index + 1}`}
-                              </span>
-                              <span className="text-xs text-[#475569]">
-                                {formatArea(lote.superficieM2 || 0)}
-                              </span>
-                            </div>
-                            <div className="text-right">
-                              <span className="block text-sm font-semibold">
-                                {formatCurrency(precioLote)}
-                              </span>
-                              <span className="text-[11px] text-[#16a34a]">
-                                Incluye descuento aplicado
-                              </span>
-                            </div>
-                          </div>
-                        );
-                      })
-                    )}
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <span style={{ color: '#475569' }}>{panelCopy.balance}</span>
+                    <span style={{ fontWeight: 600 }}>{formatCurrency(totales.saldoFinanciar)}</span>
                   </div>
-
-                  <div className="flex flex-col gap-3 pt-2">
-                    <div className="space-y-1">
-                      <div className="flex justify-between">
-                        <span className="text-[#475569]">Subtotal</span>
-                        <span className="font-semibold">
-                          {formatCurrency(totales.totalSeleccionado)}
-                        </span>
-                      </div>
-                      <div className="flex justify-between text-[#16a34a]">
-                        <span>Descuento ({Math.round(totales.descuentoPorcentaje * 100)}%)</span>
-                        <span>-{formatCurrency(totales.descuentoAplicado)}</span>
-                      </div>
-                      <div className="flex justify-between font-semibold text-base border-t border-dashed border-gray-300 pt-1 mt-1">
-                        <span>Total con descuento</span>
-                        <span>{formatCurrency(totales.totalConDescuento)}</span>
-                      </div>
-                    </div>
-
-                    <div className="space-y-1 bg-gray-50 p-3 rounded-md border border-gray-100 mt-2 print:bg-transparent print:border-gray-200">
-                      <div className="flex justify-between">
-                        <span className="text-[#475569]">Enganche</span>
-                        <span className="font-semibold">{formatCurrency(totales.enganche)}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-[#475569]">{panelCopy.balance}</span>
-                        <span className="font-semibold">
-                          {formatCurrency(totales.saldoFinanciar)}
-                        </span>
-                      </div>
-                      <div className="flex justify-between font-semibold mt-2">
-                        <span>{panelCopy.monthly}</span>
-                        <span>{formatCurrency(totales.mensualidad)}</span>
-                      </div>
-                      <div className="flex justify-between text-xs text-[#475569]">
-                        <span>{panelCopy.monthsLabel}</span>
-                        <span>
-                          {meses} {panelCopy.monthsLabel}
-                        </span>
-                      </div>
-                    </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 700, marginTop: 4 }}>
+                    <span>{panelCopy.monthly}</span>
+                    <span>{formatCurrency(totales.mensualidad)}</span>
                   </div>
-                </div>
-
-                <div className="mb-[20%] print:mb-[15mm] absolute bottom-12 print:bottom-[15mm] left-12 right-12 text-[#475569] flex flex-col items-center">
-                  <div className="w-full text-[12px] leading-relaxed mb-4 text-left">
-                    <p className="font-semibold text-[#1C2533]">Notas importantes</p>
-                    <ul className="mt-1 list-disc space-y-0.5 pl-5">
-                      <li>
-                        Los montos son informativos y pueden variar según disponibilidad y
-                        condiciones comerciales.
-                      </li>
-                      <li>La superficie total seleccionada es de {formatArea(totalArea)}.</li>
-                      <li>
-                        Comunícate con nuestro equipo para confirmar precios y disponibilidad.
-                      </li>
-                    </ul>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: '#475569' }}>
+                    <span>{panelCopy.monthsLabel}</span>
+                    <span>{meses} {panelCopy.monthsLabel}</span>
                   </div>
-                  <p className="text-[10px] uppercase tracking-wide opacity-60 text-center border-t border-gray-300 w-full pt-2">
-                    {macroCopy.disclaimer}
-                  </p>
                 </div>
               </div>
             </div>
-          </div>,
-          printRoot,
-        )}
+
+            {/* Notas al pie */}
+            <div style={{ position: 'absolute', bottom: 60, left: 48, right: 48, color: '#475569' }}>
+              <div style={{ fontSize: 11, lineHeight: 1.5, marginBottom: 12 }}>
+                <p style={{ fontWeight: 600, color: '#1C2533', margin: '0 0 4px' }}>Notas importantes</p>
+                <ul style={{ margin: 0, paddingLeft: 18 }}>
+                  <li>Los montos son informativos y pueden variar según disponibilidad y condiciones comerciales.</li>
+                  <li>La superficie total seleccionada es de {formatArea(totalArea)}.</li>
+                  <li>Comunícate con nuestro equipo para confirmar precios y disponibilidad.</li>
+                </ul>
+              </div>
+              <p style={{ fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.05em', opacity: 0.6, textAlign: 'center', borderTop: '1px solid #d1d5db', paddingTop: 8, margin: 0 }}>
+                {macroCopy.disclaimer}
+              </p>
+            </div>
+
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
