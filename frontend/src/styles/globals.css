@@ -223,14 +223,16 @@ h6 {
     print-color-adjust: exact !important;
   }
 
-  /* Ajustamos el contenido a una hoja A4 real */
+  /* Ajustamos el contenido para cubrir el 100% de la hoja sin importar el tamaño exacto */
   #cotizacion-print>div {
-    width: 210mm !important;
-    height: 297mm !important;
-    max-width: 100vw !important;
-    max-height: 100vh !important;
-    margin: 0 auto !important;
-    position: relative !important;
+    width: 100% !important;
+    height: 100% !important;
+    max-width: none !important;
+    max-height: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    position: absolute !important;
+    inset: 0 !important;
     overflow: hidden !important;
     /* Bloqueamos la posibilidad de que se divida en múltiples páginas */
     page-break-after: avoid !important;
