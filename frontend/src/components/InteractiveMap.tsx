@@ -100,7 +100,7 @@ export const InteractiveMap = ({ src, className, imageClassName }: { src: string
     // Recorte vertical que hace object-cover (positivo = imagen sobresale por arriba y abajo)
     const cropTop = (MOBILE_IMAGE.height * imageScale - containerH) / 2;
     // Coordenada Y en el contenedor que corresponde al pixel 1202 de la imagen (+50 px de ajuste)
-    const targetContainerY = MOBILE_ALIGN_IMAGE_Y * imageScale - cropTop + 50;
+    const targetContainerY = MOBILE_ALIGN_IMAGE_Y * imageScale - cropTop + 25;
 
     // SVG: ancho llena el contenedor, alto proporcional al viewBox
     const svgScale = containerW / MOBILE_VIEWBOX.width;   // px por unidad de viewBox
