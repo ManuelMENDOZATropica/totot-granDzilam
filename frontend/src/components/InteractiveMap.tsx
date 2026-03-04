@@ -24,13 +24,19 @@ const LOT_PATHS_DESKTOP = [
 ];
 
 const LOT_PATHS_MOBILE = [
-  "-80.52,-41.59 -68.00,-41.59 -69.80,41.64 -83.38,42.78", "-68.72,-41.59 -55.48,-41.59 -57.28,39.69 -69.80,41.31",
-  "-55.48,-41.59 -42.96,-41.59 -44.76,38.38 -57.28,40.02", "-42.96,-41.59 -30.44,-41.59 -31.88,37.25 -44.76,38.55",
-  "-30.44,-41.59 -17.92,-41.59 -19.36,35.63 -32.24,37.08", "-17.92,-41.59 -5.40,-41.59 -6.84,33.99 -19.72,35.63",
-  "-5.40,-41.59 7.10,-41.59 5.32,32.35 -6.84,33.99", "7.10,-41.59 19.62,-41.59 18.20,31.05 6.04,32.35",
-  "19.62,-41.59 32.14,-41.59 30.36,29.43 18.56,30.88", "32.14,-41.59 45.02,-41.59 43.58,28.13 31.08,29.60",
-  "45.38,-41.59 57.88,-41.59 55.74,26.66 43.94,28.13", "58.24,-41.59 70.76,-41.59 68.62,25.20 56.46,26.49",
-  "71.12,-41.59 82.20,-41.59 79.36,-23.55 80.42,-3.17 81.50,9.87 81.14,23.57 68.98,25.04"
+  /* Lote  1 */ "-80.52,-41.59 -68.00,-41.59 -69.80,38.30 -83.38,39.90",
+  /* Lote  2 */ "-68.72,-41.59 -55.48,-41.59 -57.28,36.80 -69.80,38.30",
+  /* Lote  3 */ "-55.48,-41.59 -42.96,-41.59 -44.76,35.30 -57.28,36.80",
+  /* Lote  4 */ "-42.96,-41.59 -30.44,-41.59 -31.88,33.80 -44.76,35.30",
+  /* Lote  5 */ "-30.44,-41.59 -17.92,-41.59 -19.36,32.20 -32.24,33.80",
+  /* Lote  6 */ "-17.92,-41.59  -5.40,-41.59  -6.84,30.70 -19.72,32.30",
+  /* Lote  7 */  "-5.40,-41.59   7.10,-41.59   5.32,29.20  -6.84,30.70",
+  /* Lote  8 */  "7.10,-41.59  19.62,-41.59  18.20,27.60   6.04,29.20",
+  /* Lote  9 */ "19.62,-41.59  32.14,-41.59  30.36,26.30  18.56,27.60",
+  /* Lote 10 */ "32.14,-41.59  45.02,-41.59  43.58,24.60  31.08,26.20",
+  /* Lote 11 */ "45.38,-41.59  57.88,-41.59  55.74,23.20  43.94,24.60",
+  /* Lote 12 */ "58.24,-41.59  70.76,-41.59  68.62,21.70  56.46,23.10",
+  /* Lote 13 */ "71.12,-41.59  82.20,-41.59  79.36,-23.55  80.42,-3.17  81.50,9.87  81.14,20.20  68.98,21.60",
 ];
 
 /** Dimensiones reales de mobile1.png */
@@ -44,20 +50,12 @@ const MOBILE_ALIGN_IMAGE_Y = 1202;
 
 /**
  * Y máximo (fondo) de los paths en coordenadas del viewBox móvil.
- * Transform: translate(190, 511) scale(2), max Y en path coords = 42.78
- * viewBox Y = 511 + 2×42.78 = 596.56
+ * Transform: translate(190, 511) scale(2), max Y en path coords = 39.90 (Lote 1 outer)
+ * viewBox Y = 511 + 2×39.90 = 590.8
  */
-const MOBILE_PATH_BOTTOM_VB = 511 + 2 * 42.78; // ≈ 596.56
+const MOBILE_PATH_BOTTOM_VB = 511 + 2 * 39.90; // ≈ 590.8
 
 
-/** Lotes de fallback para debug local sin backend */
-const MOCK_LOTS: PublicLot[] = Array.from({ length: 13 }, (_, i) => ({
-  id: `mock-${i + 1}`,
-  superficieM2: 200 + i * 10,
-  precio: 500000 + i * 50000,
-  estado: 'disponible' as const,
-  order: i + 1,
-}));
 
 export const InteractiveMap = ({ src, className, imageClassName }: { src: string; className?: string; imageClassName?: string }) => {
   const [lots, setLots] = useState<PublicLot[]>([]);
@@ -129,12 +127,8 @@ export const InteractiveMap = ({ src, className, imageClassName }: { src: string
       .then((res) => res.json())
       .then((data) => {
         if (data.items && Array.isArray(data.items)) setLots(data.items);
-        else setLots(MOCK_LOTS); // fallback si la respuesta no tiene el formato esperado
       })
-      .catch(() => {
-        console.warn('[InteractiveMap] Backend no disponible — usando lotes mock para debug.');
-        setLots(MOCK_LOTS);
-      });
+      .catch((err) => console.error('Error cargando lotes:', err));
   }, [isInteractive]);
 
   // ResizeObserver: recalcula el posicionamiento del SVG móvil al cambiar el tamaño
