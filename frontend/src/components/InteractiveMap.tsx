@@ -50,6 +50,14 @@ const MOBILE_ALIGN_IMAGE_Y = 1202;
 const MOBILE_PATH_BOTTOM_VB = 511 + 2 * 42.78; // ≈ 596.56
 
 
+/** Lotes de fallback para debug local sin backend */
+const MOCK_LOTS: PublicLot[] = Array.from({ length: 13 }, (_, i) => ({
+  id: `mock-${i + 1}`,
+  superficieM2: 200 + i * 10,
+  precio: 500000 + i * 50000,
+  estado: 'disponible' as const,
+  order: i + 1,
+}));
 
 export const InteractiveMap = ({ src, className, imageClassName }: { src: string; className?: string; imageClassName?: string }) => {
   const [lots, setLots] = useState<PublicLot[]>([]);
@@ -121,8 +129,12 @@ export const InteractiveMap = ({ src, className, imageClassName }: { src: string
       .then((res) => res.json())
       .then((data) => {
         if (data.items && Array.isArray(data.items)) setLots(data.items);
+        else setLots(MOCK_LOTS); // fallback si la respuesta no tiene el formato esperado
       })
-      .catch((err) => console.error('Error cargando lotes:', err));
+      .catch(() => {
+        console.warn('[InteractiveMap] Backend no disponible — usando lotes mock para debug.');
+        setLots(MOCK_LOTS);
+      });
   }, [isInteractive]);
 
   // ResizeObserver: recalcula el posicionamiento del SVG móvil al cambiar el tamaño
