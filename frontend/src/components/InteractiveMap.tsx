@@ -161,6 +161,11 @@ export const InteractiveMap = ({ src, className, imageClassName }: { src: string
             preserveAspectRatio={isMobileView ? 'none' : 'none'}
           >
             <g className="pointer-events-auto" transform={mapTransform}>
+              {isMobileView && (
+                // Línea inferior de referencia. Desde Lote 1 (-83.38, 39.89) hasta Lote 13 (81.14, 20.12)
+                // strokeWidth = 5 / 4.288 para compensar el scaling del transform y verse de 5px.
+                <line x1="-83.38" y1="39.89" x2="81.14" y2="20.12" stroke="black" strokeWidth={1.166} />
+              )}
               {lots.map((lot, index) => (
                 <polygon
                   key={lot.id}
