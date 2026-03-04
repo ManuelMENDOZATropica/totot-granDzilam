@@ -35,7 +35,7 @@ const LOT_PATHS_MOBILE = [
   /* Lote 10 */ "32.14,-41.59  45.02,-41.59  43.58,24.64  31.08,26.14",
   /* Lote 11 */ "45.38,-41.59  57.88,-41.59  55.74,23.18  43.94,24.59",
   /* Lote 12 */ "58.24,-41.59  70.76,-41.59  68.62,21.63  56.46,23.09",
-  /* Lote 13 */ "71.12,-41.59  82.20,-41.59  79.36,-23.55  80.42,-3.17  81.50,9.87  81.14,20.12  68.98,21.58",
+  /* Lote 13 */ "71.12,-41.59  82.20,-41.59  79.36,-23.55  80.42,-3.17  81.50,9.87  81.14,18.96  68.98,21.58",
 ];
 
 /** Dimensiones reales de mobile1.png */
@@ -162,9 +162,9 @@ export const InteractiveMap = ({ src, className, imageClassName }: { src: string
           >
             <g className="pointer-events-auto" transform={mapTransform}>
               {isMobileView && (
-                // Línea inferior de referencia. Desde Lote 1 (-83.38, 39.89) hasta Lote 13 (81.14, 20.12)
+                // Línea inferior de referencia. Desde Lote 1 (-83.38, 39.89) hasta Lote 13 (81.14, 18.96)
                 // strokeWidth = 5 / 4.288 para compensar el scaling del transform y verse de 5px.
-                <line x1="-83.38" y1="39.89" x2="81.14" y2="20.12" stroke="black" strokeWidth={1.166} />
+                <line x1="-83.38" y1="39.89" x2="81.14" y2="18.96" stroke="black" strokeWidth={1.166} />
               )}
               {lots.map((lot, index) => (
                 <polygon
