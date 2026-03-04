@@ -10,7 +10,6 @@ interface PublicLot {
 }
 
 const DESKTOP_VIEWBOX = { width: 850, height: 680 };
-const MOBILE_VIEWBOX = { width: 380, height: 600 }; // Extendido a 600 para contener todos los paths (máx Y≈596.56)
 const DESKTOP_TRANSLATE = { x: -312, y: -125 };
 
 const LOT_PATHS_DESKTOP = [
@@ -24,39 +23,23 @@ const LOT_PATHS_DESKTOP = [
 ];
 
 const LOT_PATHS_MOBILE = [
-  /* Lote  1 */ "-80.52,-41.59 -68.00,-41.59 -69.80,38.30 -83.38,39.90",
-  /* Lote  2 */ "-68.72,-41.59 -55.48,-41.59 -57.28,36.80 -69.80,38.30",
-  /* Lote  3 */ "-55.48,-41.59 -42.96,-41.59 -44.76,35.30 -57.28,36.80",
-  /* Lote  4 */ "-42.96,-41.59 -30.44,-41.59 -31.88,33.80 -44.76,35.30",
-  /* Lote  5 */ "-30.44,-41.59 -17.92,-41.59 -19.36,32.20 -32.24,33.80",
-  /* Lote  6 */ "-17.92,-41.59  -5.40,-41.59  -6.84,30.70 -19.72,32.30",
-  /* Lote  7 */  "-5.40,-41.59   7.10,-41.59   5.32,29.20  -6.84,30.70",
-  /* Lote  8 */  "7.10,-41.59  19.62,-41.59  18.20,27.60   6.04,29.20",
-  /* Lote  9 */ "19.62,-41.59  32.14,-41.59  30.36,26.30  18.56,27.60",
-  /* Lote 10 */ "32.14,-41.59  45.02,-41.59  43.58,24.60  31.08,26.20",
-  /* Lote 11 */ "45.38,-41.59  57.88,-41.59  55.74,23.20  43.94,24.60",
-  /* Lote 12 */ "58.24,-41.59  70.76,-41.59  68.62,21.70  56.46,23.10",
-  /* Lote 13 */ "71.12,-41.59  82.20,-41.59  79.36,-23.55  80.42,-3.17  81.50,9.87  81.14,20.20  68.98,21.60",
+  /* Lote  1 */ "-80.52,-41.59 -68.00,-41.59 -69.80,38.25 -83.38,39.89",
+  /* Lote  2 */ "-68.72,-41.59 -55.48,-41.59 -57.28,36.75 -69.80,38.25",
+  /* Lote  3 */ "-55.48,-41.59 -42.96,-41.59 -44.76,35.24 -57.28,36.75",
+  /* Lote  4 */ "-42.96,-41.59 -30.44,-41.59 -31.88,33.70 -44.76,35.24",
+  /* Lote  5 */ "-30.44,-41.59 -17.92,-41.59 -19.36,32.20 -32.24,33.74",
+  /* Lote  6 */ "-17.92,-41.59  -5.40,-41.59  -6.84,30.69 -19.72,32.24",
+  /* Lote  7 */  "-5.40,-41.59   7.10,-41.59   5.32,29.23  -6.84,30.69",
+  /* Lote  8 */  "7.10,-41.59  19.62,-41.59  18.20,27.68   6.04,29.14",
+  /* Lote  9 */ "19.62,-41.59  32.14,-41.59  30.36,26.22  18.56,27.64",
+  /* Lote 10 */ "32.14,-41.59  45.02,-41.59  43.58,24.64  31.08,26.14",
+  /* Lote 11 */ "45.38,-41.59  57.88,-41.59  55.74,23.18  43.94,24.59",
+  /* Lote 12 */ "58.24,-41.59  70.76,-41.59  68.62,21.63  56.46,23.09",
+  /* Lote 13 */ "71.12,-41.59  82.20,-41.59  79.36,-23.55  80.42,-3.17  81.50,9.87  81.14,20.12  68.98,21.58",
 ];
 
 /** Dimensiones reales de mobile1.png */
 const MOBILE_IMAGE = { width: 1024, height: 1536 };
-
-/**
- * Pixel Y de la imagen que debe coincidir con el fondo de los paths.
- * La imagen es 1024×1536 px.
- */
-const MOBILE_ALIGN_IMAGE_Y = 1202;
-
-/**
- * Y máximo (fondo) de los paths en coordenadas del viewBox móvil.
- * Transform: translate(190, 511) scale(2), max Y en path coords = 39.90 (Lote 1 outer)
- * viewBox Y = 511 + 2×39.90 = 590.8
- */
-const MOBILE_PATH_BOTTOM_VB = 511 + 2 * 39.90; // ≈ 590.8
-
-
-
 export const InteractiveMap = ({ src, className, imageClassName }: { src: string; className?: string; imageClassName?: string }) => {
   const [lots, setLots] = useState<PublicLot[]>([]);
   const [hoveredLot, setHoveredLot] = useState<PublicLot | null>(null);
@@ -72,52 +55,49 @@ export const InteractiveMap = ({ src, className, imageClassName }: { src: string
   const isInteractive = isDesktopView || isMobileView;
 
   const viewBox = isMobileView
-    ? `0 0 ${MOBILE_VIEWBOX.width} ${MOBILE_VIEWBOX.height}`
+    ? `0 0 1024 1536`
     : `0 0 ${DESKTOP_VIEWBOX.width} ${DESKTOP_VIEWBOX.height}`;
 
   const mapPaths = isMobileView ? LOT_PATHS_MOBILE : LOT_PATHS_DESKTOP;
-  const anchorX = MOBILE_VIEWBOX.width / 2;  // 190
-  const anchorY = 511; // Valor calibrado de los paths (no cambia con el viewBox height)
 
+  // Transform en móvil mapea las coordenadas de los paths (-80..80) al espacio 1024x1536.
+  // Escala empírica para igualar la imagen de fondo: scale = 4.288
+  // Y base para coincidir con la diagonal de la imagen = 1071.4
   const mapTransform = isMobileView
-    ? `translate(${anchorX}, ${anchorY}) scale(2)`
+    ? `translate(512, 1071.4) scale(4.288)`
     : `translate(${DESKTOP_TRANSLATE.x}, ${DESKTOP_TRANSLATE.y})`;
 
   /**
-   * Calcula el style del SVG móvil tal que:
-   * 1. Ancho = 100% del contenedor (paths caben en pantalla)
-   * 2. Altura proporcional al viewBox (relación de aspecto)
-   * 3. El fondo de los paths coincide con el pixel Y=1202 de la imagen
-   *
-   * Cálculo de alineación con object-cover centrado:
-   *   imageScale = max(containerW/1024, containerH/1536)
-   *   cropTop    = (1536×imageScale − containerH) / 2   (puede ser negativo)
-   *   target_Y   = 1202×imageScale − cropTop
+   * Calcula el style del SVG móvil para que sea una CAPA IDÉNTICA 1:1 sobre la imagen
+   * renderizada (incluyendo sus partes invisibles o recortadas por object-cover).
+   * Al hacer esto, las coordenadas del SVG (0 a 1024) son exactamente los pixeles
+   * de la imagen, garantizando que NUNCA se desalineen sin importar la pantalla.
    */
   const updateMobileSvgStyle = useCallback(() => {
     if (!isMobileView || !containerRef.current) return;
     const { offsetWidth: containerW, offsetHeight: containerH } = containerRef.current;
 
-    // Escala de la imagen con object-cover
+    // Fórmula estándar de object-cover
     const imageScale = Math.max(
       containerW / MOBILE_IMAGE.width,
       containerH / MOBILE_IMAGE.height,
     );
-    // Recorte vertical que hace object-cover (positivo = imagen sobresale por arriba y abajo)
-    const cropTop = (MOBILE_IMAGE.height * imageScale - containerH) / 2;
-    // Coordenada Y en el contenedor que corresponde al pixel 1202 de la imagen (+50 px de ajuste)
-    const targetContainerY = MOBILE_ALIGN_IMAGE_Y * imageScale - cropTop + 25;
 
-    // SVG: ancho llena el contenedor, alto proporcional al viewBox
-    const svgScale = containerW / MOBILE_VIEWBOX.width;   // px por unidad de viewBox
-    const svgW = containerW;
-    const svgH = MOBILE_VIEWBOX.height * svgScale;
-    // Fondo de los paths medido desde el top del SVG (en px)
-    const pathsBottomPx = MOBILE_PATH_BOTTOM_VB * svgScale;
-    // Posicionar el SVG para que el fondo de los paths quede en targetContainerY
-    const svgTop = targetContainerY - pathsBottomPx;
+    // Dimensiones reales en pixeles que ocupa la imagen escalada
+    const renderedImageW = MOBILE_IMAGE.width * imageScale;
+    const renderedImageH = MOBILE_IMAGE.height * imageScale;
 
-    setMobileSvgStyle({ position: 'absolute', top: svgTop, left: 0, width: svgW, height: svgH });
+    // Si la imagen excede el contenedor, tiene un offset negativo (recorte)
+    const imageLeft = (containerW - renderedImageW) / 2;
+    const imageTop = (containerH - renderedImageH) / 2;
+
+    setMobileSvgStyle({
+      position: 'absolute',
+      top: imageTop,
+      left: imageLeft,
+      width: renderedImageW,
+      height: renderedImageH
+    });
   }, [isMobileView]);
 
   useEffect(() => {
