@@ -10,7 +10,7 @@ interface PublicLot {
 }
 
 const DESKTOP_VIEWBOX = { width: 850, height: 680 };
-const MOBILE_VIEWBOX = { width: 380, height: 568 };
+const MOBILE_VIEWBOX = { width: 380, height: 600 }; // Extendido a 600 para contener todos los paths (máx Y≈596.56)
 const DESKTOP_TRANSLATE = { x: -312, y: -125 };
 
 const LOT_PATHS_DESKTOP = [
@@ -33,10 +33,19 @@ const LOT_PATHS_MOBILE = [
   "71.12,-41.59 82.20,-41.59 79.36,-23.55 80.42,-3.17 81.50,9.87 81.14,23.57 68.98,25.04"
 ];
 
+/** Dimensiones reales de mobile1.png */
+const MOBILE_IMAGE = { width: 1024, height: 1536 };
+
+/**
+ * Pixel Y de la imagen que debe coincidir con el fondo de los paths.
+ * La imagen es 1024×1536 px.
+ */
+const MOBILE_ALIGN_IMAGE_Y = 1202;
+
 /**
  * Y máximo (fondo) de los paths en coordenadas del viewBox móvil.
- * Transform aplicado: translate(anchorX=190, anchorY=511) scale(2)
- * Max Y en coords de path = 42.78  →  en viewBox = 511 + 2×42.78 = 596.56
+ * Transform: translate(190, 511) scale(2), max Y en path coords = 42.78
+ * viewBox Y = 511 + 2×42.78 = 596.56
  */
 const MOBILE_PATH_BOTTOM_VB = 511 + 2 * 42.78; // ≈ 596.56
 
@@ -61,8 +70,8 @@ export const InteractiveMap = ({ src, className, imageClassName }: { src: string
     : `0 0 ${DESKTOP_VIEWBOX.width} ${DESKTOP_VIEWBOX.height}`;
 
   const mapPaths = isMobileView ? LOT_PATHS_MOBILE : LOT_PATHS_DESKTOP;
-  const anchorX = MOBILE_VIEWBOX.width / 2;
-  const anchorY = (MOBILE_VIEWBOX.height * 9) / 10;
+  const anchorX = MOBILE_VIEWBOX.width / 2;  // 190
+  const anchorY = 511; // Valor calibrado de los paths (no cambia con el viewBox height)
 
   const mapTransform = isMobileView
     ? `translate(${anchorX}, ${anchorY}) scale(2)`
@@ -70,21 +79,38 @@ export const InteractiveMap = ({ src, className, imageClassName }: { src: string
 
   /**
    * Calcula el style del SVG móvil tal que:
-   * 1. Ancho = 100% del contenedor
-   * 2. Alto proporcional al viewBox (relación de aspecto conservada)
-   * 3. El fondo de los paths queda fijo en el centro vertical del contenedor
+   * 1. Ancho = 100% del contenedor (paths caben en pantalla)
+   * 2. Altura proporcional al viewBox (relación de aspecto)
+   * 3. El fondo de los paths coincide con el pixel Y=1202 de la imagen
+   *
+   * Cálculo de alineación con object-cover centrado:
+   *   imageScale = max(containerW/1024, containerH/1536)
+   *   cropTop    = (1536×imageScale − containerH) / 2   (puede ser negativo)
+   *   target_Y   = 1202×imageScale − cropTop
    */
   const updateMobileSvgStyle = useCallback(() => {
     if (!isMobileView || !containerRef.current) return;
     const { offsetWidth: containerW, offsetHeight: containerH } = containerRef.current;
-    // Escala: 1 unidad viewBox = containerW / 380 px
-    const svgScale = containerW / MOBILE_VIEWBOX.width;
-    const svgW = containerW;                               // llena el ancho
-    const svgH = MOBILE_VIEWBOX.height * svgScale;         // altura proporcional
-    // El fondo de los paths en px, medido desde el top del SVG
+
+    // Escala de la imagen con object-cover
+    const imageScale = Math.max(
+      containerW / MOBILE_IMAGE.width,
+      containerH / MOBILE_IMAGE.height,
+    );
+    // Recorte vertical que hace object-cover (positivo = imagen sobresale por arriba y abajo)
+    const cropTop = (MOBILE_IMAGE.height * imageScale - containerH) / 2;
+    // Coordenada Y en el contenedor que corresponde al pixel 1202 de la imagen
+    const targetContainerY = MOBILE_ALIGN_IMAGE_Y * imageScale - cropTop;
+
+    // SVG: ancho llena el contenedor, alto proporcional al viewBox
+    const svgScale = containerW / MOBILE_VIEWBOX.width;   // px por unidad de viewBox
+    const svgW = containerW;
+    const svgH = MOBILE_VIEWBOX.height * svgScale;
+    // Fondo de los paths medido desde el top del SVG (en px)
     const pathsBottomPx = MOBILE_PATH_BOTTOM_VB * svgScale;
-    // Queremos que ese punto esté en el centro vertical del contenedor
-    const svgTop = containerH / 2 - pathsBottomPx;
+    // Posicionar el SVG para que el fondo de los paths quede en targetContainerY
+    const svgTop = targetContainerY - pathsBottomPx;
+
     setMobileSvgStyle({ position: 'absolute', top: svgTop, left: 0, width: svgW, height: svgH });
   }, [isMobileView]);
 
