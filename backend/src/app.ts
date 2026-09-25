@@ -19,6 +19,11 @@ export const createApp = () => {
   const { CORS_ORIGIN } = loadEnv();
   const app = express();
 
+  // C3 — Render y Vercel ponen un proxy delante. Sin esto req.ip devuelve la IP del proxy
+  // y el rate limit trata a TODOS los visitantes como una sola persona: el límite deja de
+  // ser por usuario y se convierte en un cupo global.
+  app.set('trust proxy', 1);
+
   app.use(helmet());
   app.use(cors({ origin: CORS_ORIGIN, credentials: true }));
   app.use(express.json());
@@ -36,6 +41,12 @@ export const createApp = () => {
   app.use('/api/contact-submissions', contactSubmissionsRouter);
   app.use('/api/admin', requireAuth, requireRole('admin'), adminRouter);
   app.use('/api', imagineRouter);
+
+  // R4 — Sin esto una ruta desconocida cae en el default de Express y devuelve HTML a un
+  // cliente que espera JSON.
+  app.use('/api', (_req, res) => {
+    res.status(404).json({ ok: false, error: 'NO_ENCONTRADO', message: 'Ruta no encontrada' });
+  });
 
   app.use(errorHandler);
 

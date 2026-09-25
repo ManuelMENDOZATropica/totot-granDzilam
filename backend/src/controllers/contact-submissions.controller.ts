@@ -3,6 +3,7 @@ import { z } from 'zod';
 import {
   assignContactSubmission,
   createContactSubmission,
+  deleteContactSubmission,
   listContactSubmissionsForAdmin,
   listContactSubmissionsForUser,
 } from '../services/contact-submissions.service';
@@ -64,6 +65,15 @@ export const assignContactSubmissionController = async (req: Request, res: Respo
     const payload = assignmentSchema.parse(req.body ?? {});
     const updated = await assignContactSubmission(id, payload.assignedTo ?? null);
     res.json(updated);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const deleteContactSubmissionController = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    await deleteContactSubmission(submissionIdSchema.parse(req.params.id));
+    res.status(204).send();
   } catch (error) {
     next(error);
   }

@@ -1,9 +1,17 @@
 import fs from 'fs';
+import mongoose from 'mongoose';
 import path from 'path';
 import { loadEnv } from '../config/env';
 import { logger } from '../utils/logger';
 import { buildCacheKey } from '../utils/prompt';
 import { requestOpenAI } from './openai.request';
+import { createGeminiImageClient, GeminiImageError } from './gemini.image';
+import {
+  cargarImagenLote,
+  cargarReferenciasDensidad,
+  construirPromptEdicion,
+  construirPromptRefinamiento,
+} from './imagine.prompt';
 import { ImagineImageModel } from '../models/imagine-image.model';
 import type { ImagineImageSize as ImagineImageSizeType, ImagineResult as ImagineResultType } from '../types/imagine';
 
@@ -12,6 +20,10 @@ export type ImagineImageSize = ImagineImageSizeType;
 export interface ImagineRequestPayload {
   prompt: string;
   size?: ImagineImageSize;
+  /** Lote sobre el que se dibuja. 1 a 13; si falta se usa uno central. */
+  numeroLote?: number;
+  /** Encadena sobre una generación previa para refinarla (solo Gemini). */
+  previousInteractionId?: string;
 }
 
 export type ImagineResult = ImagineResultType;
@@ -26,6 +38,8 @@ interface ImagineServiceDependencies {
   now?: () => number;
   useMock?: boolean;
   apiKey?: string | null;
+  geminiApiKey?: string | null;
+  provider?: 'gemini' | 'openai';
   fetchImpl?: typeof fetch;
   resultsDir?: string;
 }
@@ -142,6 +156,15 @@ const persistImagineImage = async (
   size: ImagineImageSize,
   base64Image?: string | null,
 ) => {
+  // M2 — Sin conexión a Mongo, mongoose no falla: encola la escritura y espera 10 s al
+  // timeout de buffering. Eso hacía que un test tardara 10.0 de los 10.1 s de la suite, y
+  // en producción cuelga cada generación otros 10 s si la base se cae. Guardar la imagen
+  // es opcional; no vale la pena bloquear la respuesta por ello.
+  if (mongoose.connection.readyState !== 1) {
+    logger.warn('Sin conexión a Mongo: no se guarda la imagen generada');
+    return null;
+  }
+
   try {
     const document = await ImagineImageModel.create({
       prompt: payload.prompt.trim(),
@@ -177,22 +200,47 @@ export const createImagineService = (deps: ImagineServiceDependencies = {}) => {
 
   const apiKey = deps.apiKey ?? env.OPENAI_API_KEY ?? process.env.OPENAI_API_KEY ?? null;
 
-  if (!useMock && !apiKey) {
-    throw new Error('OPENAI_API_KEY is required when USE_MOCK_OPENAI is disabled');
+  // Gemini edita la ortofoto real del lote; OpenAI solo genera desde texto. Si hay llave
+  // de Gemini se usa esa salvo que IMAGINE_PROVIDER diga lo contrario.
+  const geminiKey = deps.geminiApiKey ?? env.GEMINI_API_KEY ?? process.env.GEMINI_API_KEY ?? null;
+  // Lo que inyecta el llamador manda sobre el .env: si alguien construye el servicio con
+  // una llave de OpenAI y un fetch propio (los tests, por ejemplo), quiere ese camino,
+  // no el que dicte el entorno de la máquina.
+  const proveedorPedido: 'gemini' | 'openai' =
+    deps.provider ??
+    (deps.geminiApiKey ? 'gemini' : undefined) ??
+    (deps.apiKey ? 'openai' : undefined) ??
+    env.IMAGINE_PROVIDER ??
+    (geminiKey ? 'gemini' : 'openai');
+
+  // USE_MOCK_OPENAI habla de OpenAI, no de Gemini: el chatbot depende de esa bandera y no
+  // tiene llave propia, así que no puede arrastrar consigo a «Imagina tu proyecto». Si hay
+  // llave de Gemini y el proveedor la pide, se usa de verdad aunque el mock siga encendido.
+  // Un useMock pasado explícitamente (tests, otros llamadores) manda sobre el entorno.
+  const mockForzado = deps.useMock === true;
+  const usaGemini = !mockForzado && proveedorPedido === 'gemini' && Boolean(geminiKey);
+  if (proveedorPedido === 'gemini' && !geminiKey && !useMock) {
+    logger.warn('IMAGINE_PROVIDER=gemini pero falta GEMINI_API_KEY; se usará OpenAI');
   }
 
   const generateImaginedDesign = async (payload: ImagineRequestPayload): Promise<ImagineResult> => {
     const size = payload.size ?? DEFAULT_SIZE;
-    const cacheKey = buildCacheKey(payload.prompt, size);
+    // El lote entra en la clave: la misma idea sobre dos lotes distintos son dos imágenes
+    // distintas. Un refinamiento nunca se cachea: siempre parte de una imagen concreta.
+    const cacheKey = payload.previousInteractionId
+      ? null
+      : `${buildCacheKey(payload.prompt, size)}::lote${payload.numeroLote ?? 'def'}`;
     const currentTime = now();
-    const cached = cache.get(cacheKey);
+    const cached = cacheKey ? cache.get(cacheKey) : undefined;
 
     if (cached && cached.expiresAt > currentTime) {
       logger.info('Imagine generation completed', { size, cached: true });
       return cached.value;
     }
 
-    if (useMock) {
+    // El mock solo cubre el camino de OpenAI. Gemini tiene su propia llave y se comprueba
+    // antes, así que con GEMINI_API_KEY puesta se genera de verdad.
+    if (useMock && !usaGemini) {
       const textoInspirador = `Imagina ${payload.prompt} con espacios abiertos y detalles que invitan a disfrutar cada momento.`;
       const promptVisual = `Minimal realistic rendering of ${payload.prompt} at a coastal eco retreat, soft morning light, natural materials, lush vegetation, calm atmosphere, eye-level wide composition.`;
       const mockResult: ImagineResult = {
@@ -202,9 +250,58 @@ export const createImagineService = (deps: ImagineServiceDependencies = {}) => {
       };
 
       void persistImagineImage(payload, mockResult, size, null);
-      cache.set(cacheKey, { value: mockResult, expiresAt: currentTime + CACHE_TTL_MS });
+      if (cacheKey) cache.set(cacheKey, { value: mockResult, expiresAt: currentTime + CACHE_TTL_MS });
       logger.info('Imagine generation completed', { size, cached: false });
       return mockResult;
+    }
+
+    if (usaGemini) {
+      const numeroLote = payload.numeroLote ?? 7;
+      // Refinar encadena sobre la interacción previa: el prompt es solo el cambio pedido
+      // y no se reenvía la ortofoto, que el modelo ya tiene en ese hilo.
+      const refinando = Boolean(payload.previousInteractionId);
+      const prompt = refinando
+        ? construirPromptRefinamiento(payload.prompt)
+        : construirPromptEdicion({ idea: payload.prompt, numeroLote });
+      try {
+        const cliente = createGeminiImageClient({ apiKey: geminiKey as string, fetchImpl });
+        const salida = await cliente.generar({
+          prompt,
+          // Imagen 1: el sitio a editar. Imágenes 2-4: referencias de densidad y escala.
+          referencias: refinando ? [] : [cargarImagenLote(numeroLote), ...cargarReferenciasDensidad()],
+          model: env.GEMINI_IMAGE_MODEL ?? 'gemini-3.1-flash-image',
+          aspectRatio: '21:9',
+          imageSize: '2K',
+          previousInteractionId: payload.previousInteractionId,
+          timeoutMs,
+        });
+
+        const guardada = saveImageToResults(resultsDir, salida.data);
+        const result: ImagineResult = {
+          textoInspirador: refinando
+            ? `Ajustado: ${payload.prompt.trim()}.`
+            : `Así se vería ${payload.prompt.trim()} en el Lote ${numeroLote}, sobre la fotografía real del terreno.`,
+          promptVisual: prompt,
+          // El base64 va primero a propósito: la URL apunta al backend y el navegador la
+          // bloquea por Cross-Origin-Resource-Policy al venir de otro origen.
+          imageBase64: salida.data,
+          imageUrl: guardada,
+          interactionId: salida.interactionId,
+        };
+
+        if (cacheKey) cache.set(cacheKey, { value: result, expiresAt: currentTime + CACHE_TTL_MS });
+        const imageId = await persistImagineImage(payload, result, size, salida.data);
+        if (imageId) result.imageId = imageId;
+        logger.info('Imagine generation completed', { proveedor: 'gemini', numeroLote, refinando, cached: false });
+        return result;
+      } catch (error) {
+        if (error instanceof GeminiImageError) {
+          logger.error('Imagine generation failed', { proveedor: 'gemini', code: error.errorCode, status: error.status });
+        } else {
+          logger.error('Imagine generation failed', { proveedor: 'gemini', message: (error as Error)?.message });
+        }
+        throw error;
+      }
     }
 
     if (!apiKey) {
@@ -238,7 +335,7 @@ export const createImagineService = (deps: ImagineServiceDependencies = {}) => {
         imageBase64: resolvedImage.base64 ?? null,
       };
 
-      cache.set(cacheKey, { value: result, expiresAt: currentTime + CACHE_TTL_MS });
+      if (cacheKey) cache.set(cacheKey, { value: result, expiresAt: currentTime + CACHE_TTL_MS });
       const imageId = await persistImagineImage(payload, result, size, resolvedImage.base64);
       if (imageId) {
         result.imageId = imageId;

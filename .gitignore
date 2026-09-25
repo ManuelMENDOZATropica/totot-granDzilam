@@ -38,3 +38,11 @@ coverage/
 **/docker-data/
 
 .vercel
+*.tsbuildinfo
+
+# Salida en tiempo de ejecución de «Imagina tu proyecto» (disco efímero en Render)
+backend/public/IA/resultados/
+
+# Archivos de Blender de una prueba, ajenos al proyecto
+casa.blend*
+casa*.glb

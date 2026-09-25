@@ -7,6 +7,13 @@ import { logger } from '../utils/logger';
 
 const imagineSchema = z.object({
   prompt: z.string().min(5).max(400),
+  /** Sobre qué lote se dibuja. Si falta, el servicio usa uno central. */
+  numeroLote: z.coerce.number().int().min(1).max(13).optional(),
+  /**
+   * Id de una generación anterior. Permite refinar esa misma imagen —«ahora ponle más
+   * palmeras»— en vez de empezar de cero. Solo lo soporta Gemini.
+   */
+  previousInteractionId: z.string().min(8).max(300).optional(),
 });
 
 const DEFAULT_SIZE: ImagineImageSize = '1024x1024';
@@ -51,6 +58,8 @@ export const imagineDesign = async (req: Request, res: Response) => {
 
   const body = {
     prompt: rawPrompt,
+    numeroLote: req.body?.numeroLote,
+    previousInteractionId: req.body?.previousInteractionId,
   };
 
   const parsed = imagineSchema.safeParse(body);
@@ -77,6 +86,8 @@ export const imagineDesign = async (req: Request, res: Response) => {
     const result = await imagineService.generateImaginedDesign({
       prompt: parsed.data.prompt,
       size: normalizedSize.effective,
+      numeroLote: parsed.data.numeroLote,
+      previousInteractionId: parsed.data.previousInteractionId,
     });
 
     return res.status(200).json({

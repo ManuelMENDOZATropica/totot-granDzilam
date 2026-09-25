@@ -1,6 +1,6 @@
 import { HttpError } from '../utils/errors';
 import { UserModel, type User, type UserRole } from '../models/user.model';
-import { hashPassword } from '../utils/password';
+import { hashPasswordAsync } from '../utils/password';
 
 export interface UserDTO {
   id: string;
@@ -48,7 +48,7 @@ export const createUser = async ({ email, name, password, role }: CreateUserInpu
     throw new HttpError(409, 'Ya existe un usuario con ese correo');
   }
 
-  const passwordHash = hashPassword(password);
+  const passwordHash = await hashPasswordAsync(password);
   const created = await UserModel.create({
     email: normalizedEmail,
     name,
@@ -80,7 +80,7 @@ export const updateUser = async (id: string, payload: UpdateUserInput): Promise<
   }
 
   if (payload.password) {
-    data.passwordHash = hashPassword(payload.password);
+    data.passwordHash = await hashPasswordAsync(payload.password);
   }
 
   const updated = await UserModel.findByIdAndUpdate(id, data, {

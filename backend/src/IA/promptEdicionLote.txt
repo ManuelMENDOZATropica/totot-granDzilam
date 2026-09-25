@@ -1,0 +1,51 @@
+DO NOT DRAW THIS PLOT TOO SMALL.
+
+This is the failure to avoid, and it has happened in every previous attempt. Measured
+against the parking stalls in the result, the plot came back reading as 0.4 hectares when
+it is {HECTAREAS}. Everything was drawn two to five times too large for the land it sits on.
+
+A parking stall is 2.6 m wide — that size is fixed by regulation and is how the result will
+be checked. Across the {FRENTE} m short side of this plot, {CAJONES} stalls fit side by
+side. If fewer than that would fit across your drawing, everything in it is too big: make
+every object smaller and put more of them in.
+
+THE SITE
+Aerial orthophoto of a plot in Dzilam, Yucatán, Mexico. The plot is the strip outlined in
+white: {LOTE}, {FRENTE} m of road frontage by {FONDO} m deep ({AREA} m², {HECTAREAS}
+hectares). In this image it runs horizontally — the {FONDO} m depth spans left to right.
+The road is on the left. Neighbouring plots above and below, tropical dry forest all around.
+
+WHAT TO BUILD
+{CONCEPTO}
+
+Develop the whole length of the strip, not just the end near the road. Place 40 or more
+distinct elements, organised as a sequence of programme areas linked by a circulation spine
+with secondary paths. Weave planted vegetation and green pockets between the built areas.
+Images 2 and onward are reference photos of built developments: match how densely packed
+and how small their individual elements are. Do not copy their layouts.
+
+THE PARKING LOT IS THE ONE THING THAT COMES OUT WRONG
+Measured against the plot, parking has consistently been drawn at twice its correct size:
+stalls 4.9 m wide instead of 2.5 m. Everything else in the scene comes out right, so build
+the parking to the same scale as the rest.
+
+A stall is 2.5 m wide by 5 m deep. A double-loaded aisle — two rows of stalls facing a
+6 m drive lane — is 16 m across in total. Across the {FRENTE} m width of this plot, six
+such aisles would fit side by side. A 60-car lot occupies roughly 35 x 35 m, which is
+about one third of the plot's width and a twentieth of its length. If your parking looks
+bigger than that, halve it.
+
+RULES
+1. Build ONLY inside the outlined strip. Everything outside stays pixel-for-pixel identical:
+   the same road, the same forest, the same neighbouring plots, the same shadows.
+2. Remove the white outline from the output. It is a guide, not part of the scene.
+3. Keep the exact camera: same altitude, same top-down angle, same framing.
+4. Keep the same light: same sun direction, same shadow length, same colour temperature.
+5. Match the photographic style of image 1: same grain, same saturation, same realism.
+   It must look like the same drone photo taken after the project was built.
+6. No text, no labels, no numbers, no arrows, no legends, no watermarks, no borders.
+
+OUTPUT
+A single photorealistic aerial image, indistinguishable in style from image 1, with the plot
+developed along its whole length, the band at its original thickness, and everything around
+it unchanged.

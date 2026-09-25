@@ -11,6 +11,7 @@ const updateSchema = z.object({
   maxMeses: z.coerce.number().min(1).max(600).optional(),
   defaultMeses: z.coerce.number().min(1).max(600).optional(),
   interes: z.coerce.number().min(0).max(100).optional(),
+  tipoInteres: z.enum(['total', 'anual']).optional(),
   pasoMensualidad: z.coerce.number().min(1).max(1000000).optional(),
   mensualidadCerrada: z.coerce.number().min(0).max(1000000000).optional(),
 });

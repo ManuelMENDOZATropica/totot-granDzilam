@@ -95,3 +95,15 @@ export const assignContactSubmission = async (
 
   return toDto(updated);
 };
+
+/**
+ * C6 — Faltaba por completo. Lotes y usuarios tenían CRUD entero; los contactos solo se
+ * podían listar y asignar, así que el spam que entrara por el formulario público se
+ * quedaba en el CRM para siempre sin forma de quitarlo desde la interfaz.
+ */
+export const deleteContactSubmission = async (submissionId: string): Promise<void> => {
+  const deleted = await ContactSubmissionModel.findByIdAndDelete(submissionId).lean();
+  if (!deleted) {
+    throw new HttpError(404, 'Registro de contacto no encontrado');
+  }
+};

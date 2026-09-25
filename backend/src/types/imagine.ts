@@ -6,4 +6,6 @@ export interface ImagineResult {
   imageUrl: string | null;
   imageBase64?: string | null;
   imageId?: string | null;
+  /** Id de la interacción de Gemini: permite refinar esta misma imagen después. */
+  interactionId?: string | null;
 }

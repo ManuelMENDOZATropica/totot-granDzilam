@@ -1,14 +1,27 @@
 import { NextFunction, Request, Response } from 'express';
 import { HttpError } from '../utils/errors';
 import { verifyAuthToken } from '../utils/jwt';
+import { readAuthCookie } from '../utils/cookies';
 
-export const requireAuth = (req: Request, _res: Response, next: NextFunction) => {
+/**
+ * R2 — La cookie httpOnly es el camino normal. Se conserva el encabezado Bearer como
+ * alternativa para clientes que no son un navegador (scripts, pruebas, integraciones):
+ * ahí no hay riesgo de XSS porque no hay página donde inyectar nada.
+ */
+const leerToken = (req: Request): string | null => {
+  const cookie = readAuthCookie(req);
+  if (cookie) return cookie;
+
   const header = req.headers.authorization;
-  if (!header || !header.startsWith('Bearer ')) {
-    throw new HttpError(401, 'No autorizado');
+  if (header?.startsWith('Bearer ')) {
+    return header.slice('Bearer '.length).trim() || null;
   }
 
-  const token = header.replace('Bearer ', '').trim();
+  return null;
+};
+
+export const requireAuth = (req: Request, _res: Response, next: NextFunction) => {
+  const token = leerToken(req);
   if (!token) {
     throw new HttpError(401, 'No autorizado');
   }

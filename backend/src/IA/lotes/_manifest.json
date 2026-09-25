@@ -1,0 +1,80 @@
+[
+ {
+  "indiceOrtofoto": 0,
+  "loteId": "Lote 13",
+  "archivo": "lote-13.jpg",
+  "kb": 318.7
+ },
+ {
+  "indiceOrtofoto": 1,
+  "loteId": "Lote 12",
+  "archivo": "lote-12.jpg",
+  "kb": 256.2
+ },
+ {
+  "indiceOrtofoto": 2,
+  "loteId": "Lote 11",
+  "archivo": "lote-11.jpg",
+  "kb": 225.7
+ },
+ {
+  "indiceOrtofoto": 3,
+  "loteId": "Lote 10",
+  "archivo": "lote-10.jpg",
+  "kb": 224.2
+ },
+ {
+  "indiceOrtofoto": 4,
+  "loteId": "Lote 9",
+  "archivo": "lote-09.jpg",
+  "kb": 217.8
+ },
+ {
+  "indiceOrtofoto": 5,
+  "loteId": "Lote 8",
+  "archivo": "lote-08.jpg",
+  "kb": 208.2
+ },
+ {
+  "indiceOrtofoto": 6,
+  "loteId": "Lote 7",
+  "archivo": "lote-07.jpg",
+  "kb": 201.2
+ },
+ {
+  "indiceOrtofoto": 7,
+  "loteId": "Lote 6",
+  "archivo": "lote-06.jpg",
+  "kb": 201.8
+ },
+ {
+  "indiceOrtofoto": 8,
+  "loteId": "Lote 5",
+  "archivo": "lote-05.jpg",
+  "kb": 209.4
+ },
+ {
+  "indiceOrtofoto": 9,
+  "loteId": "Lote 4",
+  "archivo": "lote-04.jpg",
+  "kb": 220.7
+ },
+ {
+  "indiceOrtofoto": 10,
+  "loteId": "Lote 3",
+  "archivo": "lote-03.jpg",
+  "kb": 228.0
+ },
+ {
+  "indiceOrtofoto": 11,
+  "loteId": "Lote 2",
+  "archivo": "lote-02.jpg",
+  "kb": 234.0
+ },
+ {
+  "indiceOrtofoto": 12,
+  "loteId": "Lote 1",
+  "archivo": "lote-01.jpg",
+  "kb": 308.6
+ }
+]

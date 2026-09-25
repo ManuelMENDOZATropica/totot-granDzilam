@@ -3,7 +3,8 @@ import { z } from 'zod';
 import { UserModel } from '../models/user.model';
 import { signAuthToken } from '../utils/jwt';
 import { HttpError } from '../utils/errors';
-import { verifyPassword } from '../utils/password';
+import { verifyPasswordAsync } from '../utils/password';
+import { clearAuthCookie, setAuthCookie } from '../utils/cookies';
 
 const loginSchema = z.object({
   email: z.string().email('Correo electrónico inválido'),
@@ -25,7 +26,7 @@ export const loginController = async (req: Request, res: Response, next: NextFun
       throw new HttpError(401, 'Credenciales inválidas');
     }
 
-    const isValid = verifyPassword(password, user.passwordHash);
+    const isValid = await verifyPasswordAsync(password, user.passwordHash);
     if (!isValid) {
       throw new HttpError(401, 'Credenciales inválidas');
     }
@@ -37,7 +38,11 @@ export const loginController = async (req: Request, res: Response, next: NextFun
       role: user.role,
     });
 
-    res.json({ token, user: mapUser(user) });
+    // R2 — La sesión viaja en una cookie httpOnly. El token ya NO se devuelve en el
+    // cuerpo: si lo hiciera, el frontend podría volver a guardarlo en localStorage y
+    // estaríamos igual que antes.
+    setAuthCookie(res, token);
+    res.json({ user: mapUser(user) });
   } catch (error) {
     next(error);
   }
@@ -58,4 +63,9 @@ export const meController = async (req: Request, res: Response, next: NextFuncti
   } catch (error) {
     next(error);
   }
+};
+
+export const logoutController = (_req: Request, res: Response) => {
+  clearAuthCookie(res);
+  res.status(204).send();
 };
