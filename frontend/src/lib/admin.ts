@@ -11,9 +11,12 @@ const parseErrorMessage = async (response: Response) => {
   }
 };
 
-const authorizedFetch = (token: string, path: string, init?: RequestInit) => {
+/**
+ * R2 — Ya no recibe token: la sesión va en la cookie httpOnly que apiFetch adjunta.
+ * Antes cada llamada arrastraba el token desde React, que lo leía de localStorage.
+ */
+const authorizedFetch = (path: string, init?: RequestInit) => {
   const headers = new Headers(init?.headers);
-  headers.set('Authorization', `Bearer ${token}`);
   if (init?.body && !headers.has('Content-Type')) {
     headers.set('Content-Type', 'application/json');
   }
@@ -47,8 +50,8 @@ export interface SaveLotPayload {
   order?: number;
 }
 
-export const fetchAdminLots = async (token: string): Promise<AdminLot[]> => {
-  const response = await authorizedFetch(token, '/api/admin/lots');
+export const fetchAdminLots = async (): Promise<AdminLot[]> => {
+  const response = await authorizedFetch('/api/admin/lots');
   if (!response.ok) {
     throw new Error(await parseErrorMessage(response));
   }
@@ -57,8 +60,8 @@ export const fetchAdminLots = async (token: string): Promise<AdminLot[]> => {
   return data.items ?? [];
 };
 
-export const createAdminLot = async (token: string, payload: SaveLotPayload): Promise<AdminLot> => {
-  const response = await authorizedFetch(token, '/api/admin/lots', {
+export const createAdminLot = async (payload: SaveLotPayload): Promise<AdminLot> => {
+  const response = await authorizedFetch('/api/admin/lots', {
     method: 'POST',
     body: JSON.stringify(payload),
   });
@@ -71,11 +74,10 @@ export const createAdminLot = async (token: string, payload: SaveLotPayload): Pr
 };
 
 export const updateAdminLot = async (
-  token: string,
   id: string,
   payload: Partial<SaveLotPayload>,
 ): Promise<AdminLot> => {
-  const response = await authorizedFetch(token, `/api/admin/lots/${id}`, {
+  const response = await authorizedFetch(`/api/admin/lots/${id}`, {
     method: 'PATCH',
     body: JSON.stringify(payload),
   });
@@ -87,8 +89,8 @@ export const updateAdminLot = async (
   return (await response.json()) as AdminLot;
 };
 
-export const deleteAdminLot = async (token: string, id: string): Promise<void> => {
-  const response = await authorizedFetch(token, `/api/admin/lots/${id}`, {
+export const deleteAdminLot = async (id: string): Promise<void> => {
+  const response = await authorizedFetch(`/api/admin/lots/${id}`, {
     method: 'DELETE',
   });
 
@@ -124,8 +126,8 @@ export interface UpdateUserPayload {
   role?: UserRole;
 }
 
-export const fetchAdminUsers = async (token: string): Promise<AdminUser[]> => {
-  const response = await authorizedFetch(token, '/api/admin/users');
+export const fetchAdminUsers = async (): Promise<AdminUser[]> => {
+  const response = await authorizedFetch('/api/admin/users');
 
   if (!response.ok) {
     throw new Error(await parseErrorMessage(response));
@@ -135,8 +137,8 @@ export const fetchAdminUsers = async (token: string): Promise<AdminUser[]> => {
   return data.items ?? [];
 };
 
-export const createAdminUser = async (token: string, payload: CreateUserPayload): Promise<AdminUser> => {
-  const response = await authorizedFetch(token, '/api/admin/users', {
+export const createAdminUser = async (payload: CreateUserPayload): Promise<AdminUser> => {
+  const response = await authorizedFetch('/api/admin/users', {
     method: 'POST',
     body: JSON.stringify(payload),
   });
@@ -149,11 +151,10 @@ export const createAdminUser = async (token: string, payload: CreateUserPayload)
 };
 
 export const updateAdminUser = async (
-  token: string,
   id: string,
   payload: UpdateUserPayload,
 ): Promise<AdminUser> => {
-  const response = await authorizedFetch(token, `/api/admin/users/${id}`, {
+  const response = await authorizedFetch(`/api/admin/users/${id}`, {
     method: 'PATCH',
     body: JSON.stringify(payload),
   });
@@ -165,8 +166,8 @@ export const updateAdminUser = async (
   return (await response.json()) as AdminUser;
 };
 
-export const deleteAdminUser = async (token: string, id: string): Promise<void> => {
-  const response = await authorizedFetch(token, `/api/admin/users/${id}`, {
+export const deleteAdminUser = async (id: string): Promise<void> => {
+  const response = await authorizedFetch(`/api/admin/users/${id}`, {
     method: 'DELETE',
   });
 

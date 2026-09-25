@@ -2,7 +2,7 @@ import Head from 'next/head';
 import Image from 'next/image';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
-import { FormEvent, useEffect, useState } from 'react';
+import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { useCotizacion } from '@/hooks/useCotizacion';
 import { HeroLanding } from '@/components/home/HeroLanding';
 import { ChatbotWidget } from '@/components/chat/ChatbotWidget';
@@ -59,19 +59,22 @@ const BROCHURE_LOCK_PAGE = 10;
 
 // 1. DEFINIMOS LAS 6 VISTAS
 const vistasDesktop = [
-  { nombre: '1', src: '/assets/vistas/1.png' },
-  { nombre: '2', src: '/assets/vistas/2.png' },
-  { nombre: '3', src: '/assets/vistas/3.png' },
-  { nombre: '4', src: '/assets/vistas/4.png' },
+  { nombre: '1', src: '/assets/vistas/1.webp' },
+  { nombre: '2', src: '/assets/vistas/2.webp' },
+  { nombre: '3', src: '/assets/vistas/3.webp' },
+  { nombre: '4', src: '/assets/vistas/4.webp' },
 ];
 
 const vistasMobile = [
-  { nombre: '1', src: '/assets/vistas/mobile1.png' },
-  { nombre: '2', src: '/assets/vistas/mobile2.png' },
-  { nombre: '3', src: '/assets/vistas/mobile3.png' },
-  { nombre: '4', src: '/assets/vistas/mobile4.png' },
-  { nombre: '5', src: '/assets/vistas/mobile5.png' },
-  { nombre: '6', src: '/assets/vistas/mobile6.png' },
+  { nombre: '1', src: '/assets/vistas/mobile1.webp' },
+  { nombre: '2', src: '/assets/vistas/mobile2.webp' },
+  { nombre: '3', src: '/assets/vistas/mobile3.webp' },
+  { nombre: '4', src: '/assets/vistas/mobile4.webp' },
+  // Estas dos apuntan a archivos que no existen en el repo: se añadieron en el commit
+  // «Nuevas imagenes mobile» y se borraron después sin quitar la referencia. Quedan
+  // comentadas en vez de eliminadas por si las imágenes reaparecen.
+  // { nombre: '5', src: '/assets/vistas/mobile5.webp' },
+  // { nombre: '6', src: '/assets/vistas/mobile6.webp' },
 ];
 
 export default function Home() {
@@ -98,7 +101,15 @@ export default function Home() {
     actualizarMensualidadPersonalizada,
   } = useCotizacion();
 
-  const { status, error: imagineError, generate, result } = useImagine();
+  const { status, error: imagineError, generate, refine, puedeRefinar, result } = useImagine();
+
+  // «Lote 7» -> 7. El backend dibuja sobre la ortofoto de ese lote.
+  const loteElegido = useMemo(() => {
+    const primero = selectedIds[0];
+    if (!primero) return undefined;
+    const n = Number.parseInt(String(primero).replace(/\D+/g, ''), 10);
+    return Number.isFinite(n) && n >= 1 && n <= 13 ? n : undefined;
+  }, [selectedIds]);
   const { user } = useAuth();
   const { language, translations } = useLanguage();
 
@@ -125,6 +136,11 @@ export default function Home() {
   const [fading, setFading] = useState(false);
   const [infoPanelReset, setInfoPanelReset] = useState(0);
   const [vistas, setVistas] = useState(vistasDesktop);
+  /**
+   * Diseños generados, el más reciente primero. Viven aquí y no en `fondoActual` para que
+   * volver al cotizador no los borre: antes el fondo se reemplazaba y el diseño se perdía.
+   */
+  const [disenos, setDisenos] = useState<{ nombre: string; src: string; esDiseno: true }[]>([]);
 
   useEffect(() => {
     setMounted(true);
@@ -198,6 +214,12 @@ export default function Home() {
       return;
     }
 
+    setDisenos((prev) =>
+      prev[0]?.src === imageUrl
+        ? prev
+        : [{ nombre: `Tu diseño ${prev.length + 1}`, src: imageUrl, esDiseno: true }, ...prev],
+    );
+    setVistaActiva(0);
     setFading(true);
     const timer = setTimeout(() => {
       setFondoActual(imageUrl);
@@ -248,7 +270,16 @@ export default function Home() {
       isMobileViewport && trimmedPrompt && !isVerticalPrompt
         ? `${trimmedPrompt} en formato vertical`
         : prompt;
-    await generate(orientedPrompt, size);
+    await generate(orientedPrompt, size, { numeroLote: loteElegido });
+  };
+
+  /**
+   * La imagen se dibuja sobre la ortofoto del lote que el cliente tenga seleccionado.
+   * Si eligió varios se toma el primero; si no eligió ninguno, el backend usa uno central.
+   */
+  const handleImagineRefine = async (instruccion: string) => {
+    const size = isMobileViewport ? '1024x1536' : '1536x1024';
+    await refine(instruccion, size, loteElegido);
   };
 
   const handleImagineShortcut = (value: string, index: number) => {
@@ -260,7 +291,7 @@ export default function Home() {
   };
 
   const handleCambioVista = (index: number) => {
-    const vista = vistas[index];
+    const vista = vistasVisibles[index];
     if (!vista) return;
     setInfoPanelReset((value) => value + 1);
     if (vista.src === fondoActual) {
@@ -358,14 +389,22 @@ export default function Home() {
     };
   }, [brochureUrl]);
 
-  // --- LÓGICA DEL CARRUSEL VERTICAL (DESKTOP) ---
-  const vistasDinamicas = vistas.slice(1);
-  const ITEM_HEIGHT_WITH_GAP = 116;
-  const activeIndex = vistaActiva ?? 0;
-  const VISIBLE_ITEMS = 3;
-  const maxScrollIndex = Math.max(0, vistasDinamicas.length - VISIBLE_ITEMS);
-  const idealOffset = Math.max(0, activeIndex - 2);
-  const scrollOffset = Math.min(idealOffset, maxScrollIndex);
+  // El lote vacío (índice 0 de `vistas`) sale de la lista: pasó a ser el botón de volver.
+  const vistasVisibles = useMemo(
+    () => [...disenos, ...vistas.slice(1)],
+    [disenos, vistas],
+  );
+
+  const volverAlCotizador = () => {
+    setInfoPanelReset((value) => value + 1);
+    setVistaActiva(null);
+    if (vistas[0].src === fondoActual) return;
+    setFading(true);
+    setTimeout(() => {
+      setFondoActual(vistas[0].src);
+      setFading(false);
+    }, 200);
+  };
 
   return (
     <>
@@ -387,7 +426,7 @@ export default function Home() {
           <InteractiveMap
             src={fondoActual}
             imageClassName={isMobileViewport ? 'object-contain object-top' : 'object-cover'}
-            className={`absolute inset-0 z-1 transition-opacity duration-500 
+            className={`absolute inset-0 z-1 transition-opacity duration-500
                 ${fading ? 'opacity-0' : 'opacity-100'}
                 ${isMobileViewport ? 'bg-slate-900' : ''}
               `}
@@ -456,11 +495,11 @@ export default function Home() {
           </div>
 
           <ViewSelectorDesktop
-            vistas={vistas}
+            vistas={vistasVisibles}
             vistaActiva={vistaActiva}
             onChange={handleCambioVista}
-            scrollOffset={scrollOffset}
-            itemHeightWithGap={ITEM_HEIGHT_WITH_GAP}
+            onVolverCotizador={volverAlCotizador}
+            cotizadorActivo={vistaActiva === null}
           />
 
           <ImaginePanel
@@ -470,6 +509,9 @@ export default function Home() {
             onShortcut={handleImagineShortcut}
             status={status}
             imagineError={imagineError}
+            onRefine={handleImagineRefine}
+            puedeRefinar={puedeRefinar}
+            numeroLote={loteElegido}
           />
 
           <MacroCotizadorPanel

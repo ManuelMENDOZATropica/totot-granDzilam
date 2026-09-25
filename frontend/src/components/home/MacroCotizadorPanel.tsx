@@ -292,7 +292,7 @@ export const MacroCotizadorPanel = ({
               {/* MAPA (SOLO DESKTOP) */}
               <div className="relative hidden h-full w-full overflow-hidden rounded-2xl bg-[#F3F1EC] lg:block">
                 <Image
-                  src="/assets/vistas/COTIZACION2.png"
+                  src="/assets/vistas/COTIZACION2.webp"
                   alt="Mapa de referencia Gran Dzilam"
                   fill
                   sizes="100vw"

@@ -58,6 +58,7 @@ interface FinanceFormState {
   maxMeses: string;
   defaultMeses: string;
   interes: string;
+  tipoInteres: 'total' | 'anual';
   pasoMensualidad: string;
   mensualidadCerrada: string;
 }
@@ -85,6 +86,7 @@ const financeFormInitialState: FinanceFormState = {
   maxMeses: '',
   defaultMeses: '',
   interes: '',
+  tipoInteres: 'total',
   pasoMensualidad: '',
   mensualidadCerrada: '',
 };
@@ -94,7 +96,7 @@ const roleOptions: UserRole[] = ['admin', 'editor', 'viewer'];
 
 export default function CrmPage() {
   const router = useRouter();
-  const { user, token, login, logout, isLoading } = useAuth();
+  const { user, login, logout, isLoading } = useAuth();
   const [activeTab, setActiveTab] = useState<AdminTab>('lots');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -164,39 +166,39 @@ export default function CrmPage() {
   };
 
   const loadLots = useCallback(async () => {
-    if (!token) {
+    if (!user) {
       return;
     }
     setLotsLoading(true);
     setLotsError(null);
     try {
-      const items = await fetchAdminLots(token);
+      const items = await fetchAdminLots();
       setLots(items);
     } catch (error) {
       setLotsError((error as Error).message);
     } finally {
       setLotsLoading(false);
     }
-  }, [token]);
+  }, [user]);
 
   const loadUsers = useCallback(async () => {
-    if (!token) {
+    if (!user) {
       return;
     }
     setUsersLoading(true);
     setUsersError(null);
     try {
-      const items = await fetchAdminUsers(token);
+      const items = await fetchAdminUsers();
       setUsers(items);
     } catch (error) {
       setUsersError((error as Error).message);
     } finally {
       setUsersLoading(false);
     }
-  }, [token]);
+  }, [user]);
 
   const loadFinanceSettings = useCallback(async () => {
-    if (!token || user?.role !== 'admin') {
+    if (user?.role !== 'admin') {
       return;
     }
 
@@ -214,6 +216,7 @@ export default function CrmPage() {
         maxMeses: String(settings.maxMeses),
         defaultMeses: String(settings.defaultMeses),
         interes: String(settings.interes),
+        tipoInteres: settings.tipoInteres ?? 'total',
         pasoMensualidad: String(settings.pasoMensualidad ?? 1000),
         mensualidadCerrada: String(settings.mensualidadCerrada ?? 0),
       });
@@ -222,10 +225,10 @@ export default function CrmPage() {
     } finally {
       setFinanceLoading(false);
     }
-  }, [token, user?.role]);
+  }, [user?.role]);
 
   const loadContactSubmissions = useCallback(async () => {
-    if (!token || !user) {
+    if (!user || !user) {
       return;
     }
 
@@ -235,31 +238,31 @@ export default function CrmPage() {
     try {
       const items =
         user.role === 'admin'
-          ? await fetchAdminContactSubmissions(token)
-          : await fetchMyContactSubmissions(token);
+          ? await fetchAdminContactSubmissions()
+          : await fetchMyContactSubmissions();
       setContactSubmissions(items);
     } catch (error) {
       setContactsError((error as Error).message);
     } finally {
       setContactsLoading(false);
     }
-  }, [token, user]);
+  }, [user]);
 
   useEffect(() => {
-    if (!token || !user || user.role !== 'admin') {
+    if (!user || user.role !== 'admin') {
       return;
     }
     void loadLots();
     void loadUsers();
     void loadFinanceSettings();
-  }, [token, user, loadLots, loadUsers, loadFinanceSettings]);
+  }, [user, loadLots, loadUsers, loadFinanceSettings]);
 
   useEffect(() => {
-    if (!token || !user) {
+    if (!user || !user) {
       return;
     }
     void loadContactSubmissions();
-  }, [token, user, loadContactSubmissions]);
+  }, [user, loadContactSubmissions]);
 
   const handleLogin = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -291,7 +294,7 @@ export default function CrmPage() {
 
   const handleLotSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (!token) {
+    if (!user) {
       return;
     }
 
@@ -327,9 +330,9 @@ export default function CrmPage() {
 
     try {
       if (editingLotId) {
-        await updateAdminLot(token, editingLotId, payload);
+        await updateAdminLot(editingLotId, payload);
       } else {
-        await createAdminLot(token, payload);
+        await createAdminLot(payload);
       }
       resetLotForm();
       await loadLots();
@@ -352,7 +355,7 @@ export default function CrmPage() {
   };
 
   const handleLotDelete = async (lot: AdminLot) => {
-    if (!token) {
+    if (!user) {
       return;
     }
     if (typeof window !== 'undefined' && !window.confirm(`¿Eliminar el lote ${lot.identifier}?`)) {
@@ -360,7 +363,7 @@ export default function CrmPage() {
     }
     setLotsError(null);
     try {
-      await deleteAdminLot(token, lot.id);
+      await deleteAdminLot(lot.id);
       setLots((previous) => previous.filter((item) => item.id !== lot.id));
     } catch (error) {
       setLotsError((error as Error).message);
@@ -379,7 +382,7 @@ export default function CrmPage() {
 
   const handleUserSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (!token) {
+    if (!user) {
       return;
     }
 
@@ -399,7 +402,7 @@ export default function CrmPage() {
           role: userFormState.role,
           ...(userFormState.password ? { password: userFormState.password } : {}),
         };
-        await updateAdminUser(token, editingUserId, payload);
+        await updateAdminUser(editingUserId, payload);
       } else {
         if (!userFormState.password) {
           setUserFormError('Debes definir una contraseña temporal para el usuario');
@@ -412,7 +415,7 @@ export default function CrmPage() {
           role: userFormState.role,
           password: userFormState.password,
         };
-        await createAdminUser(token, payload);
+        await createAdminUser(payload);
       }
       resetUserForm();
       await loadUsers();
@@ -434,7 +437,7 @@ export default function CrmPage() {
   };
 
   const handleUserDelete = async (adminUser: AdminUser) => {
-    if (!token) {
+    if (!user) {
       return;
     }
     if (
@@ -445,7 +448,7 @@ export default function CrmPage() {
     }
     setUsersError(null);
     try {
-      await deleteAdminUser(token, adminUser.id);
+      await deleteAdminUser(adminUser.id);
       setUsers((previous) => previous.filter((item) => item.id !== adminUser.id));
     } catch (error) {
       setUsersError((error as Error).message);
@@ -453,7 +456,7 @@ export default function CrmPage() {
   };
 
   const handleAssignContact = async (submissionId: string, assignedTo: string | null) => {
-    if (!token || user?.role !== 'admin') {
+    if (user?.role !== 'admin') {
       return;
     }
 
@@ -461,7 +464,7 @@ export default function CrmPage() {
     setContactsError(null);
 
     try {
-      const updated = await assignContactSubmission(token, submissionId, assignedTo);
+      const updated = await assignContactSubmission(submissionId, assignedTo);
       setContactSubmissions((previous) =>
         previous.map((item) => (item.id === submissionId ? updated : item)),
       );
@@ -478,7 +481,7 @@ export default function CrmPage() {
 
   const handleFinanceSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (!token || user?.role !== 'admin') {
+    if (user?.role !== 'admin') {
       return;
     }
 
@@ -494,11 +497,12 @@ export default function CrmPage() {
         maxMeses: Number(financeForm.maxMeses),
         defaultMeses: Number(financeForm.defaultMeses),
         interes: Number(financeForm.interes),
+        tipoInteres: financeForm.tipoInteres,
         pasoMensualidad: Number(financeForm.pasoMensualidad),
         mensualidadCerrada: Number(financeForm.mensualidadCerrada),
       };
 
-      const settings = await updateFinanceSettings(token, payload);
+      const settings = await updateFinanceSettings(payload);
       setFinanceSettingsState(settings);
       setFinanceForm({
         minEnganche: String(settings.minEnganche),
@@ -508,6 +512,7 @@ export default function CrmPage() {
         maxMeses: String(settings.maxMeses),
         defaultMeses: String(settings.defaultMeses),
         interes: String(settings.interes),
+        tipoInteres: settings.tipoInteres ?? 'total',
         pasoMensualidad: String(settings.pasoMensualidad ?? 1000),
         mensualidadCerrada: String(settings.mensualidadCerrada ?? 0),
       });
@@ -550,7 +555,7 @@ export default function CrmPage() {
     );
   }
 
-  if (!user || !token) {
+  if (!user || !user) {
     return (
       <>
         <Head>
@@ -1117,7 +1122,25 @@ export default function CrmPage() {
                       />
                     </label>
                     <label className="text-sm text-slate-600">
-                      Interés (%)
+                      Cómo se cobra el interés
+                      <select
+                        value={financeForm.tipoInteres}
+                        onChange={(event) =>
+                          handleFinanceFieldChange('tipoInteres', event.target.value as 'total' | 'anual')
+                        }
+                        className="mt-1 w-full rounded-2xl border border-slate-200 px-4 py-2 text-slate-900"
+                      >
+                        <option value="total">Recargo único sobre el saldo</option>
+                        <option value="anual">Tasa anual, crédito amortizado</option>
+                      </select>
+                      <span className="mt-1 block text-xs text-slate-500">
+                        {financeForm.tipoInteres === 'total'
+                          ? 'El porcentaje se suma una sola vez al saldo y se reparte entre los meses.'
+                          : 'Tasa anual nominal con amortización francesa. Cobra bastante más que el recargo único.'}
+                      </span>
+                    </label>
+                    <label className="text-sm text-slate-600">
+                      {financeForm.tipoInteres === 'total' ? 'Recargo total (%)' : 'Tasa anual (%)'}
                       <input
                         type="number"
                         min="0"

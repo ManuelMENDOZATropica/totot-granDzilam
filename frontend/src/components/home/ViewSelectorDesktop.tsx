@@ -1,77 +1,73 @@
 import Image from 'next/image';
 
-type Vista = { nombre: string; src: string };
+export type Vista = { nombre: string; src: string; esDiseno?: boolean };
 
 interface ViewSelectorDesktopProps {
   vistaActiva: number | null;
+  /** Diseños generados primero, luego los ejemplos. */
   vistas: Vista[];
   onChange: (index: number) => void;
-  scrollOffset: number;
-  itemHeightWithGap: number;
+  /** Vuelve al mapa del cotizador sin descartar los diseños de la lista. */
+  onVolverCotizador: () => void;
+  cotizadorActivo: boolean;
 }
 
 export const ViewSelectorDesktop = ({
   vistaActiva,
   vistas,
   onChange,
-  scrollOffset,
-  itemHeightWithGap,
-}: ViewSelectorDesktopProps) => {
-  const vistaFija = vistas[0];
-  const vistasDinamicas = vistas.slice(1);
+  onVolverCotizador,
+  cotizadorActivo,
+}: ViewSelectorDesktopProps) => (
+  <div className="absolute right-[clamp(0.75rem,2vw,1.5rem)] top-1/2 z-[20] hidden max-h-[80vh] -translate-y-1/2 flex-col gap-3 md:flex">
+    {/*
+      Antes esta posición la ocupaba una miniatura del lote vacío. Al pulsarla volvías al
+      cotizador y el diseño generado desaparecía, porque el fondo se reemplazaba y no
+      quedaba en ningún sitio. Ahora es un botón explícito y los diseños viven en la lista.
+    */}
+    <button
+      type="button"
+      onClick={onVolverCotizador}
+      className={`flex w-[clamp(7.5rem,12vw,10rem)] shrink-0 items-center justify-center gap-2 rounded-xl border px-3 py-2.5 text-[clamp(0.6rem,1.1vw,0.72rem)] font-semibold transition ${
+        cotizadorActivo
+          ? 'border-white bg-white text-slate-900'
+          : 'border-white/60 bg-slate-900/55 text-white backdrop-blur-sm hover:border-white hover:bg-slate-900/75'
+      }`}
+    >
+      <svg viewBox="0 0 20 20" className="h-3.5 w-3.5 shrink-0" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+        <path d="M12 15 7 10l5-5" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+      Volver al cotizador
+    </button>
 
-  return (
-    <div className="absolute right-[clamp(0.75rem,2vw,1.5rem)] top-1/2 z-[20] hidden -translate-y-1/2 flex-col gap-4 md:flex">
-      <button
-        type="button"
-        onClick={() => onChange(0)}
-        className="group overflow-hidden rounded-xl transition relative z-20"
-      >
-        <Image
-          src={vistaFija.src}
-          alt={vistaFija.nombre}
-          width={160}
-          height={100}
-          className={`h-[clamp(4.5rem,9vw,6.25rem)] w-[clamp(7.5rem,12vw,10rem)] object-cover transition-transform duration-300 ${
-            vistaActiva === 0 ? 'scale-[1.05] ring-2 ring-white' : 'group-hover:scale-[1.03] opacity-80 hover:opacity-100'
-          }`}
-        />
-        <div className="absolute bottom-1 right-2 text-[clamp(0.55rem,1.2vw,0.65rem)] font-bold text-white drop-shadow-md opacity-0 group-hover:opacity-100 transition-opacity">
-          Vista 1
-        </div>
-      </button>
-
-      <div className="relative h-[min(50vh,20.75rem)] w-[clamp(7.5rem,12vw,10rem)] overflow-hidden rounded-xl">
-        <div
-          className="flex flex-col gap-4 transition-transform duration-500 ease-in-out will-change-transform"
-          style={{ transform: `translateY(-${scrollOffset * itemHeightWithGap}px)` }}
+    <div className="flex flex-col gap-3 overflow-y-auto overscroll-contain pr-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      {vistas.map((vista, index) => (
+        <button
+          key={`${vista.nombre}-${index}`}
+          type="button"
+          onClick={() => onChange(index)}
+          className="group relative shrink-0 overflow-hidden rounded-xl transition"
+          title={vista.esDiseno ? vista.nombre : `Ejemplo ${vista.nombre}`}
         >
-          {vistasDinamicas.map((vista, index) => {
-            const globalIndex = index + 1;
-
-            return (
-              <button
-                key={vista.nombre}
-                type="button"
-                onClick={() => onChange(globalIndex)}
-                className="group overflow-hidden rounded-xl transition shrink-0"
-              >
-                <Image
-                  src={vista.src}
-                  alt={vista.nombre}
-                  width={160}
-                  height={100}
-                  className={`h-[clamp(4.5rem,9vw,6.25rem)] w-[clamp(7.5rem,12vw,10rem)] object-cover transition-transform duration-300 ${
-                    vistaActiva === globalIndex
-                      ? 'scale-[1.05] ring-2 ring-white'
-                      : 'group-hover:scale-[1.03] opacity-80 hover:opacity-100'
-                  }`}
-                />
-              </button>
-            );
-          })}
-        </div>
-      </div>
+          <Image
+            src={vista.src}
+            alt={vista.nombre}
+            width={160}
+            height={100}
+            unoptimized={vista.esDiseno}
+            className={`h-[clamp(4.5rem,9vw,6.25rem)] w-[clamp(7.5rem,12vw,10rem)] object-cover transition-transform duration-300 ${
+              vistaActiva === index
+                ? 'scale-[1.05] ring-2 ring-white'
+                : 'opacity-80 group-hover:scale-[1.03] hover:opacity-100'
+            }`}
+          />
+          {vista.esDiseno ? (
+            <span className="pointer-events-none absolute left-1.5 top-1.5 rounded-full bg-emerald-400 px-2 py-0.5 text-[0.6rem] font-bold text-slate-900">
+              {vista.nombre}
+            </span>
+          ) : null}
+        </button>
+      ))}
     </div>
-  );
-};
+  </div>
+);

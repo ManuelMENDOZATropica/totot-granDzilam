@@ -10,6 +10,15 @@ export interface ImagineData {
   promptVisual: string;
   imageUrl: string | null;
   imageBase64?: string | null;
+  /** Permite pedirle a Gemini un ajuste sobre esta misma imagen. */
+  interactionId?: string | null;
+}
+
+export interface ImagineOpciones {
+  /** Lote sobre el que se dibuja (1-13). */
+  numeroLote?: number;
+  /** Id de la imagen anterior: convierte la petición en un refinamiento. */
+  previousInteractionId?: string;
 }
 
 interface ImagineResponse {
@@ -41,8 +50,11 @@ const resolveImageUrl = (value: string) => {
 
 export const getImagineImageSrc = (data: Pick<ImagineData, 'imageUrl' | 'imageBase64'> | null) => {
   if (!data) return null;
-  if (data.imageUrl) return resolveImageUrl(data.imageUrl);
+  // El base64 va primero: la URL apunta al backend, que responde con
+  // Cross-Origin-Resource-Policy: same-origin, así que el navegador bloquea esa imagen
+  // al cargarla desde otro origen. Un data: URI no tiene ese problema.
   if (data.imageBase64) return `data:image/png;base64,${data.imageBase64}`;
+  if (data.imageUrl) return resolveImageUrl(data.imageUrl);
   return null;
 };
 
@@ -55,7 +67,7 @@ export const useImagine = () => {
   const endpoint = useMemo(buildImagineEndpoint, []);
 
   const generate = useCallback(
-    async (prompt: string, size: ImagineSize) => {
+    async (prompt: string, size: ImagineSize, opciones: ImagineOpciones = {}) => {
       const normalizedPrompt = sanitizePrompt(prompt);
       if (normalizedPrompt.length < 5) {
         setError('Describe tu idea con al menos 5 caracteres.');
@@ -79,7 +91,12 @@ export const useImagine = () => {
         const response = await fetch(endpoint, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ prompt: normalizedPrompt, size: safeSize }),
+          body: JSON.stringify({
+            prompt: normalizedPrompt,
+            size: safeSize,
+            numeroLote: opciones.numeroLote,
+            previousInteractionId: opciones.previousInteractionId,
+          }),
           signal: controller.signal,
         });
 
@@ -130,6 +147,26 @@ export const useImagine = () => {
     [endpoint],
   );
 
+  /**
+   * Pide un ajuste sobre la imagen que ya está en pantalla —«ponle más palmeras»— en vez
+   * de generar una nueva desde cero. Necesita que la generación previa haya devuelto un
+   * interactionId, que hoy solo entrega Gemini.
+   */
+  const refine = useCallback(
+    async (instruccion: string, size: ImagineSize, numeroLote?: number) => {
+      const anterior = result?.interactionId;
+      if (!anterior) {
+        setError('Primero genera una imagen para poder ajustarla.');
+        setStatus('error');
+        return { ok: false } as const;
+      }
+      return generate(instruccion, size, { numeroLote, previousInteractionId: anterior });
+    },
+    [generate, result],
+  );
+
+  const puedeRefinar = Boolean(result?.interactionId);
+
   const reset = useCallback(() => {
     setStatus('idle');
     setError(null);
@@ -141,6 +178,8 @@ export const useImagine = () => {
     result,
     error,
     generate,
+    refine,
+    puedeRefinar,
     reset,
   };
 };

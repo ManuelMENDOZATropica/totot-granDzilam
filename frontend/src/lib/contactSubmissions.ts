@@ -43,9 +43,9 @@ export const createContactSubmission = async (payload: CreateContactSubmissionPa
   return (await response.json()) as ContactSubmission;
 };
 
-const authorizedFetch = (token: string, path: string, init?: RequestInit) => {
+/** R2 — La sesión va en la cookie httpOnly que apiFetch adjunta; ya no hay token. */
+const authorizedFetch = (path: string, init?: RequestInit) => {
   const headers = new Headers(init?.headers);
-  headers.set('Authorization', `Bearer ${token}`);
   if (init?.body && !headers.has('Content-Type')) {
     headers.set('Content-Type', 'application/json');
   }
@@ -53,8 +53,8 @@ const authorizedFetch = (token: string, path: string, init?: RequestInit) => {
   return apiFetch(path, { ...init, headers });
 };
 
-export const fetchMyContactSubmissions = async (token: string): Promise<ContactSubmission[]> => {
-  const response = await authorizedFetch(token, '/api/contact-submissions');
+export const fetchMyContactSubmissions = async (): Promise<ContactSubmission[]> => {
+  const response = await authorizedFetch('/api/contact-submissions');
 
   if (!response.ok) {
     throw new Error(await parseErrorMessage(response));
@@ -64,8 +64,8 @@ export const fetchMyContactSubmissions = async (token: string): Promise<ContactS
   return data.items ?? [];
 };
 
-export const fetchAdminContactSubmissions = async (token: string): Promise<ContactSubmission[]> => {
-  const response = await authorizedFetch(token, '/api/admin/contact-submissions');
+export const fetchAdminContactSubmissions = async (): Promise<ContactSubmission[]> => {
+  const response = await authorizedFetch('/api/admin/contact-submissions');
 
   if (!response.ok) {
     throw new Error(await parseErrorMessage(response));
@@ -76,11 +76,10 @@ export const fetchAdminContactSubmissions = async (token: string): Promise<Conta
 };
 
 export const assignContactSubmission = async (
-  token: string,
   id: string,
   assignedTo: string | null,
 ): Promise<ContactSubmission> => {
-  const response = await authorizedFetch(token, `/api/admin/contact-submissions/${id}`, {
+  const response = await authorizedFetch(`/api/admin/contact-submissions/${id}`, {
     method: 'PATCH',
     body: JSON.stringify({ assignedTo }),
   });

@@ -15,7 +15,6 @@ interface LoginPayload {
 }
 
 interface LoginSuccess {
-  token: string;
   user: AuthUser;
 }
 
@@ -42,16 +41,17 @@ export const loginRequest = async (email: string, password: string): Promise<Log
   return (await response.json()) as LoginSuccess;
 };
 
-export const fetchCurrentUser = async (token: string): Promise<AuthUser> => {
-  const response = await apiFetch('/api/auth/me', {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
+/** La sesión viaja en la cookie httpOnly; ya no hay token que pasar. */
+export const fetchCurrentUser = async (): Promise<AuthUser> => {
+  const response = await apiFetch('/api/auth/me');
 
   if (!response.ok) {
     throw new Error(await parseErrorMessage(response));
   }
 
   return (await response.json()) as AuthUser;
+};
+
+export const logoutRequest = async (): Promise<void> => {
+  await apiFetch('/api/auth/logout', { method: 'POST' });
 };

@@ -18,6 +18,11 @@ export const buildApiUrl = (path: string) => {
   return `${base}${path.startsWith('/') ? path : `/${path}`}`;
 };
 
+/**
+ * R2 — `credentials: 'include'` es lo que hace que el navegador adjunte la cookie de
+ * sesión httpOnly. Sin esto la cookie existe pero nunca viaja, porque el backend está en
+ * otro origen. Va en todas las llamadas: las públicas simplemente la ignoran.
+ */
 export const apiFetch = (path: string, init?: RequestInit) => {
-  return fetch(buildApiUrl(path), init);
+  return fetch(buildApiUrl(path), { credentials: 'include', ...init });
 };

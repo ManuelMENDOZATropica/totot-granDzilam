@@ -7,103 +7,81 @@ import {
   useState,
   type ReactNode,
 } from 'react';
-import { fetchCurrentUser, loginRequest, type AuthUser } from '@/lib/auth';
+import { fetchCurrentUser, loginRequest, logoutRequest, type AuthUser } from '@/lib/auth';
 
 interface AuthContextValue {
   user: AuthUser | null;
-  token: string | null;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<AuthUser>;
-  logout: () => void;
+  logout: () => Promise<void>;
   refreshUser: () => Promise<AuthUser | null>;
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
-const TOKEN_STORAGE_KEY = 'gran-dzilam:auth-token';
-const USER_STORAGE_KEY = 'gran-dzilam:auth-user';
-
-const readStorage = (key: string) => {
-  if (typeof window === 'undefined') {
-    return null;
-  }
-
-  return window.localStorage.getItem(key);
-};
-
-const writeStorage = (key: string, value: string | null) => {
-  if (typeof window === 'undefined') {
-    return;
-  }
-
-  if (value === null) {
-    window.localStorage.removeItem(key);
-    return;
-  }
-
-  window.localStorage.setItem(key, value);
-};
-
+/**
+ * R2 — Antes el token y el usuario se guardaban en localStorage, donde cualquier script
+ * inyectado en la página podía leerlos, y la sesión se restauraba confiando en lo que
+ * hubiera ahí. Ahora la sesión vive en una cookie httpOnly que este código no puede ver:
+ * al arrancar se le pregunta al backend quién es el usuario, y él decide.
+ *
+ * El perfil ya no se cachea en el navegador a propósito. Una petición a /api/auth/me al
+ * cargar cuesta muy poco y evita mostrar como sesión válida algo que el servidor ya no
+ * reconoce.
+ */
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<AuthUser | null>(null);
-  const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const storedToken = readStorage(TOKEN_STORAGE_KEY);
-    const storedUser = readStorage(USER_STORAGE_KEY);
+    let vivo = true;
 
-    if (storedToken && storedUser) {
-      try {
-        const parsed = JSON.parse(storedUser) as AuthUser;
-        setToken(storedToken);
-        setUser(parsed);
-      } catch (error) {
-        console.warn('No se pudo restaurar la sesión almacenada', error);
-        writeStorage(TOKEN_STORAGE_KEY, null);
-        writeStorage(USER_STORAGE_KEY, null);
-      }
-    }
+    fetchCurrentUser()
+      .then((actual) => {
+        if (vivo) setUser(actual);
+      })
+      .catch(() => {
+        // Sin cookie válida simplemente no hay sesión: no es un error que mostrar.
+        if (vivo) setUser(null);
+      })
+      .finally(() => {
+        if (vivo) setIsLoading(false);
+      });
 
-    setIsLoading(false);
-  }, []);
-
-  const persistSession = useCallback((nextToken: string | null, nextUser: AuthUser | null) => {
-    setToken(nextToken);
-    setUser(nextUser);
-    writeStorage(TOKEN_STORAGE_KEY, nextToken);
-    writeStorage(USER_STORAGE_KEY, nextUser ? JSON.stringify(nextUser) : null);
+    return () => {
+      vivo = false;
+    };
   }, []);
 
   const login = useCallback(async (email: string, password: string) => {
-    const { token: nextToken, user: nextUser } = await loginRequest(email, password);
-    persistSession(nextToken, nextUser);
-    return nextUser;
-  }, [persistSession]);
+    const { user: siguiente } = await loginRequest(email, password);
+    setUser(siguiente);
+    return siguiente;
+  }, []);
 
-  const logout = useCallback(() => {
-    persistSession(null, null);
-  }, [persistSession]);
+  const logout = useCallback(async () => {
+    try {
+      await logoutRequest();
+    } catch (error) {
+      console.warn('No se pudo cerrar la sesión en el servidor', error);
+    }
+    setUser(null);
+  }, []);
 
   const refreshUser = useCallback(async () => {
-    if (!token) {
-      return null;
-    }
-
     try {
-      const current = await fetchCurrentUser(token);
-      persistSession(token, current);
-      return current;
-    } catch (error) {
-      console.warn('No se pudo actualizar la sesión', error);
-      persistSession(null, null);
+      const actual = await fetchCurrentUser();
+      setUser(actual);
+      return actual;
+    } catch {
+      setUser(null);
       return null;
     }
-  }, [persistSession, token]);
+  }, []);
 
   const value = useMemo<AuthContextValue>(
-    () => ({ user, token, isLoading, login, logout, refreshUser }),
-    [user, token, isLoading, login, logout, refreshUser],
+    () => ({ user, isLoading, login, logout, refreshUser }),
+    [user, isLoading, login, logout, refreshUser],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

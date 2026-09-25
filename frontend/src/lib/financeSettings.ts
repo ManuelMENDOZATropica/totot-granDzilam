@@ -8,6 +8,8 @@ export interface FinanceSettingsDTO {
   maxMeses: number;
   defaultMeses: number;
   interes: number;
+  /** 'total' = recargo único sobre el saldo. 'anual' = crédito amortizado. */
+  tipoInteres?: 'total' | 'anual';
   pasoMensualidad: number;
   mensualidadCerrada: number;
 }
@@ -38,14 +40,12 @@ export const fetchFinanceSettings = async (): Promise<FinanceSettingsDTO> => {
 };
 
 export const updateFinanceSettings = async (
-  token: string,
   payload: Partial<FinanceSettingsDTO>,
 ): Promise<FinanceSettingsDTO> => {
   const response = await apiFetch('/api/finance-settings', {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
     },
     body: JSON.stringify(payload),
   });
