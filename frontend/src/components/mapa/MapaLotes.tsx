@@ -28,21 +28,52 @@ const estadoStyles: Record<
   },
 };
 
+/**
+ * Dimensiones de cotizadorFondo.webp, la ortofoto que va detrás de este mapa.
+ * El SVG usa sus píxeles como sistema de coordenadas, así que los polígonos quedan
+ * clavados sobre la imagen pase lo que pase con el tamaño del panel. Si se cambia la
+ * imagen hay que cambiar estos dos números Y los polígonos.
+ */
+const MAPA_IMAGEN = { width: 2400, height: 1680 };
+
+/**
+ * Los 13 lotes, de izquierda a derecha, en píxeles de esa imagen. Salen de medir sobre
+ * el propio render: las 12 divisiones que dibuja, más los cuatro bordes del predio.
+ * Antes estaban en un espacio inventado (viewBox 370 180 500 550) que no tenía nada que
+ * ver con el fondo, y por eso los lotes aparecían desplazados respecto a la foto.
+ */
 const LOT_PATHS = [
-  "390,200 425,200 420,695.5 382,705",   // 1
-  "423,200 460,200 455,686.8 420,695.5", // 2
-  "460,200 495,200 490,678.0 455,686.8", // 3
-  "495,200 530,200 526,669.0 490,678.0", // 4
-  "530,200 565,200 561,660.3 526,669.0", // 5
-  "565,200 600,200 596,651.5 561,660.3", // 6
-  "600,200 635,200 630,643.0 596,651.5", // 7
-  "635,200 670,200 666,634.0 630,643.0", // 8
-  "670,200 705,200 702,625.0 666,634.0", // 9
-  "705,200 741,200 738,616.0 702,625.0", // 10
-  "742,200 777,200 773,607.3 738,616.0", // 11
-  "778,200 813,200 808,598.5 773,607.3", // 12
-  "814,200 845,200 837,308 840,430 843,508 842,590 808,598.5", // 13
+  "172,161 328,162 312,1482 157,1505",   // 1
+  "328,162 485,162 472,1459 312,1482",   // 2
+  "485,162 645,162 632,1435 472,1459",   // 3
+  "645,162 805,162 794,1412 632,1435",   // 4
+  "805,162 963,163 955,1388 794,1412",   // 5
+  "963,163 1123,163 1114,1365 955,1388", // 6
+  "1123,163 1284,163 1276,1342 1114,1365", // 7
+  "1284,163 1447,164 1438,1318 1276,1342", // 8
+  "1447,164 1605,164 1600,1295 1438,1318", // 9
+  "1605,164 1767,164 1760,1271 1600,1295", // 10
+  "1767,164 1929,165 1922,1248 1760,1271", // 11
+  "1929,165 2093,165 2081,1225 1922,1248", // 12
+  "2093,165 2216,165 2245,1201 2081,1225", // 13
 ];
+
+/**
+ * Los polígonos están dibujados de izquierda a derecha sobre la imagen, y sobre el
+ * terreno el de la izquierda es el Lote 13 y el de la derecha el Lote 1.
+ *
+ * Antes se emparejaban por la posición del lote en la respuesta de la API. Eso funciona
+ * mientras la API devuelva los lotes en ese mismo orden, pero deja de hacerlo en cuanto
+ * no: en local, con el orden invertido, el mapa numeraba los lotes al revés. Sacar el
+ * número del identificador («Lote 7» → 7) hace que cada polígono sea siempre el que le
+ * toca, venga el listado como venga. Si el identificador no trae número, se cae al orden
+ * de la lista, que es lo que se hacía siempre.
+ */
+const indiceDePoligono = (identificador: string, posicion: number, total: number) => {
+  const numero = Number.parseInt(identificador.replace(/\D+/g, ''), 10);
+  if (!Number.isFinite(numero) || numero < 1 || numero > total) return posicion;
+  return total - numero;
+};
 
 export const MapaLotes = ({ lotes, seleccionados, onToggle }: MapaLotesProps) => {
   const [hoveredId, setHoveredId] = useState<string | null>(null);
@@ -74,46 +105,53 @@ export const MapaLotes = ({ lotes, seleccionados, onToggle }: MapaLotesProps) =>
     }
   };
 
+  /**
+   * El fondo dejó de ser un dibujo plano y pasó a ser una foto del terreno, todo verde.
+   * El verde oliva de «disponible» encima de pasto verde no se distinguía, así que un
+   * lote elegido se pinta con la tinta del panel: contrasta con el pasto y es el mismo
+   * color que usa el resto del cotizador para «esto está seleccionado».
+   */
   const getFill = (lote: Lote, seleccionado: boolean, hovered: boolean) => {
     const style = estadoStyles[lote.estado];
-    if (lote.estado !== 'disponible') return hovered ? style.fill : `${style.fill}66`;
-    if (seleccionado) return style.fill;
-    if (hovered) return `${style.fill}CC`;
+    if (lote.estado !== 'disponible') return hovered ? `${style.fill}CC` : `${style.fill}80`;
+    if (seleccionado) return 'rgba(28, 37, 51, 0.55)';
+    if (hovered) return 'rgba(255, 255, 255, 0.30)';
     return 'transparent';
   };
 
   const getStroke = (lote: Lote, seleccionado: boolean, hovered: boolean) => {
     const style = estadoStyles[lote.estado];
-    if (seleccionado) return '#1C2533';
-    if (hovered || lote.estado !== 'disponible') return style.stroke;
-    return '#A1A1AA';
+    if (seleccionado) return '#FFFFFF';
+    if (lote.estado !== 'disponible') return style.stroke;
+    if (hovered) return '#FFFFFF';
+    return 'rgba(255, 255, 255, 0.45)';
   };
 
   return (
-    <div
-      ref={containerRef}
-      className="relative flex h-full min-h-[600px] w-full items-center justify-center overflow-hidden bg-slate-0 p-4"
-    >
-      {/* Ajuste de viewBox:
-          Inicia en X=370 para dar aire al primer lote (382).
-          Inicia en Y=180 para dar aire arriba (200).
-          Ancho 500 y Alto 550 cubre perfectamente todo el desarrollo.
+    <div ref={containerRef} className="absolute inset-0 h-full w-full overflow-hidden">
+      {/*
+        El SVG ocupa exactamente la misma caja que la imagen del fondo y usa el mismo
+        encuadre: viewBox en píxeles de la imagen y 'xMidYMid meet', que es el equivalente
+        en SVG de object-fit:contain. Mientras las dos cosas coincidan, los polígonos no
+        se pueden desalinear por mucho que cambie el tamaño del panel. Si aquí se toca
+        el preserveAspectRatio, hay que tocar el object-fit de la imagen en
+        MacroCotizadorPanel.
       */}
       <svg
-        className="h-full max-h-[90vh] w-full transition-transform duration-500"
-        viewBox="370 180 500 550"
+        className="h-full w-full"
+        viewBox={`0 0 ${MAPA_IMAGEN.width} ${MAPA_IMAGEN.height}`}
         preserveAspectRatio="xMidYMid meet"
       >
         <defs>
           <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
-            <feGaussianBlur stdDeviation="3" result="blur" />
+            <feGaussianBlur stdDeviation="12" result="blur" />
             <feComposite in="SourceGraphic" in2="blur" operator="over" />
           </filter>
         </defs>
 
         <g>
           {lotes.map((lote, index) => {
-            const points = LOT_PATHS[index];
+            const points = LOT_PATHS[indiceDePoligono(lote.id, index, LOT_PATHS.length)];
             if (!points) return null;
 
             const seleccionado = seleccionados.includes(lote.id);
@@ -125,7 +163,7 @@ export const MapaLotes = ({ lotes, seleccionados, onToggle }: MapaLotesProps) =>
                 points={points}
                 fill={getFill(lote, seleccionado, esHovered)}
                 stroke={getStroke(lote, seleccionado, esHovered)}
-                strokeWidth={seleccionado ? 3 : 1.2}
+                strokeWidth={seleccionado || esHovered ? 9 : 4}
                 className="transition-all duration-300 ease-in-out"
                 style={{
                   cursor: lote.estado === 'disponible' ? 'pointer' : 'not-allowed',

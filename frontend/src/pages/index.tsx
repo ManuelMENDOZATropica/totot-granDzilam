@@ -434,7 +434,10 @@ export default function Home() {
 
           <InfoPanel closeSignal={infoPanelReset} />
 
-          <div className="absolute top-6 left-6 z-30 flex gap-3">
+          {/* z por encima del panel del cotizador (z-50): al abrirlo, el panel arranca en
+              left-[150px] y dejaba «Brochure» y el ajuste de tamaño debajo, mientras
+              «Sitios de interés» seguía visible por caer antes de esos 150px. */}
+          <div className="absolute top-6 left-6 z-[55] flex gap-3">
             <button
               type="button"
               onClick={handleOpenInterestModal}

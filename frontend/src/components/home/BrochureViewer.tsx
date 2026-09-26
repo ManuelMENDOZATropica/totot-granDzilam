@@ -62,20 +62,25 @@ export function BrochureViewer({
   const pdfInstanceRef = useRef<any | null>(null);
   const pdfjsLibRef = useRef<any | null>(null);
   const loadingTaskRef = useRef<any | null>(null);
+  /** Render en curso por página, para poder cancelarlo antes de lanzar otro. */
+  const renderTasksRef = useRef<Map<number, any>>(new Map());
 
   const pages = useMemo(() => {
     if (!numPages) return [];
     return Array.from({ length: numPages }, (_, index) => index + 1);
   }, [numPages]);
 
-  // Detectar ancho del contenedor para renderizado responsive
+  // Detectar ancho del contenedor para renderizado responsive.
+  // Se redondea a propósito: el ResizeObserver dispara con decimales mientras el modal
+  // se abre, y cada cambio de este valor relanza el renderizado de las 15 páginas.
   useEffect(() => {
     if (!containerRef.current) return;
 
     const observer = new ResizeObserver((entries) => {
       const entry = entries[0];
       if (!entry) return;
-      setRenderWidth(entry.contentRect.width);
+      const ancho = Math.round(entry.contentRect.width);
+      setRenderWidth((previo) => (previo !== null && Math.abs(previo - ancho) < 2 ? previo : ancho));
     });
 
     observer.observe(containerRef.current);
@@ -122,11 +127,41 @@ export function BrochureViewer({
     };
   }, [url, onDocumentLoad, onPageChange]);
 
-  // Renderizar páginas en Canvas
+  /**
+   * Renderizar páginas en Canvas.
+   *
+   * El brochure salía espejado en vertical y con la página dibujada en una esquina. La
+   * causa era que este efecto se relanzaba (el ResizeObserver dispara varias veces
+   * mientras el modal se abre) y el `cancelled` del cierre solo cortaba el bucle: los
+   * `page.render()` ya lanzados seguían escribiendo en los mismos canvas. pdf.js no
+   * admite dos renders simultáneos sobre un canvas, y el segundo heredaba la matriz de
+   * transformación que había dejado el primero a medias: de ahí el volteo.
+   *
+   * Ahora cada tarea de render se guarda y se cancela antes de empezar otra.
+   */
   useEffect(() => {
     if (!pages.length || !renderWidth || !pdfInstanceRef.current || !pdfjsLibRef.current) return;
 
     let cancelled = false;
+    const tareas = renderTasksRef.current;
+
+    const cancelarTodas = () => {
+      tareas.forEach((tarea) => {
+        try {
+          tarea?.cancel();
+        } catch {
+          /* la tarea ya había terminado */
+        }
+      });
+      tareas.clear();
+    };
+
+    cancelarTodas();
+
+    // En pantallas densas el canvas se pinta al doble para que el texto no salga borroso,
+    // pero se muestra al tamaño del contenedor. Se topa en 2 para no reventar memoria con
+    // 15 páginas abiertas a la vez.
+    const dpr = Math.min(typeof window === 'undefined' ? 1 : window.devicePixelRatio || 1, 2);
 
     const renderPages = async () => {
       for (const pageNumber of pages) {
@@ -138,22 +173,40 @@ export function BrochureViewer({
 
         const viewport = page.getViewport({ scale: 1 });
         const scale = renderWidth / viewport.width;
-        const scaledViewport = page.getViewport({ scale });
+        const scaledViewport = page.getViewport({ scale: scale * dpr });
         const context = canvas.getContext('2d');
         if (!context) continue;
 
-        canvas.height = scaledViewport.height;
-        canvas.width = scaledViewport.width;
+        // Asignar width/height reinicia el canvas y su transformación; hacerlo siempre
+        // antes de renderizar es lo que garantiza que no quede nada de un render previo.
+        canvas.width = Math.floor(scaledViewport.width);
+        canvas.height = Math.floor(scaledViewport.height);
+        canvas.style.aspectRatio = `${scaledViewport.width} / ${scaledViewport.height}`;
 
-        await page.render({ canvasContext: context, viewport: scaledViewport }).promise;
+        const tarea = page.render({ canvasContext: context, viewport: scaledViewport });
+        tareas.set(pageNumber, tarea);
+
+        try {
+          await tarea.promise;
+        } catch (error: any) {
+          // Cancelar una tarea en curso lanza; no es un fallo que reportar.
+          if (error?.name !== 'RenderingCancelledException') throw error;
+        } finally {
+          tareas.delete(pageNumber);
+        }
+
         if (cancelled) return;
       }
     };
 
-    renderPages();
+    renderPages().catch((error: any) => {
+      if (cancelled) return;
+      setLoadingError(error?.message ?? 'Error al dibujar el brochure.');
+    });
 
     return () => {
       cancelled = true;
+      cancelarTodas();
     };
   }, [pages, renderWidth]);
 
@@ -224,7 +277,7 @@ export function BrochureViewer({
                   ref={(el) => {
                     canvasRefs.current[pageNumber - 1] = el;
                   }}
-                  className={`w-full ${isLockedSection ? 'blur-[4px] brightness-90' : ''}`}
+                  className={`block w-full ${isLockedSection ? 'blur-[4px] brightness-90' : ''}`}
                 />
 
                 {isLockedSection ? (

@@ -267,7 +267,7 @@ export const MacroCotizadorPanel = ({
                     ) : (
                       <div className="grid grid-cols-2 gap-3 pb-2">
                         {lotes.map((lote, index) => {
-                          const loteNombre = lote.nombre || `Lote ${index + 1}`;
+                          const loteNombre = lote.nombre || lote.id;
                           const isSelected = selectedIds.includes(lote.id);
                           return (
                             <button
@@ -291,12 +291,16 @@ export const MacroCotizadorPanel = ({
 
               {/* MAPA (SOLO DESKTOP) */}
               <div className="relative hidden h-full w-full overflow-hidden rounded-2xl bg-[#F3F1EC] lg:block">
+                {/* 'object-contain' y no 'cover': el predio es una franja ancha y esta
+                    columna del panel es más alta que ancha, así que recortar por los
+                    lados se comía los lotes de los extremos. Debe ir emparejado con el
+                    preserveAspectRatio del SVG de MapaLotes. */}
                 <Image
-                  src="/assets/vistas/COTIZACION2.webp"
-                  alt="Mapa de referencia Gran Dzilam"
+                  src="/assets/vistas/cotizadorFondo.webp"
+                  alt="Vista aérea de los macro lotes de Gran Dzilam"
                   fill
-                  sizes="100vw"
-                  className="object-cover"
+                  sizes="(max-width: 1024px) 0px, 50vw"
+                  className="object-contain"
                   priority={false}
                 />
                 {/* ... (Lógica de loading/error del mapa igual que antes) ... */}
@@ -314,9 +318,7 @@ export const MacroCotizadorPanel = ({
                     <p>{macroCopy.empty}</p>
                   </div>
                 ) : (
-                  <div className="absolute inset-0 h-full w-full overflow-hidden">
-                    <MapaLotes lotes={lotes} seleccionados={selectedIds} onToggle={toggleLote} />
-                  </div>
+                  <MapaLotes lotes={lotes} seleccionados={selectedIds} onToggle={toggleLote} />
                 )}
               </div>
             </div>
@@ -455,7 +457,7 @@ export const MacroCotizadorPanel = ({
                     return (
                       <div key={lote.id || index} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
                         <div style={{ display: 'flex', flexDirection: 'column' }}>
-                          <span style={{ fontWeight: 600, fontSize: 14 }}>{lote.nombre || `Lote ${index + 1}`}</span>
+                          <span style={{ fontWeight: 600, fontSize: 14 }}>{lote.nombre || lote.id}</span>
                           <span style={{ fontSize: 11, color: '#475569' }}>{formatArea(lote.superficieM2 || 0)}</span>
                         </div>
                         <div style={{ textAlign: 'right' }}>

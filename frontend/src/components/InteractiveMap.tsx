@@ -68,6 +68,23 @@ const LOT_PATHS_MOBILE = [
 
 /** Dimensiones reales de mobile1.webp */
 const MOBILE_IMAGE = { width: 1024, height: 1536 };
+/**
+ * Los polígonos están dibujados de izquierda a derecha sobre la imagen, y sobre el
+ * terreno el de la izquierda es el Lote 13 y el de la derecha el Lote 1.
+ *
+ * Antes se emparejaban por la posición del lote en la respuesta de la API. Eso funciona
+ * mientras la API devuelva los lotes en ese mismo orden, pero deja de hacerlo en cuanto
+ * no: en local, con el orden invertido, el mapa numeraba los lotes al revés. Sacar el
+ * número del identificador («Lote 7» → 7) hace que cada polígono sea siempre el que le
+ * toca, venga el listado como venga. Si el identificador no trae número, se cae al orden
+ * de la lista, que es lo que se hacía siempre.
+ */
+const indiceDePoligono = (identificador: string, posicion: number, total: number) => {
+  const numero = Number.parseInt(identificador.replace(/\D+/g, ''), 10);
+  if (!Number.isFinite(numero) || numero < 1 || numero > total) return posicion;
+  return total - numero;
+};
+
 export const InteractiveMap = ({ src, className, imageClassName }: { src: string; className?: string; imageClassName?: string }) => {
   const [lots, setLots] = useState<PublicLot[]>([]);
   const [hoveredLot, setHoveredLot] = useState<PublicLot | null>(null);
@@ -215,7 +232,7 @@ export const InteractiveMap = ({ src, className, imageClassName }: { src: string
                 return (
                   <polygon
                     key={lot.id}
-                    points={mapPaths[index]}
+                    points={mapPaths[indiceDePoligono(lot.id, index, mapPaths.length)]}
                     // El color del estado solo aparece en el lote señalado.
                     fill={isActive ? `rgba(${rgb}, ${FILL_ALPHA_ACTIVE})` : 'transparent'}
                     // En desktop el contorno solo aparece bajo el cursor. En móvil no hay

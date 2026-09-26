@@ -42,8 +42,19 @@ export const ImaginePanel = ({
 
   return (
     <div className="absolute top-[15%] right-[0%] sm:top-[20%] sm:right-[8%] md:top-[18%] md:right-[10%] lg:top-[17%] lg:right-[12%] xl:top-[16%] xl:right-[14%] w-full max-w-md z-[30]">
-      <div className="w-full max-w-md text-center">
-        <h1 className="text-[40px] leading-[1.1] font-semibold text-white drop-shadow-[0_2px_6px_rgba(0,0,0,0.45)]">
+      <div className="relative isolate w-full max-w-md text-center">
+        {/*
+          El texto es blanco y detrás puede haber cualquier cosa: selva a pleno sol, el
+          pasto claro del predio o un diseño generado de color impredecible. Una sombra
+          sola no basta contra un fondo claro, así que va un velo oscuro que se desvanece
+          antes de llegar a los bordes: sube el contraste sin dibujar una caja.
+        */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute -inset-x-10 -inset-y-12 -z-10 bg-[radial-gradient(ellipse_at_center,rgba(3,12,22,0.66)_0%,rgba(3,12,22,0.5)_45%,rgba(3,12,22,0)_73%)]"
+        />
+
+        <h1 className="text-[40px] leading-[1.1] font-semibold text-white [text-shadow:0_1px_2px_rgba(0,0,0,0.85),0_6px_22px_rgba(0,0,0,0.6)]">
           {copy.titleLine1}
           <br />
           {copy.titleLine2}
@@ -66,7 +77,9 @@ export const ImaginePanel = ({
           </button>
 
           <div className="pt-1 text-left">
-            <p className="text-[12px] text-white/85">{copy.inspirationLabel}</p>
+            <p className="text-[12px] text-white [text-shadow:0_1px_3px_rgba(0,0,0,0.8)]">
+              {copy.inspirationLabel}
+            </p>
             <div className="mt-2 flex flex-wrap gap-2">
               {copy.inspirationItems.map((idea, index) => (
                 <button
@@ -81,7 +94,7 @@ export const ImaginePanel = ({
             </div>
           </div>
 
-          <div className="flex flex-wrap gap-4 text-[11px] uppercase tracking-[0.3em] text-white/70 drop-shadow">
+          <div className="flex flex-wrap gap-4 text-[11px] uppercase tracking-[0.3em] text-white/90 [text-shadow:0_1px_3px_rgba(0,0,0,0.8)]">
             <span className={status === 'loading' ? 'animate-pulse' : ''}>
               {status === 'loading' ? copy.status.loading : copy.status.ready}
             </span>

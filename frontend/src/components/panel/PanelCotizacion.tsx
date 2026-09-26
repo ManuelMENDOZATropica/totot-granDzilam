@@ -109,7 +109,7 @@ export const PanelCotizacion = ({
           <div className="space-y-2 text-sm text-[#1C2533]">
             {lotesSeleccionados.map((lote, index) => (
               <div key={lote.id || index} className="flex justify-between">
-                <span>{lote.nombre || `Lote ${index + 1}`}</span>
+                <span>{lote.nombre || lote.id}</span>
                 <span>{formatArea(lote.superficieM2)}</span>
               </div>
             ))}
@@ -144,7 +144,7 @@ export const PanelCotizacion = ({
           <div className="space-y-3 text-sm text-[#1C2533]">
             {lotesSeleccionados.map((lote, index) => (
               <div key={lote.id || index} className="flex justify-between">
-                <span>{lote.nombre || `Lote ${index + 1}`}</span>
+                <span>{lote.nombre || lote.id}</span>
                 <span>
                   {formatCurrency(lote.precioTotal ?? lote.precio)} {etiquetaMoneda}
                 </span>

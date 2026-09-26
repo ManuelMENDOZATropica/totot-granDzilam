@@ -16,6 +16,9 @@ export interface FinanceSettingsDTO {
 
 const normalizeFinanceSettings = (payload: FinanceSettingsDTO): FinanceSettingsDTO => ({
   ...payload,
+  // 'total' es el valor por defecto del modelo en Mongo; si no llega, se asume ese y no
+  // el amortizado, que cobraría más de lo pactado.
+  tipoInteres: payload.tipoInteres ?? 'total',
   pasoMensualidad: payload.pasoMensualidad ?? 1000,
   mensualidadCerrada: payload.mensualidadCerrada ?? 0,
 });

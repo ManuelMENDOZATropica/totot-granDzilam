@@ -24,11 +24,46 @@ interface ParametrosCotizacionStorage {
 const SELECCION_STORAGE_KEY = 'gran-dzilam:seleccion';
 const PARAMETROS_STORAGE_KEY = 'gran-dzilam:parametros';
 
-const MIN_ENGANCHE = 10;
+/**
+ * Rango físico dentro del que tiene sentido cada valor, no una política comercial: un
+ * enganche no puede pasar del 100 % y un plazo no puede ser de cero meses. Lo que el
+ * admin configure vive dentro de esto, y manda.
+ */
+const MIN_ENGANCHE = 0;
 const MAX_ENGANCHE = 100;
 const MIN_MESES = 1;
-const MAX_MESES = 50;
+const MAX_MESES = 120;
 
+/**
+ * Lo que se usa mientras el servidor no ha respondido.
+ *
+ * Los límites se alinean con el modelo de Mongo
+ * (backend/src/models/finance-settings.model.ts), que antes decían aquí 10–100 % y 1–50
+ * meses. Los valores por defecto se quedan como estaban a propósito: son los que ve un
+ * visitante nuevo, y cambiarlos movería la cotización que aparece de entrada.
+ *
+ * Ojo: hoy el `defaultMeses` que configura el admin no se usa nunca. Al llegar la
+ * configuración solo se ajusta el valor actual a los nuevos límites, no se adopta su
+ * default, así que un visitante nuevo arranca en estos 12 meses y no en los 24 que tiene
+ * puesto producción. Es un caso aparte del de los límites y se deja como está.
+ */
+const DEFAULT_SETTINGS: FinanceSettingsDTO = {
+  minEnganche: 10,
+  maxEnganche: 80,
+  defaultEnganche: 30,
+  minMeses: 6,
+  maxMeses: 60,
+  defaultMeses: 12,
+  interes: 0,
+  tipoInteres: 'total',
+  pasoMensualidad: 1000,
+  mensualidadCerrada: 0,
+};
+
+/**
+ * Descuento por tramo de enganche. Copia exacta de calcularDescuento en
+ * backend/src/utils/finance.ts: si cambia uno, cambia el otro.
+ */
 const calcularDescuento = (porcentajeEnganche: number) => {
   if (porcentajeEnganche >= 100) return 0.15;
   if (porcentajeEnganche >= 70) return 0.1;
@@ -40,23 +75,32 @@ const clamp = (valor: number, minimo: number, maximo: number) => {
   return Math.min(Math.max(valor, minimo), maximo);
 };
 
-const DEFAULT_SETTINGS: FinanceSettingsDTO = {
-  minEnganche: MIN_ENGANCHE,
-  maxEnganche: MAX_ENGANCHE,
-  defaultEnganche: 30,
-  minMeses: MIN_MESES,
-  maxMeses: MAX_MESES,
-  defaultMeses: 12,
-  interes: 0,
-  pasoMensualidad: 1000,
-  mensualidadCerrada: 0,
+/**
+ * Mensualidad de un crédito amortizado (sistema francés), con tasa anual nominal.
+ *   pago = P · i / (1 − (1 + i)^−n)   con i = tasa anual / 12
+ * Copia exacta de mensualidadAmortizada en backend/src/utils/finance.ts.
+ */
+const mensualidadAmortizada = (saldo: number, tasaAnual: number, meses: number) => {
+  const i = tasaAnual / 100 / 12;
+  if (i <= 0) return saldo / meses;
+  return (saldo * i) / (1 - Math.pow(1 + i, -meses));
 };
 
+/**
+ * Los límites que fija el admin mandan; MIN_* y MAX_* son solo el rango físico dentro del
+ * que tienen sentido.
+ *
+ * Antes esto hacía `Math.min(minEnganche, 10)` y `Math.max(maxEnganche, 100)`, o sea
+ * ensanchaba SIEMPRE el rango a 10–100 % y tiraba lo que el admin hubiera puesto.
+ * Producción tenía configurado 20–80 % y el slider público iba de 10 a 100. Como el
+ * descuento sube por tramos (50 % → 5 %, 70 % → 10 %, 100 % → 15 %), topar en 80 % era la
+ * forma de desactivar el tramo del 15 %, y el visitante podía llevárselo igual.
+ */
 const normalizarConfiguracion = (settings: FinanceSettingsDTO): FinanceSettingsDTO => {
-  const minEnganche = Math.min(settings.minEnganche ?? MIN_ENGANCHE, MIN_ENGANCHE);
-  const maxEnganche = Math.max(settings.maxEnganche ?? MAX_ENGANCHE, MAX_ENGANCHE);
-  const minMeses = Math.max(settings.minMeses ?? MIN_MESES, MIN_MESES);
-  const maxMeses = Math.min(settings.maxMeses ?? MAX_MESES, MAX_MESES);
+  const minEnganche = clamp(settings.minEnganche ?? MIN_ENGANCHE, MIN_ENGANCHE, MAX_ENGANCHE);
+  const maxEnganche = clamp(settings.maxEnganche ?? MAX_ENGANCHE, minEnganche, MAX_ENGANCHE);
+  const minMeses = clamp(settings.minMeses ?? MIN_MESES, MIN_MESES, MAX_MESES);
+  const maxMeses = clamp(settings.maxMeses ?? MAX_MESES, minMeses, MAX_MESES);
 
   return {
     ...settings,
@@ -145,29 +189,40 @@ const calcularTotales = (
   const descuentoAplicado = Math.max(totalSeleccionado - totalConDescuento, 0);
   const enganche = Math.round(totalConDescuento * porcentajeSanitizado);
   const saldoFinanciar = Math.max(totalConDescuento - enganche, 0);
-  const interesAdicional =
-    settings.interes > 0 ? Math.round(saldoFinanciar * (settings.interes / 100)) : 0;
-  const saldoTotalMensualidades = saldoFinanciar + interesAdicional;
-  const mensualidadBase =
-    mesesSanitizados > 0 ? Math.round(saldoTotalMensualidades / mesesSanitizados) : 0;
+  const tasa = Math.max(settings.interes, 0);
 
-  const mensualidadConfigurada =
-    settings.mensualidadCerrada > 0 ? settings.mensualidadCerrada : null;
+  /**
+   * Antes esto era siempre `saldo * interes/100`: un recargo único, sin importar el
+   * plazo. El backend ya distingue los dos modos desde M4 y aquí seguía el viejo, así
+   * que el día que alguien pusiera una tasa, la web y /api/finance/simulate iban a dar
+   * números distintos. Se calcula exacto y se redondea al final, igual que allí.
+   */
+  const mensualidadExacta =
+    mesesSanitizados > 0
+      ? settings.tipoInteres === 'anual'
+        ? mensualidadAmortizada(saldoFinanciar, tasa, mesesSanitizados)
+        : (saldoFinanciar + (tasa > 0 ? saldoFinanciar * (tasa / 100) : 0)) / mesesSanitizados
+      : 0;
+
+  const mensualidadBase = Math.round(mensualidadExacta);
+  const totalMensualidades = mensualidadExacta * mesesSanitizados;
+
   const pasoMensualidad = Math.max(Math.round(settings.pasoMensualidad || 1), 1);
   const mensualidadRedondeada =
-    mensualidadConfigurada !== null
+    settings.mensualidadCerrada > 0
       ? Math.max(
-          Math.round(mensualidadConfigurada / pasoMensualidad) * pasoMensualidad,
+          Math.round(settings.mensualidadCerrada / pasoMensualidad) * pasoMensualidad,
           pasoMensualidad,
         )
       : null;
+  // La mensualidad pactada solo puede bajar el pago, nunca subirlo.
   const mensualidadAjustada =
     mensualidadRedondeada !== null
-      ? Math.min(Math.round(mensualidadRedondeada), mensualidadBase)
+      ? Math.min(mensualidadRedondeada, mensualidadBase)
       : mensualidadBase;
   const saldoContraEntrega =
     mensualidadAjustada < mensualidadBase
-      ? Math.max(saldoTotalMensualidades - mensualidadAjustada * mesesSanitizados, 0)
+      ? Math.round(Math.max(totalMensualidades - mensualidadAjustada * mesesSanitizados, 0))
       : 0;
 
   return {
