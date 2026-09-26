@@ -21,15 +21,25 @@ export interface FinanceCalculationInput {
   interes?: number;
   tipoInteres?: TipoInteres;
   constraints?: FinanceConstraints;
+  /** Mensualidad fija pactada. 0 o ausente = se reparte el saldo entre los meses. */
+  mensualidadCerrada?: number;
+  /** A qué múltiplo se redondea esa mensualidad fija. */
+  pasoMensualidad?: number;
 }
 
 export interface FinanceCalculationResult {
   totalSeleccionado: number;
   porcentajeEnganche: number;
   meses: number;
+  /** Descuento por tramo de enganche, en porcentaje (0, 5, 10 o 15). */
+  descuentoPorcentaje: number;
+  descuentoAplicado: number;
+  totalConDescuento: number;
   enganche: number;
   saldoFinanciar: number;
   mensualidad: number;
+  /** Lo que queda pendiente al final si la mensualidad pactada no cubre el saldo. */
+  saldoContraEntrega: number;
   /** Suma de todas las mensualidades menos el saldo: lo que cuesta financiar. */
   interesTotal: number;
   tipoInteres: TipoInteres;
@@ -83,6 +93,27 @@ const mensualidadAmortizada = (saldo: number, tasaAnual: number, meses: number) 
   return (saldo * i) / (1 - Math.pow(1 + i, -meses));
 };
 
+/**
+ * Descuento por pagar más de contado. Los tramos son los que ya aplicaba la web desde el
+ * principio; vivían solo en el navegador, así que /api/finance/simulate cotizaba sin
+ * descuento y devolvía números distintos a los que veía el cliente en pantalla.
+ */
+export const calcularDescuento = (porcentajeEnganche: number) => {
+  if (porcentajeEnganche >= 100) return 0.15;
+  if (porcentajeEnganche >= 70) return 0.1;
+  if (porcentajeEnganche >= 50) return 0.05;
+  return 0;
+};
+
+/**
+ * Esta función es la definición de cómo se cotiza en Gran Dzilam. El mismo cálculo está
+ * replicado en frontend/src/hooks/useCotizacion.ts porque la web lo resuelve en el
+ * navegador (sin ida y vuelta al servidor) y los dos despliegues son independientes: el
+ * front vive en Vercel con root `frontend/` y no puede importar de `backend/`.
+ *
+ * Si se toca algo aquí hay que tocarlo allí, y al revés. El test
+ * backend/src/utils/finance.test.ts fija los casos que tienen que dar igual en los dos.
+ */
 export const calculateFinance = ({
   totalSeleccionado,
   porcentajeEnganche,
@@ -90,6 +121,8 @@ export const calculateFinance = ({
   interes = 0,
   tipoInteres = 'total',
   constraints,
+  mensualidadCerrada = 0,
+  pasoMensualidad = 1,
 }: FinanceCalculationInput): FinanceCalculationResult => {
   const total = Math.max(totalSeleccionado, 0);
   const porcentaje = sanitizePercentage(porcentajeEnganche, constraints);
@@ -99,8 +132,12 @@ export const calculateFinance = ({
     throw new Error('El plazo en meses debe ser mayor o igual a 1.');
   }
 
-  const enganche = Math.round(total * (porcentaje / 100));
-  const saldoFinanciar = Math.max(total - enganche, 0);
+  const descuentoPorcentaje = calcularDescuento(porcentaje);
+  const totalConDescuento = Math.max(total * (1 - descuentoPorcentaje), 0);
+  const descuentoAplicado = Math.max(total - totalConDescuento, 0);
+
+  const enganche = Math.round(totalConDescuento * (porcentaje / 100));
+  const saldoFinanciar = Math.max(totalConDescuento - enganche, 0);
   const tasa = Math.max(interes, 0);
 
   // Se calcula exacto y se redondea al final: si se redondea antes, el residuo de la
@@ -112,17 +149,34 @@ export const calculateFinance = ({
         : (saldoFinanciar + (tasa > 0 ? saldoFinanciar * (tasa / 100) : 0)) / mesesSanitized
       : 0;
 
-  const mensualidad = Math.round(mensualidadExacta);
-  const interesTotal = Math.round(Math.max(mensualidadExacta * mesesSanitized - saldoFinanciar, 0));
+  const mensualidadBase = Math.round(mensualidadExacta);
+  const totalMensualidades = mensualidadExacta * mesesSanitized;
+
+  // Mensualidad pactada: nunca puede subir por encima de la que toca, solo bajarla y
+  // dejar el resto contra entrega.
+  const paso = Math.max(Math.round(pasoMensualidad || 1), 1);
+  const cerrada =
+    mensualidadCerrada > 0 ? Math.max(Math.round(mensualidadCerrada / paso) * paso, paso) : null;
+  const mensualidad = cerrada !== null ? Math.min(cerrada, mensualidadBase) : mensualidadBase;
+  const saldoContraEntrega =
+    mensualidad < mensualidadBase
+      ? Math.round(Math.max(totalMensualidades - mensualidad * mesesSanitized, 0))
+      : 0;
+
+  const interesTotal = Math.round(Math.max(totalMensualidades - saldoFinanciar, 0));
 
   if (total === 0) {
     return {
       totalSeleccionado: 0,
       porcentajeEnganche: porcentaje,
       meses: mesesSanitized,
+      descuentoPorcentaje: 0,
+      descuentoAplicado: 0,
+      totalConDescuento: 0,
       enganche: 0,
       saldoFinanciar: 0,
       mensualidad: 0,
+      saldoContraEntrega: 0,
       interesTotal: 0,
       tipoInteres,
     };
@@ -132,9 +186,13 @@ export const calculateFinance = ({
     totalSeleccionado: total,
     porcentajeEnganche: porcentaje,
     meses: mesesSanitized,
+    descuentoPorcentaje: descuentoPorcentaje * 100,
+    descuentoAplicado,
+    totalConDescuento,
     enganche,
     saldoFinanciar,
     mensualidad,
+    saldoContraEntrega,
     interesTotal,
     tipoInteres,
   };

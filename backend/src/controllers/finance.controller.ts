@@ -51,6 +51,8 @@ export const simulateFinance = async (
       meses: meses ?? settings.defaultMeses,
       interes: settings.interes,
       tipoInteres: settings.tipoInteres,
+      mensualidadCerrada: settings.mensualidadCerrada,
+      pasoMensualidad: settings.pasoMensualidad,
       constraints: {
         minEnganche: settings.minEnganche,
         maxEnganche: settings.maxEnganche,

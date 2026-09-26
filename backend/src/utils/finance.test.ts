@@ -9,9 +9,13 @@ test('calculateFinance returns zeros when total is zero', () => {
     totalSeleccionado: 0,
     porcentajeEnganche: 30,
     meses: 36,
+    descuentoPorcentaje: 0,
+    descuentoAplicado: 0,
+    totalConDescuento: 0,
     enganche: 0,
     saldoFinanciar: 0,
     mensualidad: 0,
+    saldoContraEntrega: 0,
     interesTotal: 0,
     tipoInteres: 'total',
   });
@@ -67,4 +71,100 @@ test('M4: el modo por defecto conserva el comportamiento histórico', () => {
   assert.equal(sinModo.tipoInteres, 'total');
   // saldo 400,000 + 10% = 440,000 repartido en 24
   assert.equal(sinModo.mensualidad, Math.round(440000 / 24));
+});
+
+
+/**
+ * Estos casos son el contrato entre este archivo y su gemelo del navegador
+ * (frontend/src/hooks/useCotizacion.ts). Los números están escritos a mano, no sacados
+ * de la implementación: si alguien cambia uno de los dos lados, esto avisa.
+ */
+test('el descuento por tramo de enganche se aplica antes que nada', () => {
+  const casos: Array<[number, number]> = [
+    [30, 0],
+    [49, 0],
+    [50, 5],
+    [69, 5],
+    [70, 10],
+    [99, 10],
+    [100, 15],
+  ];
+
+  for (const [porcentaje, esperado] of casos) {
+    const r = calculateFinance({
+      totalSeleccionado: 1000000,
+      porcentajeEnganche: porcentaje,
+      meses: 12,
+      constraints: { minEnganche: 0, maxEnganche: 100, minMeses: 1, maxMeses: 60 },
+    });
+    assert.equal(r.descuentoPorcentaje, esperado, `enganche ${porcentaje}%`);
+  }
+});
+
+test('el enganche se calcula sobre el total YA con descuento', () => {
+  const r = calculateFinance({
+    totalSeleccionado: 708750,
+    porcentajeEnganche: 70,
+    meses: 12,
+    constraints: { minEnganche: 0, maxEnganche: 100, minMeses: 1, maxMeses: 60 },
+  });
+
+  assert.equal(r.totalConDescuento, 637875); // 708,750 − 10 %
+  assert.equal(r.enganche, 446513); // 70 % de 637,875, redondeado
+  assert.equal(r.saldoFinanciar, 191362);
+  assert.equal(r.mensualidad, Math.round(191362 / 12));
+});
+
+test('la mensualidad cerrada baja el pago y deja el resto contra entrega', () => {
+  const r = calculateFinance({
+    totalSeleccionado: 12809880,
+    porcentajeEnganche: 30,
+    meses: 24,
+    mensualidadCerrada: 100000,
+    pasoMensualidad: 100000,
+    constraints: { minEnganche: 20, maxEnganche: 80, minMeses: 3, maxMeses: 45 },
+  });
+
+  assert.equal(r.enganche, 3842964);
+  assert.equal(r.saldoFinanciar, 8966916);
+  assert.equal(r.mensualidad, 100000);
+  assert.equal(r.saldoContraEntrega, 8966916 - 100000 * 24);
+});
+
+test('una mensualidad cerrada mayor que la que toca no sube el pago', () => {
+  const r = calculateFinance({
+    totalSeleccionado: 100000,
+    porcentajeEnganche: 30,
+    meses: 12,
+    mensualidadCerrada: 500000,
+    pasoMensualidad: 1000,
+    constraints: { minEnganche: 10, maxEnganche: 80, minMeses: 1, maxMeses: 60 },
+  });
+
+  assert.equal(r.mensualidad, Math.round(70000 / 12));
+  assert.equal(r.saldoContraEntrega, 0);
+});
+
+test('los límites que llegan de la configuración se respetan tal cual', () => {
+  const constraints = { minEnganche: 20, maxEnganche: 80, minMeses: 3, maxMeses: 45 };
+
+  const bajo = calculateFinance({
+    totalSeleccionado: 1000000,
+    porcentajeEnganche: 5,
+    meses: 1,
+    constraints,
+  });
+  assert.equal(bajo.porcentajeEnganche, 20);
+  assert.equal(bajo.meses, 3);
+
+  const alto = calculateFinance({
+    totalSeleccionado: 1000000,
+    porcentajeEnganche: 100,
+    meses: 120,
+    constraints,
+  });
+  assert.equal(alto.porcentajeEnganche, 80);
+  assert.equal(alto.meses, 45);
+  // Y como no llega al 100 %, el tramo del 15 % queda fuera de alcance.
+  assert.equal(alto.descuentoPorcentaje, 10);
 });
