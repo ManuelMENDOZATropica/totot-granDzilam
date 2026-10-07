@@ -13,6 +13,8 @@ export interface TotalesCotizacion {
   saldoFinanciar: number;
   mensualidad: number;
   saldoContraEntrega: number;
+  pagadoEnMensualidades: number;
+  restante: number;
 }
 
 interface ParametrosCotizacionStorage {
@@ -178,6 +180,8 @@ const calcularTotales = (
       saldoFinanciar: 0,
       mensualidad: 0,
       saldoContraEntrega: 0,
+      pagadoEnMensualidades: 0,
+      restante: 0,
     };
   }
 
@@ -225,6 +229,10 @@ const calcularTotales = (
       ? Math.round(Math.max(totalMensualidades - mensualidadAjustada * mesesSanitizados, 0))
       : 0;
 
+  // Lo que la cotización enseña al cliente: enganche, N mensualidades y lo que queda.
+  const pagadoEnMensualidades = mensualidadAjustada * mesesSanitizados;
+  const restante = Math.max(totalConDescuento - pagadoEnMensualidades - enganche, 0);
+
   return {
     totalSeleccionado,
     totalConDescuento,
@@ -234,6 +242,8 @@ const calcularTotales = (
     saldoFinanciar,
     mensualidad: mensualidadAjustada,
     saldoContraEntrega,
+    pagadoEnMensualidades,
+    restante,
   };
 };
 

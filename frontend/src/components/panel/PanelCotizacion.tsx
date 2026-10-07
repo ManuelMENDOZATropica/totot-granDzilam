@@ -178,25 +178,22 @@ export const PanelCotizacion = ({
                 </span>
               </div>
               <div className="flex justify-between">
-                <span>{panelCopy.balance}</span>
                 <span>
-                  {formatCurrency(totales.saldoFinanciar)} {etiquetaMoneda}
+                  {panelCopy.monthly} × {meses} {panelCopy.monthsLabel.toLowerCase()}
                 </span>
-              </div>
-              <div className="flex justify-between">
-                <span>{panelCopy.monthly}</span>
-                <span>
+                <span className="text-right">
                   {formatCurrency(totales.mensualidad)} {etiquetaMoneda}
+                  <span className="block text-xs text-[#64748B]">
+                    = {formatCurrency(totales.pagadoEnMensualidades)} {etiquetaMoneda}
+                  </span>
                 </span>
               </div>
-              {totales.saldoContraEntrega > 0 ? (
-                <div className="flex justify-between text-amber-700">
-                  <span>{panelCopy.balanceDelivery}</span>
-                  <span>
-                    {formatCurrency(totales.saldoContraEntrega)} {etiquetaMoneda}
-                  </span>
-                </div>
-              ) : null}
+              <div className="flex justify-between font-bold">
+                <span>{panelCopy.remaining}</span>
+                <span>
+                  {formatCurrency(totales.restante)} {etiquetaMoneda}
+                </span>
+              </div>
             </div>
           </div>
         </div>

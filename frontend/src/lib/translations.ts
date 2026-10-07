@@ -76,6 +76,7 @@ type PanelEstimator = {
   balance: string;
   monthly: string;
   balanceDelivery: string;
+  remaining: string;
   personalize: string;
   downPaymentLabel: string;
   monthsLabel: string;
@@ -298,6 +299,7 @@ export const translations: Record<Language, TranslationSchema> = {
       balance: 'Saldo',
       monthly: 'Mensualidad',
       balanceDelivery: 'Saldo contra entrega',
+      remaining: 'Restante',
       personalize: 'Personaliza tu cotización',
       downPaymentLabel: 'Enganche',
       monthsLabel: 'Meses',
@@ -323,8 +325,8 @@ export const translations: Record<Language, TranslationSchema> = {
     contact: {
       emailLabel: 'Correo electrónico',
       phoneLabel: 'Teléfono',
-      emailValue: 'admin@grandzilma.com',
-      phoneValue: '+52 1 999 233 3396',
+      emailValue: 'eslaboninmobiliario24@gmail.com',
+      phoneValue: '+52 999 559 0152',
       helper: {
         idle: 'Deja tu información y nos pondremos en contacto:',
         submitted: '¡Gracias! Nos pondremos en contacto contigo.',
@@ -496,6 +498,7 @@ export const translations: Record<Language, TranslationSchema> = {
       balance: 'Balance',
       monthly: 'Monthly payment',
       balanceDelivery: 'Balance due on delivery',
+      remaining: 'Remaining balance',
       personalize: 'Personalize your quote',
       downPaymentLabel: 'Down payment',
       monthsLabel: 'Months',
@@ -521,8 +524,8 @@ export const translations: Record<Language, TranslationSchema> = {
     contact: {
       emailLabel: 'Email',
       phoneLabel: 'Phone',
-      emailValue: 'admin@grandzilma.com',
-      phoneValue: '+52 1 999 233 3396',
+      emailValue: 'eslaboninmobiliario24@gmail.com',
+      phoneValue: '+52 999 559 0152',
       helper: {
         idle: 'Leave your info and we will get in touch:',
         submitted: 'Thank you! We will contact you shortly.',
@@ -700,6 +703,7 @@ export const translations: Record<Language, TranslationSchema> = {
       balance: 'Solde',
       monthly: 'Mensualité',
       balanceDelivery: 'Solde à la livraison',
+      remaining: 'Solde restant',
       personalize: 'Personnalisez votre devis',
       downPaymentLabel: 'Acompte',
       monthsLabel: 'Mois',
@@ -725,8 +729,8 @@ export const translations: Record<Language, TranslationSchema> = {
     contact: {
       emailLabel: 'Courriel',
       phoneLabel: 'Téléphone',
-      emailValue: 'admin@grandzilma.com',
-      phoneValue: '+52 1 999 233 3396',
+      emailValue: 'eslaboninmobiliario24@gmail.com',
+      phoneValue: '+52 999 559 0152',
       helper: {
         idle: 'Laissez vos informations et nous vous contacterons :',
         submitted: 'Merci ! Nous vous contacterons bientôt.',

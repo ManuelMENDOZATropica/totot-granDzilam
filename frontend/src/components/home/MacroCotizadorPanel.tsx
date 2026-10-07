@@ -491,16 +491,17 @@ export const MacroCotizadorPanel = ({
                     <span style={{ fontWeight: 600 }}>{formatCurrency(totales.enganche)}</span>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <span style={{ color: '#475569' }}>{panelCopy.balance}</span>
-                    <span style={{ fontWeight: 600 }}>{formatCurrency(totales.saldoFinanciar)}</span>
+                    <span style={{ color: '#475569' }}>
+                      {panelCopy.monthly} × {meses} {panelCopy.monthsLabel.toLowerCase()}
+                    </span>
+                    <span style={{ textAlign: 'right' }}>
+                      <span style={{ display: 'block', fontWeight: 600 }}>{formatCurrency(totales.mensualidad)}</span>
+                      <span style={{ fontSize: 11, color: '#475569' }}>= {formatCurrency(totales.pagadoEnMensualidades)}</span>
+                    </span>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 700, marginTop: 4 }}>
-                    <span>{panelCopy.monthly}</span>
-                    <span>{formatCurrency(totales.mensualidad)}</span>
-                  </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: '#475569' }}>
-                    <span>{panelCopy.monthsLabel}</span>
-                    <span>{meses} {panelCopy.monthsLabel}</span>
+                    <span>{panelCopy.remaining}</span>
+                    <span>{formatCurrency(totales.restante)}</span>
                   </div>
                 </div>
               </div>
