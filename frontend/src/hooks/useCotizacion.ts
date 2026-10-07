@@ -24,7 +24,9 @@ interface ParametrosCotizacionStorage {
 }
 
 const SELECCION_STORAGE_KEY = 'gran-dzilam:seleccion';
-const PARAMETROS_STORAGE_KEY = 'gran-dzilam:parametros';
+// v2: la versión anterior guardaba los parámetros aunque el visitante no los hubiera
+// tocado, así que casi todos tenían «12 meses» escrito y nunca veían el default del admin.
+const PARAMETROS_STORAGE_KEY = 'gran-dzilam:parametros:v2';
 
 /**
  * Rango físico dentro del que tiene sentido cada valor, no una política comercial: un
@@ -41,13 +43,8 @@ const MAX_MESES = 120;
  *
  * Los límites se alinean con el modelo de Mongo
  * (backend/src/models/finance-settings.model.ts), que antes decían aquí 10–100 % y 1–50
- * meses. Los valores por defecto se quedan como estaban a propósito: son los que ve un
- * visitante nuevo, y cambiarlos movería la cotización que aparece de entrada.
- *
- * Ojo: hoy el `defaultMeses` que configura el admin no se usa nunca. Al llegar la
- * configuración solo se ajusta el valor actual a los nuevos límites, no se adopta su
- * default, así que un visitante nuevo arranca en estos 12 meses y no en los 24 que tiene
- * puesto producción. Es un caso aparte del de los límites y se deja como está.
+ * meses. En cuanto llega la configuración, un visitante que no ha movido los sliders pasa a
+ * los defaults del admin; estos solo se ven si el servidor no responde.
  */
 const DEFAULT_SETTINGS: FinanceSettingsDTO = {
   minEnganche: 10,
@@ -55,7 +52,7 @@ const DEFAULT_SETTINGS: FinanceSettingsDTO = {
   defaultEnganche: 30,
   minMeses: 6,
   maxMeses: 60,
-  defaultMeses: 12,
+  defaultMeses: 60,
   interes: 0,
   tipoInteres: 'total',
   pasoMensualidad: 1000,
@@ -156,12 +153,8 @@ const escribirLocalStorage = <T>(key: string, value: T) => {
   }
 };
 
-const leerParametrosIniciales = () =>
-  leerLocalStorage<ParametrosCotizacionStorage>(PARAMETROS_STORAGE_KEY, {
-    porcentaje: DEFAULT_SETTINGS.defaultEnganche,
-    meses: DEFAULT_SETTINGS.defaultMeses,
-    mensualidadPersonalizada: null,
-  });
+const leerParametrosGuardados = () =>
+  leerLocalStorage<ParametrosCotizacionStorage | null>(PARAMETROS_STORAGE_KEY, null);
 
 const calcularTotales = (
   lotes: Lote[],
@@ -265,6 +258,8 @@ export const useCotizacion = () => {
   const [financeSettings, setFinanceSettings] = useState<FinanceSettingsDTO>(DEFAULT_SETTINGS);
   const [loadingSettings, setLoadingSettings] = useState(true);
   const [hydratedFromStorage, setHydratedFromStorage] = useState(false);
+  // Solo se guardan los parámetros que el visitante eligió; si no, manda el default del admin.
+  const [parametrosElegidos, setParametrosElegidos] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -330,15 +325,21 @@ export const useCotizacion = () => {
 
   useEffect(() => {
     const storedSelection = leerLocalStorage<string[] | null>(SELECCION_STORAGE_KEY, null);
-    const storedParams = leerParametrosIniciales();
+    const storedParams = leerParametrosGuardados();
 
     if (storedSelection) {
       setSelectedIds(storedSelection);
     }
 
-    setPorcentajeEnganche(sanitizePercentage(storedParams.porcentaje, financeSettings));
-    setMeses(sanitizeMonths(storedParams.meses, financeSettings));
-    setMensualidadPersonalizada(storedParams.mensualidadPersonalizada);
+    if (storedParams) {
+      setPorcentajeEnganche(sanitizePercentage(storedParams.porcentaje, financeSettings));
+      setMeses(sanitizeMonths(storedParams.meses, financeSettings));
+      setMensualidadPersonalizada(storedParams.mensualidadPersonalizada);
+      setParametrosElegidos(true);
+    } else {
+      setPorcentajeEnganche(financeSettings.defaultEnganche);
+      setMeses(financeSettings.defaultMeses);
+    }
     setHydratedFromStorage(true);
   }, [financeSettings]);
 
@@ -348,13 +349,13 @@ export const useCotizacion = () => {
   }, [hydratedFromStorage, selectedIds]);
 
   useEffect(() => {
-    if (!hydratedFromStorage) return;
+    if (!hydratedFromStorage || !parametrosElegidos) return;
     escribirLocalStorage(PARAMETROS_STORAGE_KEY, {
       porcentaje: porcentajeEnganche,
       meses,
       mensualidadPersonalizada,
     });
-  }, [hydratedFromStorage, porcentajeEnganche, meses, mensualidadPersonalizada]);
+  }, [hydratedFromStorage, parametrosElegidos, porcentajeEnganche, meses, mensualidadPersonalizada]);
 
   const selectedLots = useMemo(() => {
     if (!selectedIds.length) return [] as Lote[];
@@ -399,6 +400,7 @@ export const useCotizacion = () => {
   const actualizarPorcentaje = useCallback(
     (valor: number) => {
       setPorcentajeEnganche(sanitizePercentage(valor, financeSettings));
+      setParametrosElegidos(true);
     },
     [financeSettings],
   );
@@ -406,12 +408,14 @@ export const useCotizacion = () => {
   const actualizarMeses = useCallback(
     (valor: number) => {
       setMeses(sanitizeMonths(valor, financeSettings));
+      setParametrosElegidos(true);
     },
     [financeSettings],
   );
 
   const actualizarMensualidadPersonalizada = useCallback(
     (valor: number | null) => {
+      setParametrosElegidos(true);
       if (valor === null || !Number.isFinite(valor) || valor <= 0) {
         setMensualidadPersonalizada(null);
         return;
