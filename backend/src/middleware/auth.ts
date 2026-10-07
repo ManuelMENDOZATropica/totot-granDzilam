@@ -2,6 +2,7 @@ import { NextFunction, Request, Response } from 'express';
 import { HttpError } from '../utils/errors';
 import { verifyAuthToken } from '../utils/jwt';
 import { readAuthCookie } from '../utils/cookies';
+import { UserModel } from '../models/user.model';
 
 /**
  * R2 — La cookie httpOnly es el camino normal. Se conserva el encabezado Bearer como
@@ -41,17 +42,31 @@ const ROLE_PRIORITY = {
   admin: 3,
 } as const;
 
+/**
+ * El rol se lee de la base en cada petición, no del token: el token guarda el rol que
+ * tenía el usuario al iniciar sesión, y un cambio de rol desde el CRM no se notaba
+ * hasta que volviera a entrar (hasta 12 h después).
+ */
 export const requireRole = (role: keyof typeof ROLE_PRIORITY) => {
-  return (req: Request, _res: Response, next: NextFunction) => {
-    if (!req.user) {
-      throw new HttpError(401, 'No autorizado');
-    }
+  return async (req: Request, _res: Response, next: NextFunction) => {
+    try {
+      if (!req.user) {
+        throw new HttpError(401, 'No autorizado');
+      }
 
-    const userRole = req.user.role;
-    if (ROLE_PRIORITY[userRole] < ROLE_PRIORITY[role]) {
-      throw new HttpError(403, 'No tienes permisos para realizar esta acción');
-    }
+      const user = await UserModel.findById(req.user.sub).select('role').lean();
+      if (!user) {
+        throw new HttpError(401, 'No autorizado');
+      }
 
-    next();
+      req.user.role = user.role;
+      if (ROLE_PRIORITY[user.role] < ROLE_PRIORITY[role]) {
+        throw new HttpError(403, 'No tienes permisos para realizar esta acción');
+      }
+
+      next();
+    } catch (error) {
+      next(error);
+    }
   };
 };
