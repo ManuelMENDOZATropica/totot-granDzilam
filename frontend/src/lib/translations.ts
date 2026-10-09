@@ -128,6 +128,7 @@ type HomeCopy = {
     preference: string;
     privacy: string;
     cookies: string;
+    madeBy: string;
   };
 };
 
@@ -184,6 +185,7 @@ export const translations: Record<Language, TranslationSchema> = {
         preference: 'Preferencia actual',
         privacy: 'Aviso de privacidad',
         cookies: 'Preferencias de cookies',
+        madeBy: 'Hecho por',
       },
     },
     cookies: {
@@ -386,6 +388,7 @@ export const translations: Record<Language, TranslationSchema> = {
         preference: 'Current preference',
         privacy: 'Privacy notice',
         cookies: 'Cookie preferences',
+        madeBy: 'Made by',
       },
     },
     cookies: {
@@ -585,6 +588,7 @@ export const translations: Record<Language, TranslationSchema> = {
         preference: 'Préférence actuelle',
         privacy: 'Avis de confidentialité',
         cookies: 'Préférences de cookies',
+        madeBy: 'Réalisé par',
       },
     },
     cookies: {

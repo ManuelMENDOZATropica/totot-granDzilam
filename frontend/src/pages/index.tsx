@@ -691,6 +691,17 @@ export default function Home() {
             <div>
               <p className="text-sm font-semibold">{translations.home.footer.title}</p>
               <p className="text-xs text-white/70">{translations.home.footer.description}</p>
+              <p className="pt-2 text-xs text-white/60">
+                {translations.home.footer.madeBy}{' '}
+                <a
+                  href="https://totot.mx/"
+                  target="_blank"
+                  rel="noopener"
+                  className="font-semibold text-white/80 underline-offset-2 transition hover:text-white hover:underline"
+                >
+                  Totot_
+                </a>
+              </p>
               {cookieConsent ? (
                 <p className="pt-2 text-[clamp(0.6rem,1.1vw,0.7rem)] text-white/60">
                   {translations.home.footer.preference}:{' '}
